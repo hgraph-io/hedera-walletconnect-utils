@@ -5,7 +5,7 @@ import {
   setDefaultNodeAccountIds,
   base64StringToTransaction,
 } from '../src'
-import { prepareTestTransaction } from './helpers'
+import { prepareTestTransaction } from './_helpers'
 
 describe(freezeTransaction.name, () => {
   it('should freeze an unfrozen transaction', () => {
