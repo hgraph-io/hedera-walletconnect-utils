@@ -1,5 +1,5 @@
 import { HederaWallet } from '../../src'
-import { testPrivateKeyECDSA, testPrivateKeyED25519 } from '../_helpers'
+import { defaultAccountNumber, testPrivateKeyECDSA, testPrivateKeyED25519 } from '../_helpers'
 
 describe(HederaWallet.name, () => {
   describe('signMessage', () => {
@@ -21,7 +21,7 @@ describe(HederaWallet.name, () => {
       (_, privateKey, expected) => {
         const wallet = HederaWallet.init({
           network: 'testnet',
-          accountId: 12345,
+          accountId: defaultAccountNumber,
           privateKey,
         })
         const messageBytes = Buffer.from('Hello world').toString('base64')

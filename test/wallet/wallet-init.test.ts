@@ -1,16 +1,17 @@
 import { AccountId, Client, ClientNetworkName, PrivateKey } from '@hashgraph/sdk'
 import { HederaWallet } from '../../src'
+import { defaultAccountNumber } from '../_helpers'
 
 describe(HederaWallet.name, () => {
   describe('init', () => {
     // [networkName, accountId]
     const testCases: [ClientNetworkName, string | number][] = [
-      ['mainnet', 12345],
-      ['previewnet', 12345],
-      ['testnet', 12345],
-      ['mainnet', '0.0.12345'],
-      ['previewnet', '0.0.12345'],
-      ['testnet', '0.0.12345'],
+      ['mainnet', defaultAccountNumber],
+      ['previewnet', defaultAccountNumber],
+      ['testnet', defaultAccountNumber],
+      ['mainnet', `0.0.${defaultAccountNumber}`],
+      ['previewnet', `0.0.${defaultAccountNumber}`],
+      ['testnet', `0.0.${defaultAccountNumber}`],
     ]
     test.each(testCases)(
       'it should initialize with a %p client and accountId %p',
@@ -21,7 +22,7 @@ describe(HederaWallet.name, () => {
           network,
         })
         expect(wallet).toBeInstanceOf(HederaWallet)
-        expect(wallet.accountId.toString()).toBe('0.0.12345')
+        expect(wallet.accountId.toString()).toBe(`0.0.${defaultAccountNumber}`)
         expect(wallet.client).toBeInstanceOf(Client)
       },
     )
@@ -30,7 +31,7 @@ describe(HederaWallet.name, () => {
   describe('constructor', () => {
     // [AccountId, PrivateKey]
     const testCases: [AccountId, PrivateKey][] = [
-      [new AccountId(12345), PrivateKey.generateECDSA()],
+      [new AccountId(defaultAccountNumber), PrivateKey.generateECDSA()],
       [
         AccountId.fromBytes(new Uint8Array([8, 0, 16, 0, 24, 185, 96])), // Array obtained from accountId.toBytes()
         PrivateKey.generateED25519(),
@@ -41,7 +42,7 @@ describe(HederaWallet.name, () => {
       (accountId, privateKey) => {
         const wallet = new HederaWallet({ accountId, privateKey, network: 'testnet' })
         expect(wallet).toBeInstanceOf(HederaWallet)
-        expect(wallet.accountId.toString()).toBe('0.0.12345')
+        expect(wallet.accountId.toString()).toBe(`0.0.${defaultAccountNumber}`)
         expect(wallet.client).toBeInstanceOf(Client)
       },
     )

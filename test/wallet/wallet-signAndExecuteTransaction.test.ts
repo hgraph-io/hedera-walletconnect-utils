@@ -1,6 +1,11 @@
 import { TopicCreateTransaction, Transaction } from '@hashgraph/sdk'
 import { HederaWallet } from '../../src'
-import { prepareTestTransaction, testPrivateKeyECDSA, useJsonFixture } from '../_helpers'
+import {
+  defaultAccountNumber,
+  prepareTestTransaction,
+  testPrivateKeyECDSA,
+  useJsonFixture,
+} from '../_helpers'
 
 describe(HederaWallet.name, () => {
   describe.only('signAndExecuteTransaction', () => {
@@ -8,7 +13,7 @@ describe(HederaWallet.name, () => {
       const mockResult = useJsonFixture('signAndExecuteTransactionSuccess.json')
       const wallet = HederaWallet.init({
         network: 'testnet',
-        accountId: 12345,
+        accountId: defaultAccountNumber,
         privateKey: testPrivateKeyECDSA,
       })
       const transaction = prepareTestTransaction(new TopicCreateTransaction(), {
