@@ -5,7 +5,7 @@ import {
   setDefaultNodeAccountIds,
   base64StringToTransaction,
 } from '../src'
-import { prepareTestTransaction } from './_helpers'
+import { prepareTestTransaction, useJsonFixture } from './_helpers'
 
 describe(freezeTransaction.name, () => {
   it('should freeze an unfrozen transaction', () => {
@@ -55,11 +55,13 @@ describe(setDefaultNodeAccountIds.name, () => {
 
 describe(transactionToBase64String.name, () => {
   it('should convert a transaction to a base64 encoded string', () => {
-    const txn = prepareTestTransaction(new TopicCreateTransaction())
+    const txn = prepareTestTransaction(new TopicCreateTransaction(), {
+      useFixedTimeTransactionId: true,
+    })
     const result = transactionToBase64String(txn)
+    const { expected } = useJsonFixture('transactionToBase64StringResult')
 
-    expect(typeof result).toBe('string')
-    // TODO: find a good way to verify results. Base64 string changes slightly every time.
+    expect(result).toBe(expected)
   })
 })
 

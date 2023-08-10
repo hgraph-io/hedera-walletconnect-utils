@@ -1,10 +1,10 @@
-import { RequestType, TopicCreateTransaction } from '@hashgraph/sdk'
+import { RequestType, TopicCreateTransaction, TopicDeleteTransaction } from '@hashgraph/sdk'
 import {
   buildSignAndExecuteTransactionParams,
   buildSignAndReturnTransactionParams,
   buildSignMessageParams,
 } from '../src'
-import { prepareTestTransaction } from './_helpers'
+import { prepareTestTransaction, useJsonFixture, writeJsonFixture } from './_helpers'
 
 describe(buildSignMessageParams.name, () => {
   it('should build params with base64 encoded message', () => {
@@ -19,23 +19,29 @@ describe(buildSignMessageParams.name, () => {
 describe(buildSignAndExecuteTransactionParams.name, () => {
   it('should build transaction params with type and bytes', () => {
     const type = RequestType.ConsensusCreateTopic
-    const transaction = prepareTestTransaction(new TopicCreateTransaction())
-    const result = buildSignAndExecuteTransactionParams(type, transaction)
+    const transaction = prepareTestTransaction(new TopicCreateTransaction(), {
+      useFixedTimeTransactionId: true,
+    })
 
-    expect(result.transaction.type).toBe(type.toString())
-    expect(typeof result.transaction.bytes).toBe('string')
-    // TODO: find a good way to verify results. Base64 string changes slightly every time.
+    const result = buildSignAndExecuteTransactionParams(type, transaction)
+    writeJsonFixture('buildSignAndExecuteTransactionParamsResult', result)
+    const expected = useJsonFixture('buildSignAndExecuteTransactionParamsResult')
+
+    expect(result).toEqual(expected)
   })
 })
 
 describe(buildSignAndReturnTransactionParams.name, () => {
   it('should build transaction params with type and bytes', () => {
-    const type = RequestType.ConsensusCreateTopic
-    const transaction = prepareTestTransaction(new TopicCreateTransaction())
-    const result = buildSignAndReturnTransactionParams(type, transaction)
+    const type = RequestType.ConsensusDeleteTopic
+    const transaction = prepareTestTransaction(new TopicDeleteTransaction(), {
+      useFixedTimeTransactionId: true,
+    })
 
-    expect(result.transaction.type).toBe(type.toString())
-    expect(typeof result.transaction.bytes).toBe('string')
-    // TODO: find a good way to verify results. Base64 string changes slightly every time.
+    const result = buildSignAndReturnTransactionParams(type, transaction)
+    writeJsonFixture('buildSignAndReturnTransactionParamsResult', result)
+    const expected = useJsonFixture('buildSignAndReturnTransactionParamsResult')
+
+    expect(result).toEqual(expected)
   })
 })
