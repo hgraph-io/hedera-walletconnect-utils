@@ -1,4 +1,4 @@
-import { TransactionReceipt, TransactionResponse } from '@hashgraph/sdk'
+import { TransactionReceipt, TransactionResponseJSON } from '@hashgraph/sdk'
 
 type TransactionParams = {
   transaction: {
@@ -10,7 +10,7 @@ type TransactionParams = {
 /** hedera_signAndExecuteTransaction */
 export type HederaSignAndExecuteTransactionParams = TransactionParams
 export type HederaSignAndExecuteTransactionResponse = {
-  response: TransactionResponse
+  response: TransactionResponseJSON
   receipt: TransactionReceipt
 }
 

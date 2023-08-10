@@ -102,7 +102,7 @@ export class HederaWallet {
     const response = await signedTransaction.execute(this._client)
     const receipt = await response.getReceipt(this._client)
     return {
-      response,
+      response: response.toJSON(),
       receipt,
     }
   }
