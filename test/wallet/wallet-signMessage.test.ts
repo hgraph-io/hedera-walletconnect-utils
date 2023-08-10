@@ -1,8 +1,6 @@
 import { HederaWallet } from '../../src'
 import { testPrivateKeyECDSA, testPrivateKeyED25519 } from '../_helpers'
 
-jest.useFakeTimers()
-
 describe(HederaWallet.name, () => {
   describe('signMessage', () => {
     // [private key type, private key, expected value]

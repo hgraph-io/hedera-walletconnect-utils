@@ -16,7 +16,7 @@ type Options = {
 }
 export function prepareTestTransaction<T extends Transaction = Transaction>(
   transaction: T,
-  options: Options,
+  options?: Options,
 ): T {
   const selectedOptions: Options = {
     // defaults

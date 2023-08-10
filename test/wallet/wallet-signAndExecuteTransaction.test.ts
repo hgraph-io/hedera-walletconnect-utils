@@ -2,8 +2,6 @@ import { TopicCreateTransaction, Transaction } from '@hashgraph/sdk'
 import { HederaWallet } from '../../src'
 import { prepareTestTransaction, testPrivateKeyECDSA, useJsonFixture } from '../_helpers'
 
-jest.useFakeTimers()
-
 describe(HederaWallet.name, () => {
   describe.only('signAndExecuteTransaction', () => {
     it('should sign and execute, returning the transaction response and receipt', async () => {

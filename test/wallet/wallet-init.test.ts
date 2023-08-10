@@ -1,8 +1,6 @@
 import { AccountId, Client, ClientNetworkName, PrivateKey } from '@hashgraph/sdk'
 import { HederaWallet } from '../../src'
 
-jest.useFakeTimers()
-
 describe(HederaWallet.name, () => {
   describe('init', () => {
     // [networkName, accountId]
