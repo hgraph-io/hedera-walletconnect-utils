@@ -4,7 +4,7 @@ import { HederaWallet } from '../src'
 jest.useFakeTimers()
 
 describe(HederaWallet.name, () => {
-  describe('Init method', () => {
+  describe('init', () => {
     // [networkName, accountId]
     const testCases: [ClientNetworkName, string | number][] = [
       ['mainnet', 12345],
@@ -29,7 +29,7 @@ describe(HederaWallet.name, () => {
     )
   })
 
-  describe('Constructor', () => {
+  describe('constructor', () => {
     // [AccountId, PrivateKey]
     const testCases: [AccountId, PrivateKey][] = [
       [new AccountId(12345), PrivateKey.generateECDSA()],
@@ -45,6 +45,35 @@ describe(HederaWallet.name, () => {
         expect(wallet).toBeInstanceOf(HederaWallet)
         expect(wallet.accountId.toString()).toBe('0.0.12345')
         expect(wallet.client).toBeInstanceOf(Client)
+      },
+    )
+  })
+
+  describe('signMessage', () => {
+    // [private key type, private key, expected value]
+    const testCases = [
+      [
+        'ECDSA',
+        testPrivateKeyECDSA,
+        '3wZ4lWhegOFJ+Wkzzeta1Zdg36GGIBzYTJ/dfzJrMS9dgiW47Q4fi/kbSaAz8Ti4stFHGnffwnIlrn20PGgbiA==',
+      ],
+      [
+        'ED25519',
+        testPrivateKeyED25519,
+        'yU9PESjUTIHsust5Pm+KNWAAKKsHjzLBWEQhfzWVBQTDExdwc6YEnHbbBCbm2HZLtg+CuKD9uwnkrMm29XE5Dg==',
+      ],
+    ]
+    test.each(testCases)(
+      'should decode message bytes and sign with: %p',
+      (_, privateKey, expected) => {
+        const wallet = HederaWallet.init({
+          network: 'testnet',
+          accountId: 12345,
+          privateKey,
+        })
+        const messageBytes = Buffer.from('Hello world').toString('base64')
+        const result = wallet.signMessage(messageBytes)
+        expect(result.signature).toEqual(expected)
       },
     )
   })
