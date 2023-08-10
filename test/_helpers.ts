@@ -8,11 +8,14 @@ export const testUserAccountId = new AccountId(defaultAccountNumber)
 export const testNodeAccountId = new AccountId(defaultNodeId)
 export const testTransactionId = TransactionId.generate(testUserAccountId)
 
+export const fixedTimeTransactionId = TransactionId.fromString('0.0.12345@1691705630.325343432')
+
 type Options = {
   setNodeAccountIds?: boolean
   setTransactionId?: boolean
   freeze?: boolean
   operatorAccountId?: number
+  useFixedTimeTransactionId?: boolean
 }
 export function prepareTestTransaction<T extends Transaction = Transaction>(
   transaction: T,
@@ -24,6 +27,7 @@ export function prepareTestTransaction<T extends Transaction = Transaction>(
     setNodeAccountIds: true,
     setTransactionId: true,
     operatorAccountId: defaultAccountNumber,
+    useFixedTimeTransactionId: false,
     // overrides
     ...options,
   }
@@ -32,8 +36,13 @@ export function prepareTestTransaction<T extends Transaction = Transaction>(
   }
   if (selectedOptions.setTransactionId) {
     let transactionId = testTransactionId
-    if (selectedOptions.operatorAccountId) {
+    if (
+      selectedOptions.operatorAccountId &&
+      selectedOptions.operatorAccountId !== defaultAccountNumber
+    ) {
       transactionId = TransactionId.generate(new AccountId(selectedOptions.operatorAccountId))
+    } else if (selectedOptions.useFixedTimeTransactionId) {
+      transactionId = fixedTimeTransactionId
     }
     transaction.setTransactionId(transactionId)
   }
@@ -50,9 +59,21 @@ export const testPrivateKeyECDSA =
 export const testPrivateKeyED25519 =
   '302e020100300506032b657004220420133eefea772add1f995c96bccf42b08b76daf67665f0c4c5ae308fae9275c142'
 
+/** JSON fixture helpers */
 const FIXTURES_PATH = 'test/_fixtures'
-export function useJsonFixture(file: string) {
-  const filepath = path.join(FIXTURES_PATH, file)
+
+const filenameWithJsonExtension = (filename: string) => {
+  const file = /\.json$/.test(filename) ? filename : filename + '.json'
+  return path.join(FIXTURES_PATH, file)
+}
+
+export function useJsonFixture(filename: string) {
+  const filepath = filenameWithJsonExtension(filename)
   const data = fs.readFileSync(filepath).toString()
   return JSON.parse(data)
+}
+
+export function writeJsonFixture(filename: string, data: any) {
+  const filepath = filenameWithJsonExtension(filename)
+  fs.writeFileSync(filepath, JSON.stringify(data, null, 2))
 }
