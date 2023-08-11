@@ -3,7 +3,7 @@ import { TransactionReceipt, TransactionResponseJSON } from '@hashgraph/sdk'
 type TransactionParams = {
   transaction: {
     type: string
-    bytes: string
+    bytes: string // should be a base64 encoded string of a Uint8Array
   }
 }
 
