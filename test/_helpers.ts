@@ -6,16 +6,16 @@ export const defaultAccountNumber = 12345
 export const defaultNodeId = 3
 export const testUserAccountId = new AccountId(defaultAccountNumber)
 export const testNodeAccountId = new AccountId(defaultNodeId)
-export const testTransactionId = TransactionId.generate(testUserAccountId)
-
-export const fixedTimeTransactionId = TransactionId.fromString('0.0.12345@1691705630.325343432')
+/** Fixed to a specific timestamp */
+export const testTransactionId = TransactionId.fromString(
+  `0.0.${defaultAccountNumber}@1691705630.325343432`,
+)
 
 type Options = {
   setNodeAccountIds?: boolean
   setTransactionId?: boolean
   freeze?: boolean
   operatorAccountId?: number
-  useFixedTimeTransactionId?: boolean
 }
 export function prepareTestTransaction<T extends Transaction = Transaction>(
   transaction: T,
@@ -27,7 +27,6 @@ export function prepareTestTransaction<T extends Transaction = Transaction>(
     setNodeAccountIds: true,
     setTransactionId: true,
     operatorAccountId: defaultAccountNumber,
-    useFixedTimeTransactionId: false,
     // overrides
     ...options,
   }
@@ -41,8 +40,6 @@ export function prepareTestTransaction<T extends Transaction = Transaction>(
       selectedOptions.operatorAccountId !== defaultAccountNumber
     ) {
       transactionId = TransactionId.generate(new AccountId(selectedOptions.operatorAccountId))
-    } else if (selectedOptions.useFixedTimeTransactionId) {
-      transactionId = fixedTimeTransactionId
     }
     transaction.setTransactionId(transactionId)
   }

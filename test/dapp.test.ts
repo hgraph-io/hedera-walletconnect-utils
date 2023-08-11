@@ -19,9 +19,7 @@ describe(buildSignMessageParams.name, () => {
 describe(buildSignAndExecuteTransactionParams.name, () => {
   it('should build transaction params with type and bytes', () => {
     const type = RequestType.ConsensusCreateTopic
-    const transaction = prepareTestTransaction(new TopicCreateTransaction(), {
-      useFixedTimeTransactionId: true,
-    })
+    const transaction = prepareTestTransaction(new TopicCreateTransaction(), {})
 
     const result = buildSignAndExecuteTransactionParams(type, transaction)
     writeJsonFixture('buildSignAndExecuteTransactionParamsResult', result)
@@ -34,9 +32,7 @@ describe(buildSignAndExecuteTransactionParams.name, () => {
 describe(buildSignAndReturnTransactionParams.name, () => {
   it('should build transaction params with type and bytes', () => {
     const type = RequestType.ConsensusDeleteTopic
-    const transaction = prepareTestTransaction(new TopicDeleteTransaction(), {
-      useFixedTimeTransactionId: true,
-    })
+    const transaction = prepareTestTransaction(new TopicDeleteTransaction(), {})
 
     const result = buildSignAndReturnTransactionParams(type, transaction)
     writeJsonFixture('buildSignAndReturnTransactionParamsResult', result)

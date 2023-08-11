@@ -8,7 +8,7 @@ import {
 } from '../_helpers'
 
 describe(HederaWallet.name, () => {
-  describe.only('signAndExecuteTransaction', () => {
+  describe('signAndExecuteTransaction', () => {
     it('should sign and execute, returning the transaction response and receipt', async () => {
       const mockResult = useJsonFixture('signAndExecuteTransactionSuccess')
       const wallet = HederaWallet.init({

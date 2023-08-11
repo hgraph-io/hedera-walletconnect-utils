@@ -15,10 +15,7 @@ describe(HederaWallet.name, () => {
         accountId: defaultAccountNumber,
         privateKey: testPrivateKeyECDSA,
       })
-      const transaction = prepareTestTransaction(new TopicCreateTransaction(), {
-        freeze: true,
-        useFixedTimeTransactionId: true,
-      })
+      const transaction = prepareTestTransaction(new TopicCreateTransaction(), { freeze: true })
 
       const result = await wallet.signAndReturnTransaction(
         transaction,

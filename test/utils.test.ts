@@ -55,9 +55,7 @@ describe(setDefaultNodeAccountIds.name, () => {
 
 describe(transactionToBase64String.name, () => {
   it('should convert a transaction to a base64 encoded string', () => {
-    const txn = prepareTestTransaction(new TopicCreateTransaction(), {
-      useFixedTimeTransactionId: true,
-    })
+    const txn = prepareTestTransaction(new TopicCreateTransaction())
     const result = transactionToBase64String(txn)
     const { expected } = useJsonFixture('transactionToBase64StringResult')
 
