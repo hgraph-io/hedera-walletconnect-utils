@@ -9,3 +9,8 @@ export const HEDERA_HBAR_SIGN = 'ℏ'
  */
 export const HEDERA_SLIP0044_COIN_TYPE = 3030
 export const HEDERA_BIP0044_CONSTANT = 0x80000bd6
+export enum HederaJsonRpcMethods {
+  SIGN_AND_EXECUTE_TRANSACTION = 'hedera_signAndExecuteTransaction',
+  SIGN_AND_RETURN_TRANSACTION = 'hedera_signAndReturnTransaction',
+  SIGN_MESSAGE = 'hedera_signMessage',
+}
