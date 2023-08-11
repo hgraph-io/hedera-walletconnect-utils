@@ -1,5 +1,5 @@
 {
-  "name": "hedera-walletconnect-utils",
+  "name": "@hgraph.io/hedera-walletconnect-utils",
   "version": "0.0.1",
   "description": "A library to facilitate integrating Hedera with WalletConnect",
   "repository": {
