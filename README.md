@@ -137,8 +137,7 @@ const { topic, acknowledged } = await signClient.approve({
   namespaces: {
     hedera: {
       accounts: ['hedera:testnet:YOUR_HEDERA_ACCOUNT_ID'],
-      methods: ['personal_sign', 'eth_sendTransaction'],
-      events: ['accountsChanged']
+      methods: ['hedera_signAndExecuteTransaction']
     }
   }
 });
