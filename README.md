@@ -105,11 +105,11 @@ For a complete list of events and their structure, refer to the provided WalletC
 
 ### 4. Pairing with dApps
 
-Pairing establishes a connection between the wallet and a dapp. Once paired, the dApp can send session requests to the wallet.
+Pairing establishes a connection between the wallet and a dApp. Once paired, the dApp can send session requests to the wallet.
 
 #### a. Pairing via URI
 
-If a dapp shares a URI for pairing:
+If a dApp shares a URI for pairing:
 
 ```javascript
 await signClient.core.pairing.pair({ uri: 'RECEIVED_URI' });
@@ -178,7 +178,7 @@ await signClient.send({ id: event.id, result: response });
 
 ### 7. Ending a Session
 
-Sessions can be deleted by either the dapp or the wallet. When the `session_delete` event is triggered, update your application's state to reflect the end of the session:
+Sessions can be deleted by either the dApp or the wallet. When the `session_delete` event is triggered, update your application's state to reflect the end of the session:
 
 ```javascript
 signClient.on('session_delete', event => {
