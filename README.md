@@ -14,7 +14,7 @@ const signClient = await SignClient.init({ ...signClientProps })
 // Ensure other initialization steps are followed as per the WalletConnect documentation.
 ```
 
-2. **Constructing a Hedera Transaction**: Use the `@hashgraph/sdk` to build your desired Hedera transaction. It's important to manually set a `TransactionId` as it ensures traceability and potential reconciliation of transactions. [See the SDK documentation for more transaction types](https://docs.hedera.com/hedera/sdks-and-apis/sdks/transactions).
+2. **Constructing a Hedera Transaction**: Use the `@hashgraph/sdk` to build your desired Hedera transaction. It's important and required to manually set a `TransactionId` as it ensures traceability and potential reconciliation of transactions. [See the SDK documentation for more transaction types](https://docs.hedera.com/hedera/sdks-and-apis/sdks/transactions).
 
 ```js
 import { AccountId, TransactionId, TopicMessageSubmitTransaction } from '@hashgraph/sdk'
@@ -28,11 +28,11 @@ const transaction = new TopicMessageSubmitTransaction()
   .setTransactionId(transactionId)
 ```
 
-3. **Building the Session Request Payload**: The `@hgraph.io/hedera-walletconnect-utils` library provides a seamless way to prepare the session request payload. Ensure that you set the `RequestType` accurately to match the type of Hedera transaction you've constructed.
+3. **Building the Session Request Payload**: The `@hashgraph/wallectconnect` library provides a seamless way to prepare the session request payload. Ensure that you set the `RequestType` accurately to match the type of Hedera transaction you've constructed.
 
 ```js
 import {..., RequestType } from '@hashgraph/sdk'
-import { HederaSessionRequest } from '@hgraph.io/hedera-walletconnect-utils'
+import { HederaSessionRequest } from '@hashgraph/wallectconnect'
 
 const payload = HederaSessionRequest.create({
   chainId: 'hedera:testnet',
@@ -58,10 +58,9 @@ By following these steps, developers can ensure a comprehensive and user-friendl
 First, make sure you've installed the necessary npm packages:
 
 ```bash
-npm install @walletconnect/sign-client @hashgraph/sdk @hgraph.io/hedera-walletconnect-utils
+npm install @walletconnect/sign-client @hashgraph/sdk @hashgraph/wallectconnect
 ```
 
-If you have WalletConnect v1.x installed, consider following the [migration guide](https://docs.walletconnect.com/2.0/api/auth/wallet-usage) for a seamless transition to v2.x.
 
 ### 2. Initialize WalletConnect SignClient
 
@@ -106,7 +105,7 @@ For a complete list of events and their structure, refer to the provided WalletC
 
 ### 4. Pairing with dApps
 
-Pairing establishes a connection between the wallet and a dapp. Once paired, the dapp can send session requests to the wallet.
+Pairing establishes a connection between the wallet and a dapp. Once paired, the dApp can send session requests to the wallet.
 
 #### a. Pairing via URI
 
@@ -136,8 +135,8 @@ Upon receiving a `session_proposal` event, display the proposal details to the u
 const { topic, acknowledged } = await signClient.approve({
   id: proposalId, // From the session_proposal event
   namespaces: {
-    eip155: {
-      accounts: ['eip155:1:0xYOUR_HEDERA_ACCOUNT_ID'],
+    hedera: {
+      accounts: ['hedera:testnet:YOUR_HEDERA_ACCOUNT_ID'],
       methods: ['personal_sign', 'eth_sendTransaction'],
       events: ['accountsChanged']
     }
@@ -160,7 +159,7 @@ Upon receiving a `session_request` event, process the request. For instance, if 
 
 ```javascript
 // Using the @hgraph.io/hedera-walletconnect-utils library
-import { base64StringToTransaction, HederaWallet } from '@hgraph.io/hedera-walletconnect-utils';
+import { base64StringToTransaction, HederaWallet } from 'hashgraph/walletconnect';
 
 const transaction = base64StringToTransaction(event.params.request.params);
 const hederaWallet = await HederaWallet.init({
