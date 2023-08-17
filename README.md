@@ -53,22 +53,138 @@ By following these steps, developers can ensure a comprehensive and user-friendl
 
 ## Wallet Usage
 
-1. **Initialize the WalletConnect AuthClient**: To begin, wallets should first instantiate the WalletConnect [`AuthClient`](https://docs.walletconnect.com/2.0/api/auth/wallet-usage) to manage authentication requests.
+### 1. Setup and Installation
 
-```js
-import AuthClient from '@walletconnect/auth-client'
+First, make sure you've installed the necessary npm packages:
 
-const authClient = await AuthClient.init({ ...authClientProps })
-// Perform other initialization steps as needed. Refer to WalletConnect documentation.
+```bash
+npm install @walletconnect/sign-client @hashgraph/sdk @hgraph.io/hedera-walletconnect-utils
 ```
 
-2. **Listen for Session Requests**: Wallets should actively listen for incoming session requests that are initiated by dApps.
+If you have WalletConnect v1.x installed, consider following the [migration guide](https://docs.walletconnect.com/2.0/api/auth/wallet-usage) for a seamless transition to v2.x.
 
-```js
-authClient.on('auth_request', async ({ id, params }) => {
-  // Handle the authentication request here.
-  // This could include displaying a UI prompt to the user.
+### 2. Initialize WalletConnect SignClient
+
+You'll need your WalletConnect Project ID for this step. If you haven't already, obtain a Project ID from [WalletConnect Cloud](https://cloud.walletconnect.com/app).
+
+```javascript
+import SignClient from '@walletconnect/sign-client';
+
+const signClient = await SignClient.init({
+  projectId: 'YOUR_PROJECT_ID',
+  metadata: {
+    name: 'Your Wallet Name',
+    description: 'Description for your wallet',
+    url: 'https://your-wallet-url.com',
+    icons: ['https://your-wallet-url.com/icon.png'],
+  }
 });
 ```
 
-Working through signClient and authCient overlap still
+### 3. Event Listeners
+
+WalletConnect emits various events during a session. Listen to these events to synchronize the state of your application:
+
+```javascript
+// Handle pairing proposals
+signClient.on('session_proposal', event => {
+  // Display session proposal to the user and decide to approve or reject
+});
+
+// Handle session requests, like signing transactions or messages
+signClient.on('session_request', event => {
+  // Process the session request
+});
+
+// Handle session deletions
+signClient.on('session_delete', event => {
+  // React to session termination
+});
+```
+
+For a complete list of events and their structure, refer to the provided WalletConnect tutorial. [WalletConnect Usage](https://docs.walletconnect.com/2.0/api/auth/wallet-usage)
+
+### 4. Pairing with dApps
+
+Pairing establishes a connection between the wallet and a dapp. Once paired, the dapp can send session requests to the wallet.
+
+#### a. Pairing via URI
+
+If a dapp shares a URI for pairing:
+
+```javascript
+await signClient.core.pairing.pair({ uri: 'RECEIVED_URI' });
+```
+
+Upon successful pairing, the `session_proposal` event will be triggered.
+
+#### b. Pairing via QR Codes
+
+For a better user experience, dApps often share QR codes that wallets can scan to establish a pairing. Use a QR code scanning library to scan and obtain the URI, then proceed with pairing:
+
+```javascript
+const scannedUri = '...'; // URI obtained from scanning the QR code
+await signClient.core.pairing.pair({ uri: scannedUri });
+```
+
+### 5. Handling Session Proposals
+
+Upon receiving a `session_proposal` event, display the proposal details to the user. Allow them to approve or reject the session:
+
+```javascript
+// Approving a session proposal
+const { topic, acknowledged } = await signClient.approve({
+  id: proposalId, // From the session_proposal event
+  namespaces: {
+    eip155: {
+      accounts: ['eip155:1:0xYOUR_HEDERA_ACCOUNT_ID'],
+      methods: ['personal_sign', 'eth_sendTransaction'],
+      events: ['accountsChanged']
+    }
+  }
+});
+
+// Rejecting a session proposal
+await signClient.reject({
+  id: proposalId,
+  reason: {
+    code: 1,
+    message: 'User rejected the proposal'
+  }
+});
+```
+
+### 6. Handling Session Requests
+
+Upon receiving a `session_request` event, process the request. For instance, if the dApp requests a transaction to be signed:
+
+```javascript
+// Using the @hgraph.io/hedera-walletconnect-utils library
+import { base64StringToTransaction, HederaWallet } from '@hgraph.io/hedera-walletconnect-utils';
+
+const transaction = base64StringToTransaction(event.params.request.params);
+const hederaWallet = await HederaWallet.init({
+  accountId: 'YOUR_HEDERA_ACCOUNT_ID',
+  privateKey: 'YOUR_HEDERA_PRIVATE_KEY',
+  network: 'testnet'
+});
+const response = await hederaWallet.signAndExecuteTransaction(transaction);
+```
+
+Return the signed transaction to the dApp:
+
+```javascript
+await signClient.send({ id: event.id, result: response });
+```
+
+### 7. Ending a Session
+
+Sessions can be deleted by either the dapp or the wallet. When the `session_delete` event is triggered, update your application's state to reflect the end of the session:
+
+```javascript
+signClient.on('session_delete', event => {
+  // Update the UI to show the session has ended
+});
+```
+
+Remember to always handle errors gracefully, informing users about any issues or required actions. With the above steps, your wallet should be fully integrated with the Hedera WalletConnect Utils and ready to interact with dApps over WalletConnect.
