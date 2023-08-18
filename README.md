@@ -19,10 +19,10 @@ functionality with the `hedera_signMessage` function.
 In short, it uses the Hedera javascript SDK to build transactions, serialize them, send "them
 over the wire" to wallets for processing and return responses back to dApps.
 
-Messages could include:
+A message could be on of:
 
-- Hedera network response
-- error message
+- a Hedera network response
+- an error message
 - signed transaction bytes
 - signed arbitrary set of bytes
 
