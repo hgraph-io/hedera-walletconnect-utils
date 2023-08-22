@@ -19,7 +19,7 @@ functionality with the `hedera_signMessage` function.
 In short, it uses the Hedera javascript SDK to build transactions, serialize them, send "them
 over the wire" to wallets for processing and return responses back to dApps.
 
-A message could be on of:
+A message could be one of:
 
 - a Hedera network response
 - an error message
@@ -40,7 +40,7 @@ those more familiar with the Ethereum ecosystem._
 It is important to understand core WalletConnect concepts when integrating this library. Please
 reference the [WalletConnet documentation](https://docs.walletconnect.com/2.0/).
 
-Upon successfully configuring your dApp and/or wallet manage WalletConnect sessions, you can use
+Upon successfully configuring your dApp and/or wallet to manage WalletConnect sessions, you can use
 this library’s functions to easily create and handle requests for the Hedera network.
 
 ### dApp
