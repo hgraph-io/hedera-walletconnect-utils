@@ -35,13 +35,18 @@ _The relay and this library have different intentions and serve different purpos
 native Hedera integration vs. Ethereum compatability layers to ease developer onboarding for
 those more familiar with the Ethereum ecosystem._
 
-## Usage
+## Set up
+
+To start using WalletConnect, sign up for an account at <https://cloud.walletconnect.com>. You
+will use your project id when initializing client libraries.
 
 It is important to understand core WalletConnect concepts when integrating this library. Please
 reference the [WalletConnet documentation](https://docs.walletconnect.com/2.0/).
 
-Upon successfully configuring your dApp and/or wallet to manage WalletConnect sessions, you can use
-this library’s functions to easily create and handle requests for the Hedera network.
+## Usage
+
+Upon successfully configuring your dApp and/or wallet to manage WalletConnect sessions, you can
+use this library’s functions to easily create and handle requests for the Hedera network.
 
 ### dApp
 
