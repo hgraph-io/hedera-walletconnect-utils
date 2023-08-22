@@ -5,7 +5,7 @@ wallets and dApp providers utilizing [WalletConnect](https://walletconnect.com) 
 communications protocol. It utilizes the
 [`@hashgraph/sdk`](https://www.npmjs.com/package/@hashgraph/sdk) and provides functions to
 facilitate implementing the
-[Hedera <> WalletConnct JSON-RPC spec](https://walletconnect-specs-git-fork-hgraph-io-main-walletconnect1.vercel.app/2.0/blockchain-rpc/hedera-rpc).
+[Hedera <> WalletConnect JSON-RPC spec](https://walletconnect-specs-git-fork-hgraph-io-main-walletconnect1.vercel.app/2.0/blockchain-rpc/hedera-rpc).
 
 > WalletConnect brings the ecosystem together by enabling wallets and apps to securely connect
 > and interact.
