@@ -41,7 +41,7 @@ To start using WalletConnect, sign up for an account at <https://cloud.walletcon
 will use your project id when initializing client libraries.
 
 It is important to understand core WalletConnect concepts when integrating this library. Please
-reference the [WalletConnet documentation](https://docs.walletconnect.com/2.0/).
+reference the [WalletConnect documentation](https://docs.walletconnect.com/2.0/).
 
 ## Usage
 
