@@ -1,4 +1,7 @@
 const projectId = '37bc1dca96ab6ad2ba983b9a9362bcc6'
+
+// import SignClient from 'https://unpkg.com/@walletconnect/sign-client'
+// import { WalletConnectModal } from 'https://unpkg.com/@walletconnect/modal'
 import SignClient from '@walletconnect/sign-client'
 import { WalletConnectModal } from '@walletconnect/modal'
 import {
@@ -7,7 +10,8 @@ import {
   TransferTransaction,
   Hbar,
   RequestType,
-} from '@hashgraph/sdk'
+  // } from 'https://unpkg.com/@hashgraph/sdk/src/browser.js'
+} from '../../../node_modules/@hashgraph/sdk/src/browser.js'
 // import { HederaSessionRequest } from '@hashgraph/walletconnect'
 
 /*
@@ -101,6 +105,7 @@ async function main() {
 
   document.getElementById('sign-execute-transaction').onclick =
     async function signExecuteTransaction() {
+      alert('hi')
       const payerAccountId = new AccountId(1234)
       const nodeAccountIds = [new AccountId(3)]
       const transactionId = TransactionId.generate(payerAccountId)
@@ -110,6 +115,8 @@ async function main() {
         .setNodeAccountIds(nodeAccountIds)
         .addHbarTransfer(payerAccountId, new Hbar(-100))
         .addHbarTransfer('0.0.4321', new Hbar(100))
+
+      console.log(transaction)
 
       // const payload = HederaSessionRequest.create({
       //   chainId: 'hedera:testnet',
