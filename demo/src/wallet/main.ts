@@ -9,6 +9,7 @@ const params = {
   privateKey: 'your Hedera testnet private key. (https://portal.hedera.com/)',
   projectId: 'your wallet’s project id from https://cloud.walletconnect.com',
 }
+
 /*
  * window.onload
  * See if all required params are already in the session

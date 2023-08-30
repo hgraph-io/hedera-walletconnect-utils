@@ -38,7 +38,12 @@
       </div>
       <div class="toggle hidden">
         <button id="open-modal">Open WalletConnectModal</button>
-        <button id="sign-execute-transaction">hedera_signAndExecuteTransaction</button>
+        <button
+          id="sign-execute-transaction"
+          onclick="alert('Please initialize WalletConnect session first')"
+        >
+          hedera_signAndExecuteTransaction
+        </button>
         <button onclick="sessionStorage.clear(); location.reload();">
           Clear saved session
         </button>
