@@ -1,28 +1,65 @@
-const projectId = 'fc2d1e07b0352b11991711847a458e4e'
 import SignClient from '@walletconnect/sign-client'
+import { PrivateKey, AccountId } from '../../../node_modules/@hashgraph/sdk/src/browser.js'
 
 /*
+ * Required params for the demo
+ */
+const params = {
+  accountId: 'your Hedera testnet account id. (https://portal.hedera.com/)',
+  privateKey: 'your Hedera testnet private key. (https://portal.hedera.com/)',
+  projectId: 'your wallet’s project id from https://cloud.walletconnect.com',
+}
+/*
+ * window.onload
+ * See if all required params are already in the session
+ */
+window.onload = function onload() {
+  for (const [key, _] of Object.entries(params))
+    if (!sessionStorage.getItem(key)) {
+      sessionStorage.clear()
+      throw new Error('Environment not initialized')
+    }
+
+  // if all env variables are initialized, show the pair button
+  document.querySelectorAll('.toggle').forEach((el) => {
+    el.classList.toggle('hidden')
+  })
+}
+
+/*
+ * Prompt user for required params
+ */
+window.initializeSession = async function initialize() {
+  for (const [key, message] of Object.entries(params)) {
+    const value = prompt(`Please enter ${message}`) || undefined
+    if (value) sessionStorage.setItem(key, value)
+    else throw new Error(`No ${key} provided`)
+  }
+
+  document.querySelectorAll('.toggle').forEach((el) => {
+    el.classList.toggle('hidden')
+  })
+}
+/*
+ * WalletConnect setup
  * https://docs.walletconnect.com/2.0/api/sign/dapp-usage
  */
+async function initializeWalletConnect() {
+  const accountId = AccountId.fromString(sessionStorage.getItem('accountId'))
+  const projectId = sessionStorage.getItem('projectId')
 
-/*
- * Create a session
- *
- * 1. Initiate Sign Client
- */
-async function main() {
   const signClient = await SignClient.init({
     projectId,
     metadata: {
-      name: 'Slick Wallet',
-      description: 'This is a slick wallet!',
+      name: 'Wallet',
+      description: 'This is a wallet.',
       url: 'https://hgraph.app',
       icons: ['https://walletconnect.com/walletconnect-logo.png'],
     },
   })
 
   /*
-   * 2. Add listeners
+   * Add listeners
    */
 
   signClient.on('session_proposal', async (event) => {
@@ -32,11 +69,11 @@ async function main() {
       id,
       params: { requiredNamespaces },
     } = event
-    const { topic, acknowledged } = await signClient.approve({
+    await signClient.approve({
       id,
       namespaces: {
         hedera: {
-          accounts: ['hedera:testnet:0.0.1234'],
+          accounts: [`hedera:testnet:${accountId.toString()}`],
           methods: requiredNamespaces.hedera.methods,
           events: requiredNamespaces.hedera.events,
         },
@@ -58,29 +95,16 @@ async function main() {
     console.log('session deleted')
     // Session was deleted -> reset the dapp state, clean up from user session, etc.
   })
-
-  /*
-   * 3. Create a session
-   */
-  // @ts-ignore
-  window.pair = async function pair() {
-    // @ts-ignore
-    const uri = document.querySelector('input[name="uri"]')?.value
-    if (!uri) throw new Error('No URI')
-    const session = await signClient.core.pairing.pair({ uri })
-    // console.log(session)
-    // const { topic, acknowledged } = await signClient.approve({
-    //   id: 123,
-    //   namespaces: {
-    //     eip155: {
-    //       accounts: ['hedera:testnet:0.0.1234'],
-    //       methods: ['hedera_signAndReturnTransaction'],
-    //       events: ['accountsChanged'],
-    //     },
-    //   },
-    // })
-    // console.log(topic)
-    // console.log(acknowledged)
-  }
+  return signClient
 }
-main()
+
+/*
+ * Create a session on user action
+ */
+window.pair = async function pair() {
+  const signClient = await initializeWalletConnect()
+  const uri = (document.querySelector('input[name="uri"]') as HTMLInputElement)?.value
+  if (!uri) throw new Error('No URI')
+
+  await signClient.core.pairing.pair({ uri })
+}
