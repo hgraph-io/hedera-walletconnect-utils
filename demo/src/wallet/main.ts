@@ -18,7 +18,7 @@ window.onload = function onload() {
   for (const [key, _] of Object.entries(params))
     if (!sessionStorage.getItem(key)) {
       sessionStorage.clear()
-      throw new Error('Environment not initialized')
+      throw new Error('Wallet environment not initialized')
     }
 
   // if all env variables are initialized, show the pair button
@@ -32,7 +32,9 @@ window.onload = function onload() {
  */
 window.initializeSession = async function initialize() {
   for (const [key, message] of Object.entries(params)) {
-    const value = prompt(`Please enter ${message}`) || undefined
+    let value = undefined
+    while (!value) value = prompt(`Please enter ${message}`) || undefined
+
     if (value) sessionStorage.setItem(key, value)
     else throw new Error(`No ${key} provided`)
   }

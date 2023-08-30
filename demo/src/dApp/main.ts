@@ -8,9 +8,9 @@ import {
   TransactionId,
   TransferTransaction,
   Hbar,
-  // RequestType,
+  RequestType,
 } from '../../../node_modules/@hashgraph/sdk/src/browser.js'
-// import { HederaSessionRequest } from '@hashgraph/walletconnect'
+import { HederaSessionRequest } from '@hashgraph/walletconnect'
 
 /*
  * Required params for the demo
@@ -27,7 +27,7 @@ window.onload = function onload() {
   for (const [key, _] of Object.entries(params))
     if (!sessionStorage.getItem(key)) {
       sessionStorage.clear()
-      throw new Error('Environment not initialized')
+      throw new Error('dApp environment not initialized')
     }
 
   // if all env variables are initialized, show the pair button
@@ -124,15 +124,17 @@ document.getElementById('open-modal').onclick = async function openModal() {
   // Open QRCode modal if a URI was returned (i.e. we're not connecting an existing pairing).
   if (uri) {
     walletConnectModal.openModal({ uri })
-    // Await session approval from the wallet.
-    const session = await approval()
-    console.log(session)
-    // Handle the returned session (e.g. update UI to "connected" state).
-    alert('Connected!')
-    sessionStorage.setItem('wallet-connect-session', JSON.stringify(session))
-    // Close the QRCode modal in case it was open.
-    walletConnectModal.closeModal()
   }
+  console.log(uri)
+  console.log(approval)
+  // Await session approval from the wallet.
+  const session = await approval()
+  console.log(session)
+  alert('Connected!')
+  walletConnectModal.closeModal()
+  // Handle the returned session (e.g. update UI to "connected" state).
+  sessionStorage.setItem('wallet-connect-session', JSON.stringify(session))
+  // Close the QRCode modal in case it was open.
 
   /*
    * Sample transaction
@@ -156,10 +158,11 @@ document.getElementById('open-modal').onclick = async function openModal() {
 
       console.log(transaction)
 
-      // const payload = HederaSessionRequest.create({
+      // const payload = new HederaSessionRequest({
       //   chainId: 'hedera:testnet',
-      //   topic: JSON.parse(sessionStorage.getItem('session'))?.topic,
+      //   topic: walletConnectSession.topic,
       // }).buildSignAndExecuteTransactionRequest(RequestType.CryptoTransfer, transaction)
+      // console.log(payload)
 
       // const result = await signClient.request(payload)
 
