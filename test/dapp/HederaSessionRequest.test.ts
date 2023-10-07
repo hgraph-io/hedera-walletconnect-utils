@@ -1,8 +1,8 @@
 import { RequestType, TopicCreateTransaction, TopicDeleteTransaction } from '@hashgraph/sdk'
-import { HederaJsonRpcMethods, HederaSessionRequest } from '../../src'
+import { HederaJsonRpcMethods, HederaSessionRequest, networkNameToCAIPChainId } from '../../src'
 import { prepareTestTransaction, useJsonFixture } from '../_helpers'
 
-const CHAIN_ID = 'hedera:testnet'
+const CHAIN_ID = networkNameToCAIPChainId('testnet')
 const TOPIC = 'abcdef123456'
 
 describe(HederaSessionRequest.name, () => {
@@ -28,13 +28,12 @@ describe(HederaSessionRequest.name, () => {
 
   describe('buildSignAndExecuteTransactionRequest', () => {
     it(`should build request with ${HederaJsonRpcMethods.SIGN_AND_EXECUTE_TRANSACTION} params`, () => {
-      const type = RequestType.ConsensusCreateTopic
       const transaction = prepareTestTransaction(new TopicCreateTransaction())
 
       const result = HederaSessionRequest.create({
         chainId: CHAIN_ID,
         topic: TOPIC,
-      }).buildSignAndExecuteTransactionRequest(type, transaction)
+      }).buildSignAndExecuteTransactionRequest('0.0.1234', transaction)
 
       const expected = {
         chainId: CHAIN_ID,
@@ -58,7 +57,7 @@ describe(HederaSessionRequest.name, () => {
       const result = HederaSessionRequest.create({
         chainId: CHAIN_ID,
         topic: TOPIC,
-      }).buildSignAndReturnTransactionRequest(type, transaction)
+      }).buildSignAndReturnTransactionRequest('0.0.1234', transaction)
 
       const expected = {
         chainId: CHAIN_ID,
@@ -79,7 +78,7 @@ describe(HederaSessionRequest.name, () => {
       const result = HederaSessionRequest.create({
         chainId: CHAIN_ID,
         topic: TOPIC,
-      }).buildSignMessageRequest('Test me')
+      }).buildSignMessageRequest('0.0.1234', ['Test me'])
 
       const expected = {
         chainId: CHAIN_ID,

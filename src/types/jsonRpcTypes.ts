@@ -1,8 +1,8 @@
 import { TransactionReceipt, TransactionResponseJSON } from '@hashgraph/sdk'
 
 type TransactionParams = {
+  signerAccountId: string
   transaction: {
-    type: string
     bytes: string // should be a base64 encoded string of a Uint8Array
   }
 }
@@ -20,8 +20,9 @@ export type HederaSignAndReturnTransactionResponse = TransactionParams
 
 /** hedera_signMessage */
 export type HederaSignMessageParams = {
-  message: string
+  signerAccountId: string
+  messages: string[] // should be an array of base64 encoded string of a Uint8Array
 }
 export type HederaSignMessageResponse = {
-  signature: string
+  signatures: string[]
 }

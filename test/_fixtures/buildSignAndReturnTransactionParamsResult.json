@@ -1,6 +1,6 @@
 {
+  "signerAccountId": "0.0.1234",
   "transaction": {
-    "type": "ConsensusDeleteTopic",
     "bytes": "CjcqNQoxChkKDAiewtWmBhDIsZGbARIHCAAQABi5YBgAEgYIABAAGAMYgISvXyICCHgyANIBABIA"
   }
 }

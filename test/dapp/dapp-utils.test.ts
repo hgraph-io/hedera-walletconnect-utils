@@ -1,15 +1,15 @@
-import { RequestType, TopicCreateTransaction, TopicDeleteTransaction } from '@hashgraph/sdk'
+import { TopicCreateTransaction, TopicDeleteTransaction } from '@hashgraph/sdk'
 import {
   buildSignAndExecuteTransactionParams,
   buildSignAndReturnTransactionParams,
   buildSignMessageParams,
 } from '../../src'
-import { prepareTestTransaction, useJsonFixture, writeJsonFixture } from '../_helpers'
+import { prepareTestTransaction, useJsonFixture } from '../_helpers'
 
 describe(buildSignMessageParams.name, () => {
   it('should build params with base64 encoded message', () => {
     const msg = 'Test me'
-    const result = buildSignMessageParams(msg)
+    const result = buildSignMessageParams('0.0.1234', [msg])
     const expected = useJsonFixture('buildSignMessageParamsResult')
 
     expect(result).toEqual(expected)
@@ -18,10 +18,9 @@ describe(buildSignMessageParams.name, () => {
 
 describe(buildSignAndExecuteTransactionParams.name, () => {
   it('should build transaction params with type and bytes', () => {
-    const type = RequestType.ConsensusCreateTopic
     const transaction = prepareTestTransaction(new TopicCreateTransaction())
 
-    const result = buildSignAndExecuteTransactionParams(type, transaction)
+    const result = buildSignAndExecuteTransactionParams('0.0.1234', transaction)
     const expected = useJsonFixture('buildSignAndExecuteTransactionParamsResult')
 
     expect(result).toEqual(expected)
@@ -30,10 +29,9 @@ describe(buildSignAndExecuteTransactionParams.name, () => {
 
 describe(buildSignAndReturnTransactionParams.name, () => {
   it('should build transaction params with type and bytes', () => {
-    const type = RequestType.ConsensusDeleteTopic
     const transaction = prepareTestTransaction(new TopicDeleteTransaction())
 
-    const result = buildSignAndReturnTransactionParams(type, transaction)
+    const result = buildSignAndReturnTransactionParams('0.0.1234', transaction)
     const expected = useJsonFixture('buildSignAndReturnTransactionParamsResult')
 
     expect(result).toEqual(expected)
