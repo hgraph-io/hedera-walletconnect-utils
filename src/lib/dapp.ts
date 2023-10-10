@@ -1,4 +1,4 @@
-import { RequestType, type Transaction } from '@hashgraph/sdk'
+import { type Transaction } from '@hashgraph/sdk'
 import { EngineTypes } from '@walletconnect/types'
 import { transactionToBase64String } from './utils'
 import {
@@ -8,33 +8,37 @@ import {
 } from '../types'
 import { HederaJsonRpcMethods } from './constants'
 
-export function buildSignMessageParams(message: string): HederaSignMessageParams {
+export function buildSignMessageParams(
+  signerAccountId: string,
+  messages: (Uint8Array | string)[],
+): HederaSignMessageParams {
   return {
-    message: Buffer.from(message).toString('base64'),
+    signerAccountId,
+    messages: messages.map((message) => Buffer.from(message).toString('base64')),
   }
 }
 
-function _buildTransactionParams(type: RequestType, transaction: Transaction) {
+function _buildTransactionParams(signerAccountId: string, transaction: Transaction) {
   return {
+    signerAccountId,
     transaction: {
-      type: type.toString(),
       bytes: transactionToBase64String(transaction),
     },
   }
 }
 
 export function buildSignAndExecuteTransactionParams(
-  type: RequestType,
+  signerAccountId: string,
   transaction: Transaction,
 ): HederaSignAndExecuteTransactionParams {
-  return _buildTransactionParams(type, transaction)
+  return _buildTransactionParams(signerAccountId, transaction)
 }
 
 export function buildSignAndReturnTransactionParams(
-  type: RequestType,
+  signerAccountId: string,
   transaction: Transaction,
 ): HederaSignAndReturnTransactionParams {
-  return _buildTransactionParams(type, transaction)
+  return _buildTransactionParams(signerAccountId, transaction)
 }
 
 type HederaSessionRequestOptions = Pick<
@@ -56,32 +60,38 @@ export class HederaSessionRequest {
     return new HederaSessionRequest(options)
   }
 
-  public buildSignAndExecuteTransactionRequest(type: RequestType, transaction: Transaction) {
+  public buildSignAndExecuteTransactionRequest(
+    signerAccountId: string,
+    transaction: Transaction,
+  ) {
     return {
       ...this._buildFixedSessionRequestData(),
       request: {
         method: HederaJsonRpcMethods.SIGN_AND_EXECUTE_TRANSACTION,
-        params: buildSignAndExecuteTransactionParams(type, transaction),
+        params: buildSignAndExecuteTransactionParams(signerAccountId, transaction),
       },
     }
   }
 
-  public buildSignAndReturnTransactionRequest(type: RequestType, transaction: Transaction) {
+  public buildSignAndReturnTransactionRequest(
+    signerAccountId: string,
+    transaction: Transaction,
+  ) {
     return {
       ...this._buildFixedSessionRequestData(),
       request: {
         method: HederaJsonRpcMethods.SIGN_AND_RETURN_TRANSACTION,
-        params: buildSignAndReturnTransactionParams(type, transaction),
+        params: buildSignAndReturnTransactionParams(signerAccountId, transaction),
       },
     }
   }
 
-  public buildSignMessageRequest(message: string) {
+  public buildSignMessageRequest(signerAccountId: string, messages: (Uint8Array | string)[]) {
     return {
       ...this._buildFixedSessionRequestData(),
       request: {
         method: HederaJsonRpcMethods.SIGN_MESSAGE,
-        params: buildSignMessageParams(message),
+        params: buildSignMessageParams(signerAccountId, messages),
       },
     }
   }

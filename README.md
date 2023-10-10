@@ -81,17 +81,15 @@ const transaction = new TopicMessageSubmitTransaction()
 ```
 
 3. **Build the Session Request Payload**: The `@hashgraph/wallectconnect` library provides a
-   seamless way to prepare the session request payload. Ensure that you set the `RequestType`
-   accurately to match the type of Hedera transaction you've constructed.
+   seamless way to prepare the session request payload.
 
 ```javascript
-import {..., RequestType } from '@hashgraph/sdk'
-import { HederaSessionRequest } from '@hashgraph/wallectconnect'
+import { HederaSessionRequest, networkNameToCAIPChainId } from '@hashgraph/wallectconnect'
 
 const payload = HederaSessionRequest.create({
-  chainId: 'hedera:testnet',
+  chainId: networkNameToCAIPChainId('testnet'), // CAIP-2 Chain ID for testnet
   topic: 'abcdef123456',
-}).buildSignAndExecuteTransactionRequest(RequestType.ConsensusSubmitMessage, transaction)
+}).buildSignAndExecuteTransactionRequest('0.0.1234', transaction)
 ```
 
 4. **Send the Transaction to the Wallet**: With the payload prepared, utilize the WalletConnect

@@ -1,4 +1,4 @@
-import { AccountId, Transaction } from '@hashgraph/sdk'
+import { AccountId, Transaction, LedgerId } from '@hashgraph/sdk'
 
 /**
  * Freezes a transaction if it is not already frozen. Transactions must
@@ -59,4 +59,105 @@ export function transactionToBase64String<T extends Transaction>(transaction: T)
 export function base64StringToTransaction<T extends Transaction>(transactionBytes: string): T {
   const decoded = Buffer.from(transactionBytes, 'base64')
   return Transaction.fromBytes(decoded) as T
+}
+
+/**
+ * A mapping of `LedgerId` to EIP chain id and CAIP-2 network name.
+ * @link https://namespaces.chainagnostic.org/hedera/README
+ * @link https://hips.hedera.com/hip/hip-30
+ * @summary [`LedgerId`, `number` (EIP155 chain id), `string` (CAIP-2 chain id)][]
+ */
+export const LEDGER_ID_MAPPINGS: [LedgerId, number, string][] = [
+  [LedgerId.MAINNET, 295, 'hedera:mainnet'],
+  [LedgerId.TESTNET, 296, 'hedera:testnet'],
+  [LedgerId.PREVIEWNET, 297, 'hedera:previewnet'],
+  [LedgerId.LOCAL_NODE, 298, 'hedera:devnet'],
+]
+const DEFAULT_LEDGER_ID = LedgerId.LOCAL_NODE
+const DEFAULT_EIP = LEDGER_ID_MAPPINGS[3][1]
+const DEFAULT_CAIP = LEDGER_ID_MAPPINGS[3][2]
+
+/**
+ * Converts a EIP chain id to a LedgerId object. If no mapping is found, returns `LedgerId.LOCAL_NODE`.
+ * @param chainId number
+ * @returns `LedgerId`
+ */
+export function EIPChainIdToLedgerId(chainId: number): LedgerId {
+  for (let i = 0; i < LEDGER_ID_MAPPINGS.length; i++) {
+    const [ledgerId, chainId_] = LEDGER_ID_MAPPINGS[i]
+    if (chainId === chainId_) {
+      return ledgerId
+    }
+  }
+  return DEFAULT_LEDGER_ID
+}
+
+/**
+ * Converts a LedgerId object to a EIP chain id. If no mapping is found,
+ * returns the EIP chain id for `LedgerId.LOCAL_NODE`.
+ * @param ledgerId LedgerId
+ * @returns `number`
+ */
+export function ledgerIdToEIPChainId(ledgerId: LedgerId): number {
+  for (let i = 0; i < LEDGER_ID_MAPPINGS.length; i++) {
+    const [ledgerId_, chainId] = LEDGER_ID_MAPPINGS[i]
+    if (ledgerId === ledgerId_) {
+      return chainId
+    }
+  }
+  return DEFAULT_EIP
+}
+
+/**
+ * Converts a network name to a EIP chain id. If no mapping is found,
+ * returns the EIP chain id for `LedgerId.LOCAL_NODE`.
+ * @param networkName string
+ * @returns `number`
+ */
+export function networkNameToEIPChainId(networkName: string): number {
+  const ledgerId = LedgerId.fromString(networkName.toLowerCase())
+  return ledgerIdToEIPChainId(ledgerId)
+}
+
+/**
+ * Converts a CAIP chain id to a LedgerId object. If no mapping is found, returns `LedgerId.LOCAL_NODE`.
+ * @param chainId number
+ * @returns `LedgerId`
+ */
+export function CAIPChainIdToLedgerId(chainId: string): LedgerId {
+  for (let i = 0; i < LEDGER_ID_MAPPINGS.length; i++) {
+    const [ledgerId, _, chainId_] = LEDGER_ID_MAPPINGS[i]
+    if (chainId === chainId_) {
+      return ledgerId
+    }
+  }
+  return DEFAULT_LEDGER_ID
+}
+
+/**
+ * Converts a LedgerId object to a CAIP chain id. If no mapping is found,
+ * returns the CAIP chain id for `LedgerId.LOCAL_NODE`.
+ * @param ledgerId LedgerId
+ * @returns `string`
+ */
+export function ledgerIdToCAIPChainId(ledgerId: LedgerId): string {
+  for (let i = 0; i < LEDGER_ID_MAPPINGS.length; i++) {
+    const [ledgerId_, _, chainId] = LEDGER_ID_MAPPINGS[i]
+    if (ledgerId.toString() === ledgerId_.toString()) {
+      return chainId
+    }
+  }
+  return DEFAULT_CAIP
+}
+
+/**
+ * Converts a network name to a CAIP chain id. If no mapping is found,
+ * returns the CAIP chain id for `LedgerId.LOCAL_NODE`.
+ * @param networkName string
+ * @returns `string`
+ */
+export function networkNameToCAIPChainId(networkName: string): string {
+  const ledgerId = LedgerId.fromString(networkName.toLowerCase())
+  const chainId = ledgerIdToCAIPChainId(ledgerId)
+  return chainId
 }

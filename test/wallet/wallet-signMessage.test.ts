@@ -25,8 +25,8 @@ describe(HederaWallet.name, () => {
           privateKey,
         })
         const messageBytes = Buffer.from('Hello world').toString('base64')
-        const result = wallet.signMessage(messageBytes)
-        expect(result.signature).toEqual(expected)
+        const result = wallet.signMessages([messageBytes])
+        expect(result.signatures[0]).toEqual(expected)
       },
     )
   })

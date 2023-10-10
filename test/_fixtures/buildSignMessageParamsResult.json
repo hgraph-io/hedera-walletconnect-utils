@@ -1,3 +1,4 @@
 {
-  "message": "VGVzdCBtZQ=="
+  "signerAccountId": "0.0.1234",
+  "messages": ["VGVzdCBtZQ=="]
 }

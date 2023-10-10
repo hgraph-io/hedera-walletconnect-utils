@@ -1,6 +1,6 @@
 {
+  "signerAccountId": "0.0.1234",
   "transaction": {
-    "type": "ConsensusCreateTopic",
     "bytes": "Cj4qPAo4ChkKDAiewtWmBhDIsZGbARIHCAAQABi5YBgAEgYIABAAGAMYgISvXyICCHgyAMIBBzIFCIDO2gMSAA=="
   }
 }
