@@ -1,5 +1,27 @@
 # Overview
 
+## Under active development
+
+This library is a work in progress and open for contribution. The final destination for the
+community supported and governed helper library implementing WalletConnect will be
+`@hashgraph/wallectconnect`.
+
+This library was originally built utilizing the spec set out by the
+[Hedera <> WalletConnect JSON-RPC spec](https://walletconnect-specs-git-fork-hgraph-io-main-walletconnect1.vercel.app/2.0/blockchain-rpc/hedera-rpc).
+
+There is an active discussion surrounding standardizing the "Integration of Wallet Connect 2.0
+Protocol for Wallets and dApps on Hedera" via the
+[HIP-820 discussion](https://github.com/hashgraph/hedera-improvement-proposal/discussions/819).
+
+We will update this helper library as well as the
+[WalletConnect Spec PR](https://github.com/WalletConnect/walletconnect-specs/pull/117) based on
+the results of
+[HIP-820](https://github.com/hashgraph/hedera-improvement-proposal/pull/820/files).
+
+Please join the discussion!
+
+---
+
 This package managed by the Hedera community and is intended to be a standard for ecosystem
 wallets and dApp providers utilizing [WalletConnect](https://walletconnect.com) as a their
 communications protocol. It utilizes the
