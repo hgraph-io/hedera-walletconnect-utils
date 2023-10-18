@@ -1,11 +1,33 @@
 # Overview
 
+## Under active development
+
+This library is a work in progress and open for contribution. The final destination for the
+community supported and governed helper library implementing WalletConnect will be
+`@hashgraph/walletconnect`.
+
+This library was originally built utilizing the spec set out by the
+[Hedera <> WalletConnect JSON-RPC spec](https://walletconnect-specs-git-fork-hgraph-io-main-walletconnect1.vercel.app/2.0/blockchain-rpc/hedera-rpc).
+
+There is an active discussion surrounding standardizing the "Integration of Wallet Connect 2.0
+Protocol for Wallets and dApps on Hedera" via the
+[HIP-820 discussion](https://github.com/hashgraph/hedera-improvement-proposal/discussions/819).
+
+We will update this helper library as well as the
+[WalletConnect Spec PR](https://github.com/WalletConnect/walletconnect-specs/pull/117) based on
+the results of
+[HIP-820](https://github.com/hashgraph/hedera-improvement-proposal/pull/820/files).
+
+Please join the discussion!
+
+---
+
 This package managed by the Hedera community and is intended to be a standard for ecosystem
 wallets and dApp providers utilizing [WalletConnect](https://walletconnect.com) as a their
 communications protocol. It utilizes the
 [`@hashgraph/sdk`](https://www.npmjs.com/package/@hashgraph/sdk) and provides functions to
 facilitate implementing the
-[Hedera <> WalletConnct JSON-RPC spec](https://walletconnect-specs-git-fork-hgraph-io-main-walletconnect1.vercel.app/2.0/blockchain-rpc/hedera-rpc).
+[Hedera <> WalletConnect JSON-RPC spec](https://walletconnect-specs-git-fork-hgraph-io-main-walletconnect1.vercel.app/2.0/blockchain-rpc/hedera-rpc).
 
 > WalletConnect brings the ecosystem together by enabling wallets and apps to securely connect
 > and interact.
@@ -41,7 +63,7 @@ To start using WalletConnect, sign up for an account at <https://cloud.walletcon
 will use your project id when initializing client libraries.
 
 It is important to understand core WalletConnect concepts when integrating this library. Please
-reference the [WalletConnet documentation](https://docs.walletconnect.com/2.0/).
+reference the [WalletConnect documentation](https://docs.walletconnect.com/2.0/).
 
 ## Usage
 
@@ -80,18 +102,16 @@ const transaction = new TopicMessageSubmitTransaction()
   .setMessage('Hello Future')
 ```
 
-3. **Build the Session Request Payload**: The `@hashgraph/wallectconnect` library provides a
-   seamless way to prepare the session request payload. Ensure that you set the `RequestType`
-   accurately to match the type of Hedera transaction you've constructed.
+3. **Build the Session Request Payload**: The `@hashgraph/walletconnect` library provides a
+   seamless way to prepare the session request payload.
 
 ```javascript
-import {..., RequestType } from '@hashgraph/sdk'
-import { HederaSessionRequest } from '@hashgraph/wallectconnect'
+import { HederaSessionRequest, networkNameToCAIPChainId } from '@hashgraph/walletconnect'
 
 const payload = HederaSessionRequest.create({
-  chainId: 'hedera:testnet',
+  chainId: networkNameToCAIPChainId('testnet'), // CAIP-2 Chain ID for testnet
   topic: 'abcdef123456',
-}).buildSignAndExecuteTransactionRequest(RequestType.ConsensusSubmitMessage, transaction)
+}).buildSignAndExecuteTransactionRequest('0.0.1234', transaction)
 ```
 
 4. **Send the Transaction to the Wallet**: With the payload prepared, utilize the WalletConnect
@@ -135,7 +155,7 @@ The following instructions demonstrate implementation of the Sign API.
 First, make sure you've installed the necessary npm packages:
 
 ```bash
-npm install @walletconnect/sign-client @hashgraph/sdk @hashgraph/wallectconnect
+npm install @walletconnect/sign-client @hashgraph/sdk @hashgraph/walletconnect
 ```
 
 #### 2. Initialize WalletConnect SignClient

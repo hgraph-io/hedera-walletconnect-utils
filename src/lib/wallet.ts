@@ -21,31 +21,17 @@ export class HederaWallet {
   private _client: Client
   private _accountId: AccountId
   private _privateKey: PrivateKey
+  public readonly network: string
 
   public constructor({ accountId, privateKey, network }: HederaWalletOptions) {
     this._accountId = accountId
     this._privateKey = privateKey
     this._client = this._initClient({ accountId, privateKey, network })
-  }
-
-  private _getClientForNetork(network: ClientNetworkName): Client | null {
-    switch (network) {
-      case 'mainnet':
-        return Client.forMainnet()
-      case 'previewnet':
-        return Client.forPreviewnet()
-      case 'testnet':
-        return Client.forTestnet()
-      default:
-        return null
-    }
+    this.network = network
   }
 
   private _initClient({ accountId, privateKey, network }: HederaWalletOptions) {
-    const client = this._getClientForNetork(network)
-    if (!client) {
-      throw new Error(`Failed to intialize Hedera client for network: ${network}`)
-    }
+    const client = Client.forName(network) // throws if network is invalid
     client.setOperator(accountId, privateKey)
     return client
   }
@@ -109,24 +95,25 @@ export class HederaWallet {
 
   public async signAndReturnTransaction(
     transaction: Transaction,
-    type: string,
   ): Promise<HederaSignAndReturnTransactionResponse> {
     const signedTransaction = await transaction.sign(this._privateKey)
     const signedTransactionBytes = signedTransaction.toBytes()
     const encodedTransactionBytes = Buffer.from(signedTransactionBytes).toString('base64')
     return {
+      signerAccountId: this._accountId.toString(),
       transaction: {
-        type,
         bytes: encodedTransactionBytes,
       },
     }
   }
 
-  public signMessage(bytes: string): HederaSignMessageResponse {
-    const buf = Buffer.from(bytes, 'base64')
-    const signedMessage = this._privateKey.sign(buf)
+  public signMessages(bytes: string[]): HederaSignMessageResponse {
     return {
-      signature: Buffer.from(signedMessage).toString('base64'),
+      signatures: bytes.map((bytes) => {
+        const buf = Buffer.from(bytes, 'base64')
+        const signedMessage = this._privateKey.sign(buf)
+        return Buffer.from(signedMessage).toString('base64')
+      }),
     }
   }
 }

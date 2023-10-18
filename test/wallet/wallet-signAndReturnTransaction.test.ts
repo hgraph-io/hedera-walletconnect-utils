@@ -1,4 +1,4 @@
-import { RequestType, TopicCreateTransaction } from '@hashgraph/sdk'
+import { TopicCreateTransaction } from '@hashgraph/sdk'
 import { HederaWallet } from '../../src'
 import {
   defaultAccountNumber,
@@ -17,10 +17,7 @@ describe(HederaWallet.name, () => {
       })
       const transaction = prepareTestTransaction(new TopicCreateTransaction(), { freeze: true })
 
-      const result = await wallet.signAndReturnTransaction(
-        transaction,
-        RequestType.ConsensusCreateTopic.toString(),
-      )
+      const result = await wallet.signAndReturnTransaction(transaction)
       const expected = useJsonFixture('signAndReturnTransactionSuccess')
       expect(result).toEqual(expected)
     })
