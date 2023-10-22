@@ -1,4 +1,6 @@
+import { Buffer } from 'buffer'
 import { AccountId, Transaction, LedgerId } from '@hashgraph/sdk'
+import { ProposalTypes, SessionTypes } from '@walletconnect/types'
 
 /**
  * Freezes a transaction if it is not already frozen. Transactions must
@@ -160,4 +162,43 @@ export function networkNameToCAIPChainId(networkName: string): string {
   const ledgerId = LedgerId.fromString(networkName.toLowerCase())
   const chainId = ledgerIdToCAIPChainId(ledgerId)
   return chainId
+}
+
+/**
+ * Create a `ProposalTypes.RequiredNamespaces` object for a given ledgerId.
+ * @param ledgerId LeggarId
+ * @param methods string[]
+ * @param events string[]
+ * @returns `ProposalTypes.RequiredNamespaces`
+ */
+export const networkNamespaces = (
+  ledgerId: LedgerId,
+  methods: string[],
+  events: string[],
+): ProposalTypes.RequiredNamespaces => ({
+  hedera: {
+    chains: [ledgerIdToCAIPChainId(ledgerId)],
+    methods,
+    events,
+  },
+})
+
+/**
+ * Get the account and ledger from a `SessionTypes.Struct` object.
+ * @param session SessionTypes.Struct
+ * @returns `ProposalTypes.RequiredNamespaces`
+ */
+export const accountAndLedgerFromSession = (
+  session: SessionTypes.Struct,
+): { network: LedgerId; account: AccountId }[] => {
+  const hederaNamespace = session.namespaces.hedera
+  if (!hederaNamespace) throw new Error('No hedera namespace found')
+
+  return hederaNamespace.accounts.map((account) => {
+    const [chain, network, acc] = account.split(':')
+    return {
+      network: CAIPChainIdToLedgerId(chain + ':' + network),
+      account: AccountId.fromString(acc),
+    }
+  })
 }
