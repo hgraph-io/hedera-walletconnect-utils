@@ -5,6 +5,7 @@ const config: Config = {
   fakeTimers: {
     enableGlobally: true,
   },
+  testMatch: ['**/?(*.)+(spec|test).ts?(x)', '!**/DAppConnector.test.ts'],
 }
 
 export default config
