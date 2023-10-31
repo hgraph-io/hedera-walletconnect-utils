@@ -1,0 +1,18 @@
+---
+name: HIP-820 Implementation
+about: Please reference the part of HIP-820 that this issue is focussed on implementing.
+title: ''
+labels: ''
+assignees: ''
+
+---
+
+**Describe the spec as defined in HIP-820**
+A clear and concise description of what the spec states.
+
+**Does this issue add new functionality to this repository or change functionality (such as a change in function signature)**
+Whether or not this functionality is new.
+
+**Additional context**
+Add any other context about the problem here.
+Are there other options that should be explored while implementing this issue?
