@@ -27,7 +27,7 @@
     "@babel/preset-typescript": "^7.22.5",
     "@types/jest": "^29.5.3",
     "@types/node": "^20.5.3",
-    "@walletconnect/modal": "^2.6.1",
+    "@walletconnect/modal": "^2.6.2",
     "@walletconnect/sign-client": "^2.10.0",
     "@walletconnect/types": "^2.9.2",
     "esbuild": "^0.19.2",
@@ -37,7 +37,7 @@
     "typescript": "^5.1.6"
   },
   "dependencies": {
-    "@hashgraph/sdk": "^2.32.0",
+    "@hashgraph/sdk": "^2.36.0",
     "@hashgraph/walletconnect": "file:./",
     "@walletconnect/qrcode-modal": "^1.8.0",
     "@walletconnect/sign-client": "^2.10.0",

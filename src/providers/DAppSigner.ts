@@ -9,7 +9,9 @@ import {
   SignerSignature,
   Transaction,
   TransactionRecord,
-} from '@hashgraph/sdk'
+  //@ts-ignore
+} from '../../node_modules/@hashgraph/sdk/src/browser.js'
+// } from '@hashgraph/sdk'
 import { ISignClient } from '@walletconnect/types'
 import { Buffer } from 'buffer'
 

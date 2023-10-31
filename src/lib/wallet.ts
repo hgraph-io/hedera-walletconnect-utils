@@ -1,4 +1,6 @@
-import { Client, Transaction, PrivateKey, AccountId, ClientNetworkName } from '@hashgraph/sdk'
+// import { Client, Transaction, PrivateKey, AccountId, ClientNetworkName } from '@hashgraph/sdk'
+// @ts-ignore
+import { Client, Transaction, PrivateKey, AccountId, ClientNetworkName } from '../../node_modules/@hashgraph/sdk/src/browser.js'
 import {
   HederaSignAndExecuteTransactionResponse,
   HederaSignAndReturnTransactionResponse,

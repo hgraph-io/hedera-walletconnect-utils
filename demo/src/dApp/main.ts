@@ -10,7 +10,7 @@ import {
   Hbar,
   // RequestType,
 } from '../../../node_modules/@hashgraph/sdk/src/browser.js'
-// import { HederaSessionRequest } from '@hashgraph/walletconnect'
+import { HederaSessionRequest } from '@hashgraph/walletconnect'
 
 /*
  * Required params for the demo
@@ -161,11 +161,11 @@ document.getElementById('open-modal').onclick = async function openModal() {
       /*
        * TODO: we are here
        */
-      // const payload = new HederaSessionRequest({
-      //   chainId: 'hedera:testnet',
-      //   topic: walletConnectSession.topic,
-      // })
-      // console.log(payload)
+      const payload = new HederaSessionRequest({
+        chainId: 'hedera:testnet',
+        topic: walletConnectSession.topic,
+      })
+      console.log(payload)
       // .buildSignAndExecuteTransactionRequest(RequestType.CryptoTransfer, transaction)
       // console.log(payload)
 

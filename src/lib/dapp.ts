@@ -1,4 +1,6 @@
-import { type Transaction } from '@hashgraph/sdk'
+// import { type Transaction } from '@hashgraph/sdk'
+// @ts-ignore
+import { type Transaction } from '../../node_modules/@hashgraph/sdk/src/browser.js'
 import { EngineTypes } from '@walletconnect/types'
 import { transactionToBase64String } from './utils'
 import {

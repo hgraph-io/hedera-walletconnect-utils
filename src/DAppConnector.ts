@@ -1,4 +1,6 @@
-import { AccountId, LedgerId } from '@hashgraph/sdk'
+// import { AccountId, LedgerId } from '@hashgraph/sdk'
+// @ts-ignore
+import { AccountId, LedgerId } from '../node_modules/@hashgraph/sdk/src/browser.js'
 import { SessionTypes, SignClientTypes } from '@walletconnect/types'
 import QRCodeModal from '@walletconnect/qrcode-modal'
 import Client, { SignClient } from '@walletconnect/sign-client'

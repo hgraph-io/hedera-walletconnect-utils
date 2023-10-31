@@ -1,4 +1,9 @@
-import { TransactionReceipt, TransactionResponseJSON } from '@hashgraph/sdk'
+// import { TransactionReceipt, TransactionResponseJSON } from '@hashgraph/sdk'
+import {
+  TransactionReceipt,
+  TransactionResponseJSON,
+  // @ts-ignore
+} from '../../node_modules/@hashgraph/sdk/src/browser.js'
 
 type TransactionParams = {
   signerAccountId: string
