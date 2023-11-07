@@ -13,7 +13,7 @@ import {
 import { ISignClient } from '@walletconnect/types'
 import { Buffer } from 'buffer'
 
-import { HederaJsonRpcMethods } from '../lib/constants'
+import { HederaWalletConnectMethod } from '../lib/constants'
 import { buildSignAndReturnTransactionParams, buildSignMessageParams } from '../lib/dapp'
 import { base64StringToTransaction, ledgerIdToCAIPChainId } from '../lib/utils'
 
@@ -74,7 +74,7 @@ export class DAppSigner implements Signer {
 
   async signMessages(messages: (Uint8Array | string)[]): Promise<Uint8Array[]> {
     const signedMessages = await this.request<string[]>({
-      method: HederaJsonRpcMethods.SIGN_MESSAGE,
+      method: HederaWalletConnectMethod.signMessage,
       params: buildSignMessageParams(this.accountId.toString(), messages),
     })
 
@@ -83,7 +83,7 @@ export class DAppSigner implements Signer {
 
   async signTransaction<T extends Transaction>(transaction: T): Promise<T> {
     const signedStringTransaction = await this.request<string>({
-      method: HederaJsonRpcMethods.SIGN_AND_RETURN_TRANSACTION,
+      method: HederaWalletConnectMethod.signTransactionBody,
       params: buildSignAndReturnTransactionParams(this.accountId.toString(), transaction),
     })
 

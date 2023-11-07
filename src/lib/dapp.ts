@@ -6,7 +6,7 @@ import {
   HederaSignAndReturnTransactionParams,
   HederaSignMessageParams,
 } from '../types'
-import { HederaJsonRpcMethods } from './constants'
+import { HederaWalletConnectMethod } from './constants'
 
 export function buildSignMessageParams(
   signerAccountId: string,
@@ -67,7 +67,7 @@ export class HederaSessionRequest {
     return {
       ...this._buildFixedSessionRequestData(),
       request: {
-        method: HederaJsonRpcMethods.SIGN_AND_EXECUTE_TRANSACTION,
+        method: HederaWalletConnectMethod.signTransactionAndSend,
         params: buildSignAndExecuteTransactionParams(signerAccountId, transaction),
       },
     }
@@ -80,7 +80,7 @@ export class HederaSessionRequest {
     return {
       ...this._buildFixedSessionRequestData(),
       request: {
-        method: HederaJsonRpcMethods.SIGN_AND_RETURN_TRANSACTION,
+        method: HederaWalletConnectMethod.signTransactionBody,
         params: buildSignAndReturnTransactionParams(signerAccountId, transaction),
       },
     }
@@ -90,7 +90,7 @@ export class HederaSessionRequest {
     return {
       ...this._buildFixedSessionRequestData(),
       request: {
-        method: HederaJsonRpcMethods.SIGN_MESSAGE,
+        method: HederaWalletConnectMethod.signMessage,
         params: buildSignMessageParams(signerAccountId, messages),
       },
     }
