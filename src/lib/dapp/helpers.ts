@@ -65,7 +65,9 @@ export class HederaSessionRequest {
     transaction: Transaction,
   ) {
     return {
-      ...this._buildFixedSessionRequestData(),
+      chainId: this.chainId,
+      topic: this.topic,
+      expiry: this.expiry,
       request: {
         method: HederaJsonRpcMethods.SIGN_AND_EXECUTE_TRANSACTION,
         params: buildSignAndExecuteTransactionParams(signerAccountId, transaction),
@@ -78,7 +80,9 @@ export class HederaSessionRequest {
     transaction: Transaction,
   ) {
     return {
-      ...this._buildFixedSessionRequestData(),
+      chainId: this.chainId,
+      topic: this.topic,
+      expiry: this.expiry,
       request: {
         method: HederaJsonRpcMethods.SIGN_AND_RETURN_TRANSACTION,
         params: buildSignAndReturnTransactionParams(signerAccountId, transaction),
@@ -88,19 +92,13 @@ export class HederaSessionRequest {
 
   public buildSignMessageRequest(signerAccountId: string, messages: (Uint8Array | string)[]) {
     return {
-      ...this._buildFixedSessionRequestData(),
+      chainId: this.chainId,
+      topic: this.topic,
+      expiry: this.expiry,
       request: {
         method: HederaJsonRpcMethods.SIGN_MESSAGE,
         params: buildSignMessageParams(signerAccountId, messages),
       },
-    }
-  }
-
-  private _buildFixedSessionRequestData() {
-    return {
-      chainId: this.chainId,
-      topic: this.topic,
-      expiry: this.expiry,
     }
   }
 }

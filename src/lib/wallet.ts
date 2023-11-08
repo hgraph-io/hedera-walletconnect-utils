@@ -1,21 +1,10 @@
-import { Client, Transaction, PrivateKey, AccountId, ClientNetworkName } from '@hashgraph/sdk'
-import {
+import { Client, Transaction, PrivateKey, AccountId } from '@hashgraph/sdk'
+import type {
   HederaSignAndExecuteTransactionResponse,
   HederaSignAndReturnTransactionResponse,
   HederaSignMessageResponse,
+	HederaWalletOptions
 } from '../types'
-
-type HederaWalletOptions = {
-  accountId: AccountId
-  privateKey: PrivateKey
-  network: ClientNetworkName
-}
-
-type InitOptions = {
-  accountId: ConstructorParameters<typeof AccountId>[0] | string
-  privateKey: string
-  network: ClientNetworkName
-}
 
 export class HederaWallet {
   private _client: Client
