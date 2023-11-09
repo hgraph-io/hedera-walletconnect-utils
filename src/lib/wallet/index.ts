@@ -145,8 +145,12 @@ export default abstract class HederaNativeWalletConnectWallet
   async signTransactionAndSend(signedTransaction: string): Promise<number> {
     const transaction = base64StringToTransaction(signedTransaction)
     if (await this.approveJsonRpcMethodRequest(transaction)) {
-      this.hederaWallet?.signTransaction(transaction)
+      const wallet = this.hederaWallet!
+      const signedTransaction = await wallet.signTransaction(transaction)
+      const response = await wallet.call(signedTransaction)
+      console.log(response)
     }
+
     throw new Error('not implemented')
   }
 
