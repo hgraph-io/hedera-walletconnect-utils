@@ -1,3 +1,4 @@
+import { Buffer } from 'buffer'
 import {
   Signer,
   AccountBalance,
@@ -11,11 +12,13 @@ import {
   TransactionRecord,
 } from '@hashgraph/sdk'
 import { ISignClient } from '@walletconnect/types'
-import { Buffer } from 'buffer'
 
-import { HederaJsonRpcMethod } from '../shared'
+import {
+  HederaJsonRpcMethod,
+  base64StringToTransaction,
+  ledgerIdToCAIPChainId,
+} from '../shared'
 import { buildSignAndReturnTransactionParams, buildSignMessageParams } from './helpers'
-import { base64StringToTransaction, ledgerIdToCAIPChainId } from '../shared'
 
 export class DAppSigner implements Signer {
   constructor(
