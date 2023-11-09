@@ -3,8 +3,8 @@ import { SessionTypes, SignClientTypes } from '@walletconnect/types'
 import QRCodeModal from '@walletconnect/qrcode-modal'
 import Client, { SignClient } from '@walletconnect/sign-client'
 import { getSdkError } from '@walletconnect/utils'
-import { HederaJsonRpcMethods, accountAndLedgerFromSession, networkNamespaces } from './lib'
-import { DAppSigner } from './providers/DAppSigner'
+import { HederaJsonRpcMethod, accountAndLedgerFromSession, networkNamespaces } from '../shared'
+import { DAppSigner } from './DAppSigner'
 
 type BaseLogger = 'error' | 'warn' | 'info' | 'debug' | 'trace' | 'fatal'
 
@@ -28,7 +28,7 @@ export class DAppConnector {
   ) {
     this.dAppMetadata = metadata
     this.network = network
-    this.supportedMethods = methods ?? Object.values(HederaJsonRpcMethods)
+    this.supportedMethods = methods ?? Object.values(HederaJsonRpcMethod)
     this.supportedEvents = events ?? []
     this.projectId = projectId
   }

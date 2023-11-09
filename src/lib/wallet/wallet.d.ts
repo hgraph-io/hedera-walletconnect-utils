@@ -1,10 +1,11 @@
+import type { Web3WalletTypes } from '@walletconnect/types'
 import type { IWeb3Wallet } from '@walletconnect/web3wallet'
-import { Transaction } from '@hashgraph/sdk'
+import type { Transaction } from '@hashgraph/sdk'
 
-import { HederaJsonRpcMethod as Method } from '../shared'
+import type { HederaJsonRpcMethod as Method } from '../shared'
 
 export interface HederaWalletConnectWallet {
-  init(metadata: {}, hederaWalletArgs: { accountId: string; privateKey: string }): Promise<void>
+  init(projectId: string, metadata: {}): Promise<void>
   pair: IWeb3Wallet['pair']
 }
 

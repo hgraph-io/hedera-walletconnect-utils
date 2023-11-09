@@ -1,17 +1,11 @@
 import { type Transaction } from '@hashgraph/sdk'
 import { EngineTypes } from '@walletconnect/types'
-import { transactionToBase64String } from './utils'
-import {
-  HederaSignAndExecuteTransactionParams,
-  HederaSignAndReturnTransactionParams,
-  HederaSignMessageParams,
-} from '../types'
-import { HederaJsonRpcMethods } from './constants'
+import { HederaJsonRpcMethod, transactionToBase64String } from '../shared'
 
 export function buildSignMessageParams(
   signerAccountId: string,
   messages: (Uint8Array | string)[],
-): HederaSignMessageParams {
+): any {
   return {
     signerAccountId,
     messages: messages.map((message) => Buffer.from(message).toString('base64')),
@@ -30,14 +24,14 @@ function _buildTransactionParams(signerAccountId: string, transaction: Transacti
 export function buildSignAndExecuteTransactionParams(
   signerAccountId: string,
   transaction: Transaction,
-): HederaSignAndExecuteTransactionParams {
+): any {
   return _buildTransactionParams(signerAccountId, transaction)
 }
 
 export function buildSignAndReturnTransactionParams(
   signerAccountId: string,
   transaction: Transaction,
-): HederaSignAndReturnTransactionParams {
+): any {
   return _buildTransactionParams(signerAccountId, transaction)
 }
 
@@ -69,7 +63,7 @@ export class HederaSessionRequest {
       topic: this.topic,
       expiry: this.expiry,
       request: {
-        method: HederaJsonRpcMethods.SIGN_AND_EXECUTE_TRANSACTION,
+        method: HederaJsonRpcMethod.SignTransactionAndSend,
         params: buildSignAndExecuteTransactionParams(signerAccountId, transaction),
       },
     }
@@ -84,7 +78,7 @@ export class HederaSessionRequest {
       topic: this.topic,
       expiry: this.expiry,
       request: {
-        method: HederaJsonRpcMethods.SIGN_AND_RETURN_TRANSACTION,
+        method: HederaJsonRpcMethod.SignTransactionBody,
         params: buildSignAndReturnTransactionParams(signerAccountId, transaction),
       },
     }
@@ -96,7 +90,7 @@ export class HederaSessionRequest {
       topic: this.topic,
       expiry: this.expiry,
       request: {
-        method: HederaJsonRpcMethods.SIGN_MESSAGE,
+        method: HederaJsonRpcMethod.SignMessage,
         params: buildSignMessageParams(signerAccountId, messages),
       },
     }
