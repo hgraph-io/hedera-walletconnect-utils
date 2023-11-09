@@ -1,3 +1,4 @@
-export { default as HederaChainId } from './chainIds'
+export * from './chainIds'
 export * from './methods'
-export { default as HederaSessionEvent } from './events'
+export * from './events'
+export * from './utils'

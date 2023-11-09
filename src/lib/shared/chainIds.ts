@@ -7,5 +7,3 @@ export enum HederaChainId {
   Previewnet = 'hedera:previewnet',
   Devnet = 'hedera:devnet',
 }
-
-export default HederaChainId

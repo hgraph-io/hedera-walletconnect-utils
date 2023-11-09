@@ -1,8 +1,22 @@
-import { ICore } from '@walletconnect/types'
-import { Web3Wallet as WalletConnectWallet, Web3WalletTypes } from '@walletconnect/web3wallet'
+import type {
+  ICore as IWalletConnectCore,
+  CoreTypes as WalletConnectCoreTypes,
+} from '@walletconnect/types'
+import {
+  Web3Wallet as WalletConnectWallet,
+  IWeb3Wallet,
+  Web3WalletTypes,
+} from '@walletconnect/web3wallet'
 import { buildApprovedNamespaces, getSdkError } from '@walletconnect/utils'
-import { Wallet as HederaWallet } from '@hashgraph/sdk'
-import { HederaChainId } from '../shared'
+import { Wallet as HederaWallet, Client, LocalProvider, Transaction } from '@hashgraph/sdk'
+import {
+  HederaChainId,
+  HederaSessionEvent,
+  HederaJsonRpcMethod,
+  HEDERA_JSON_RPC_PREFIX,
+  base64StringToTransaction,
+} from '../shared'
+
 import type { HederaNativeWallet, HederaWalletConnectWallet } from './wallet'
 
 /*
@@ -11,48 +25,52 @@ import type { HederaNativeWallet, HederaWalletConnectWallet } from './wallet'
 export default abstract class HederaNativeWalletConnectWallet
   implements HederaWalletConnectWallet, HederaNativeWallet
 {
-  abstract walletConnectCore: ICore
+  abstract walletConnectCore: IWalletConnectCore
   abstract supportedHederaNetworks: HederaChainId[]
+  abstract walletConnectMetadata: WalletConnectCoreTypes.Metadata
+
   // method to have wallet approve accounts
   abstract approveAccounts(): Promise<string[]>
+  //TODO: should the wallet be able to modify the transaction as well?
+  abstract approveJsonRpcMethodRequest(transaction: Transaction): Promise<boolean>
 
-  public walletConnectWallet?: unknown //TODO: fix unknowns
-  public hederaWallets?: HederaWallet[] // do we need  to instantiate a HederaWallet for every account or do it on demand
+  public walletConnectWallet?: IWeb3Wallet
+  public hederaWallet?: HederaWallet
   public session: unknown
 
   /*
    * Step 1: Initialize the HederaWallet with the appropriate metadata
    */
-  async init(
-    walletConnectMetadata: {},
-    hederaWalletArgs: { accountId: string; privateKey: string },
-  ) {
-    // init WalletConnect
+  async init(hederaWalletArgs: {
+    accountId: string
+    privateKey: string
+    network: 'forMainnet' | 'forTestnet' | 'forPreviewnet' | 'forLocalNode'
+  }) {
+    // WalletConnect
     this.walletConnectWallet = await WalletConnectWallet.init({
-      core: this.walletConnectCore, // <- pass the shared `core` instance
-      metadata: {
-        name: 'Demo app',
-        description: 'Demo Client as Wallet/Peer',
-        url: 'www.walletconnect.com',
-        icons: [],
-      },
+      core: this.walletConnectCore,
+      metadata: this.walletConnectMetadata,
     })
 
     // set up event listeners
     this.walletConnectWallet.on('session_proposal', this.handleSessionProposal)
 
     // init Hedera Wallet
+    const client = Client[hederaWalletArgs.network]()
+    const provider = new LocalProvider({ client })
     this.hederaWallet = new HederaWallet(
       hederaWalletArgs.accountId,
       hederaWalletArgs.privateKey,
+      provider,
     )
   }
 
   /*
    * Step 2: user the pairing string from the dApp to pair the wallet
    */
-  async pair(args: any) {
-    return await this.walletConnectWallet.pair(args)
+  pair(params: { uri: string; activatePairing?: boolean }) {
+    if (!this.walletConnectWallet) throw new Error('WalletConnectWallet not initialized')
+    return this.walletConnectWallet.pair(params)
   }
 
   /*
@@ -68,21 +86,22 @@ export default abstract class HederaNativeWalletConnectWallet
         supportedNamespaces: {
           hedera: {
             chains: this.supportedHederaNetworks,
-            methods: methods.map((method) => `hedera_${method}`),
-            events,
+            methods: Object.values(HederaJsonRpcMethod).map(
+              (method) => `${HEDERA_JSON_RPC_PREFIX}${method}`,
+            ),
+            events: Object.values(HederaSessionEvent),
             accounts,
           },
         },
       })
-      // ------- end namespaces builder util ------------ //
       //TODO: can we have more than 1 session?
-      this.session += this.walletConnectWallet.approveSession({
+      this.session = this.walletConnectWallet?.approveSession({
         id,
         namespaces: approvedNamespaces,
       })
     } catch (error) {
       // use the error.message to show toast/info-box letting the user know that the connection attempt was unsuccessful
-      this.walletConnectWallet.rejectSession({
+      this.walletConnectWallet?.rejectSession({
         id,
         reason: getSdkError('USER_REJECTED'),
       })
@@ -97,10 +116,6 @@ export default abstract class HederaNativeWalletConnectWallet
   }
 
   async validateRequest(): Promise<any> {
-    throw new Error('not implemented')
-  }
-
-  async approveRequest(): Promise<any> {
     throw new Error('not implemented')
   }
 
@@ -128,6 +143,10 @@ export default abstract class HederaNativeWalletConnectWallet
   }
 
   async signTransactionAndSend(signedTransaction: string): Promise<number> {
+    const transaction = base64StringToTransaction(signedTransaction)
+    if (await this.approveJsonRpcMethodRequest(transaction)) {
+      this.hederaWallet?.signTransaction(transaction)
+    }
     throw new Error('not implemented')
   }
 
