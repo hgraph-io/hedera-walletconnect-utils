@@ -107,7 +107,7 @@ export default abstract class HederaNativeWalletConnectWallet
     const signedTransaction = await wallet.signTransaction(transaction)
     const response = await wallet.call(signedTransaction)
     // buildAndSendFormattedResponse
-    console.log(response.toJSON())
+    console.log(response)
     return 1
   }
 

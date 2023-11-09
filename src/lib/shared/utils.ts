@@ -1,5 +1,7 @@
 import { Buffer } from 'buffer'
-import { AccountId, Transaction, LedgerId } from '@hashgraph/sdk'
+// import { AccountId, Transaction, LedgerId } from '@hashgraph/sdk'
+// @ts-ignore
+import { AccountId, Transaction, LedgerId } from '../../node_modules/@hashgraph/sdk/src/browser.js'
 import { ProposalTypes, SessionTypes } from '@walletconnect/types'
 
 /**
