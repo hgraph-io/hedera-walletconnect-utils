@@ -8,6 +8,7 @@ import {
   TransactionId,
   TransferTransaction,
   Hbar,
+  Client
   // RequestType,
 } from '../../../node_modules/@hashgraph/sdk/src/browser.js'
 import { HederaSessionRequest } from '@hashgraph/walletconnect'
@@ -101,7 +102,6 @@ async function initializeWalletConnect() {
 document.getElementById('open-modal').onclick = async function openModal() {
   const projectId = sessionStorage.getItem('projectId')
   const signClient = await initializeWalletConnect()
-  console.log('siiiiiiiiin')
   // Create WalletConnectModal instance
   const walletConnectModal = new WalletConnectModal({
     projectId,
@@ -126,7 +126,6 @@ document.getElementById('open-modal').onclick = async function openModal() {
     walletConnectModal.openModal({ uri })
   }
   console.log(uri)
-  console.log(approval)
   // Await session approval from the wallet.
   const session = await approval()
   console.log(session)
@@ -141,36 +140,39 @@ document.getElementById('open-modal').onclick = async function openModal() {
    */
   document.getElementById('sign-execute-transaction').onclick =
     async function signExecuteTransaction() {
-      const sendHbarTo = prompt('Where would you like to send 100 hbar to?')
+      const sendHbarTo = prompt('Where would you like to send 100 hbar to?', '0.0.450178');
       const walletConnectSession = JSON.parse(sessionStorage.getItem('wallet-connect-session'))
 
       const payerAccountId = AccountId.fromString(
         walletConnectSession.namespaces.hedera.accounts[0].split(':')[2],
       )
-      const nodeAccountIds = [new AccountId(3)]
-      const transactionId = TransactionId.generate(payerAccountId)
+      const nodeAccountId = AccountId.fromString(sendHbarTo);
+      const client = Client.forTestnet();
+      client.setOperator(payerAccountId, '<DER Encoded Private Key>'); // https://portal.hedera.com/ 
 
+      const transactionId = TransactionId.generate(payerAccountId);
+
+      // Create a transaction to transfer 100 hbars
       const transaction = new TransferTransaction()
-        .setTransactionId(transactionId)
-        .setNodeAccountIds(nodeAccountIds)
-        .addHbarTransfer(payerAccountId, new Hbar(-100))
-        .addHbarTransfer(sendHbarTo, new Hbar(100))
+          .setTransactionId(transactionId)
+          .addHbarTransfer(payerAccountId, new Hbar(-100))
+          .addHbarTransfer(nodeAccountId, new Hbar(100))
+          .freezeWith(client);
 
-      console.log(transaction)
+      console.log('transaction', transaction);
 
-      /*
-       * TODO: we are here
-       */
-      const payload = new HederaSessionRequest({
-        chainId: 'hedera:testnet',
-        topic: walletConnectSession.topic,
-      })
-      console.log(payload)
-      // .buildSignAndExecuteTransactionRequest(RequestType.CryptoTransfer, transaction)
-      // console.log(payload)
+      //Submit the transaction to a Hedera network
+      const txResponse = await transaction.execute(client);
+      console.log(txResponse);
 
-      // const result = await signClient.request(payload)
+      //Request the receipt of the transaction
+      const receipt = await txResponse.getReceipt(client);
+      console.log(receipt);
 
-      // console.log(result)
+      //Get the transaction consensus status
+      const transactionStatus = receipt.status;
+      console.log(transactionStatus);
+
+      alert("The transaction consensus status is " +transactionStatus.toString());
     }
 }
