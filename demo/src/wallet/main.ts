@@ -1,5 +1,12 @@
+import { Buffer } from 'buffer'
 import SignClient from '@walletconnect/sign-client'
-import { PrivateKey, AccountId } from '../../../node_modules/@hashgraph/sdk/src/browser.js'
+import {
+  Client,
+  Transaction,
+  AccountId,
+} from '../../../node_modules/@hashgraph/sdk/src/browser.js'
+
+import { base64StringToTransaction } from '../../../src/lib/shared'
 
 /*
  * Required params for the demo
@@ -94,10 +101,39 @@ async function initializeWalletConnect() {
     console.log(updatedSession)
   })
 
+  signClient.on('session_request', async (event) => {
+    console.log('session_request')
+    const { topic, params, id } = event
+    const { request } = params
+
+    console.log(params)
+
+    // convert `requestParamsMessage` by using a method like hexToUtf8
+    const decoded = Buffer.from(request.params[0], 'base64')
+    console.log(decoded)
+    const transaction = Transaction.fromBytes(decoded)
+    console.log(transaction)
+    const client = Client.forTestnet()
+    console.log(client)
+    client.setOperator(accountId, sessionStorage.getItem('privateKey'))
+    console.log('xxxxxxxxxxxxxxx')
+
+    console.log(transaction)
+    const signed = await transaction.signWithOperator(client)
+    console.log(signed)
+    const response = await signed.execute(client)
+    console.log(response)
+    const receipt = await response.getReceipt(client)
+    console.log(receipt)
+    const transactionId = receipt.transactionId.toString()
+		alert(`${transactionId} - has been submitted to the network.`)
+  })
+
   signClient.on('session_delete', () => {
     console.log('session deleted')
     // Session was deleted -> reset the dapp state, clean up from user session, etc.
   })
+
   return signClient
 }
 
