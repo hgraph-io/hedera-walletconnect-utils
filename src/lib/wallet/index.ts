@@ -42,7 +42,7 @@ export default class Wallet extends BaseWallet {
     const provider = new LocalProvider({ client })
     this.hederaWallet = new HederaWallet(accountId, privateKey, provider)
     return new Promise((resolve, reject) => {
-      resolve([])
+      resolve(['hedera:testnet:0.0.123'])
     })
   }
 
