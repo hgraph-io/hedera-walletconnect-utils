@@ -13,7 +13,7 @@
     "test": "jest",
     "demo:build": "sh ./demo/build/build.sh && sh ./demo/build/serve.sh",
     "demo:watch": "sh ./demo/build/build_watch.sh",
-    "demo:serve": "sh ./demo/build/serve.sh", 
+    "demo:serve": "sh ./demo/build/serve.sh",
     "demo:dev": "concurrently \"npm run demo:watch\" \"npm run demo:serve\"",
     "test:connect": "jest --testMatch '**/DAppConnector.test.ts' --verbose",
     "prepublishOnly": "npm run build"
@@ -31,7 +31,7 @@
     "@types/jest": "^29.5.3",
     "@types/node": "^20.5.3",
     "@walletconnect/modal": "^2.6.2",
-    "@walletconnect/sign-client": "^2.10.0",
+    "@walletconnect/sign-client": "^2.10.4",
     "@walletconnect/types": "^2.9.2",
     "concurrently": "^8.2.2",
     "esbuild": "0.19.5",
@@ -44,7 +44,6 @@
     "@hashgraph/sdk": "^2.37.0",
     "@hashgraph/walletconnect": "file:./",
     "@walletconnect/qrcode-modal": "^1.8.0",
-    "@walletconnect/sign-client": "^2.10.0",
     "@walletconnect/types": "^2.10.0",
     "@walletconnect/utils": "^2.10.0",
     "@walletconnect/web3wallet": "^1.9.3"

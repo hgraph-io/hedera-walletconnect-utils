@@ -25,11 +25,12 @@ const params = {
  * See if all required params are already in the session
  */
 window.onload = function onload() {
-  for (const [key, _] of Object.entries(params))
+  for (let key in params) {
     if (!sessionStorage.getItem(key)) {
       sessionStorage.clear()
       throw new Error('dApp environment not initialized')
     }
+  }
 
   // if all env variables are initialized, show the pair button
   document.querySelectorAll('.toggle').forEach((el) => {
@@ -61,8 +62,8 @@ async function initializeWalletConnect() {
   const signClient = await SignClient.init({
     projectId,
     metadata: {
-      name: 'dApp',
-      description: 'This is a dApp',
+      name: 'Example dApp',
+      description: 'This is an Example dApp',
       url: 'https://hgraph.app',
       icons: ['https://walletconnect.com/walletconnect-logo.png'],
     },
@@ -74,7 +75,6 @@ async function initializeWalletConnect() {
 
   signClient.on('session_event', (event) => {
     console.log('session_event')
-    console.log(event)
     // Handle session events, such as "chainChanged", "accountsChanged", etc.
   })
 
@@ -107,72 +107,78 @@ document.getElementById('open-modal').onclick = async function openModal() {
     projectId,
     chains: ['hedera:testnet'],
   })
-  const { uri, approval } = await window.signClient.connect({
-    requiredNamespaces: {
-      hedera: {
-        methods: [
-          'hedera_xxx',
-          'hedera_signAndExecuteTransaction',
-          'hedera_signAndReturnTransaction',
-          'hedera_signMessage',
-        ],
-        chains: ['hedera:testnet'],
-        events: ['chainChanged', 'accountsChanged'],
-      },
-    },
-  })
 
-  // Open QRCode modal if a URI was returned (i.e. we're not connecting an existing pairing).
-  if (uri) {
-    walletConnectModal.openModal({ uri })
+  try {
+    const { uri, approval } = await window.signClient.connect({
+      requiredNamespaces: {
+        hedera: {
+          methods: [
+            'hedera_xxx',
+            'hedera_signAndExecuteTransaction',
+            'hedera_signAndReturnTransaction',
+            'hedera_signMessage',
+          ],
+          chains: ['hedera:testnet'],
+          events: ['chainChanged', 'accountsChanged'],
+        },
+      },
+    })
+  
+    // Open QRCode modal if a URI was returned (i.e. we're not connecting an existing pairing).
+    if (uri) {
+      walletConnectModal.openModal({ uri })
+      // Await session approval from the wallet.
+      window.walletConnectSession = await approval()
+
+      ////////////////////////////////////////////////////////
+      // Handle the returned session (e.g. update UI to "connected" state).
+      // * onSessionConnect(session) *
+      ////////////////////////////////////////////////////////
+
+      // Close the QRCode modal in case it was open.
+      walletConnectModal.closeModal()
+
+      alert('Connected!')
+    }
+  } catch (err) {
+    console.log(err);
   }
-  console.log(uri)
-  // Await session approval from the wallet.
-  const session = await approval()
-  console.log(session)
-  window.session = session
-  alert('Connected!')
-  walletConnectModal.closeModal()
-  // Handle the returned session (e.g. update UI to "connected" state).
-  sessionStorage.setItem('wallet-connect-session', JSON.stringify(session))
-  // Close the QRCode modal in case it was open.
 }
 /*
  * Sample transaction
  */
 document.getElementById('sign-execute-transaction').onclick =
   async function signExecuteTransaction() {
-    console.log('whyyyyyyyyyyy')
-    const sendHbarTo = prompt('Where would you like to send 100 hbar to?', '0.0.450178')
-    const walletConnectSession = JSON.parse(sessionStorage.getItem('wallet-connect-session'))
+    try {
+      console.log('sign-execute-transaction');
+      const sendHbarTo = prompt('Where would you like to send 100 hbar to?', '0.0.450178')
+  
+      if (!sendHbarTo) return;
 
-    const payerAccountId = AccountId.fromString(
-      walletConnectSession.namespaces.hedera.accounts[0].split(':')[2],
-    )
-    const client = Client.forTestnet()
-    console.log(client)
+      const payerAccountId = AccountId.fromString(
+        window.walletConnectSession.namespaces?.hedera?.accounts?.[0]?.split(':')?.[2],
+      )
+  
+      // Create a transaction to transfer 100 hbars
+      const transaction = new TransferTransaction()
+        .setNodeAccountIds([new AccountId(3)]) // Useless here I guess.
+        .setTransactionId(TransactionId.generate(payerAccountId))
+        .addHbarTransfer(payerAccountId, new Hbar(-100))
+        .addHbarTransfer(sendHbarTo, new Hbar(100))
+        .freeze() // Freeze this transaction from further modification to prepare for signing or serialization. 
+        .toBytes()
+  
+      const params = [Buffer.from(transaction).toString('base64')]
 
-    // Create a transaction to transfer 100 hbars
-    const transaction = new TransferTransaction()
-      .setNodeAccountIds([new AccountId(3)])
-      .setTransactionId(TransactionId.generate(payerAccountId))
-      .addHbarTransfer(payerAccountId, new Hbar(-100))
-      .addHbarTransfer(sendHbarTo, new Hbar(100))
-      .freeze()
-      .toBytes()
-
-    console.log('transaction', transaction)
-    console.log(window.session)
-
-    const params = [Buffer.from(transaction).toString('base64')]
-    console.log(params)
-
-    window.signClient.request({
-      topic: window.session.topic,
-      chainId: 'hedera:testnet',
-      request: {
-        method: 'hedera_xxx',
-        params,
-      },
-    })
+      window.signClient.request({
+        topic: window.walletConnectSession.topic,
+        chainId: 'hedera:testnet',
+        request: {
+          method: 'hedera_signAndExecuteTransaction',
+          params,
+        },
+      })
+    } catch (err) {
+      console.log(err);
+    }
   }
