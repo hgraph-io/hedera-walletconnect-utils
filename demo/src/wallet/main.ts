@@ -1,6 +1,6 @@
 import { Buffer } from 'buffer'
 import SignClient from '@walletconnect/sign-client'
-import { Client, Transaction, AccountId } from '@hashgraph/sdk'
+import { Client, Transaction, AccountId, PrivateKey } from '@hashgraph/sdk'
 
 import { base64StringToTransaction } from '@hashgraph/walletconnect'
 
@@ -75,7 +75,7 @@ async function initializeWalletConnect() {
       id,
       params: { requiredNamespaces },
     } = event
-    await signClient.approve({
+     await signClient.approve({
       id,
       namespaces: {
         hedera: {
@@ -98,31 +98,33 @@ async function initializeWalletConnect() {
   })
 
   signClient.on('session_request', async (event) => {
-    console.log('session_request')
+    console.log('session_request');
+    console.log(event);
     const { topic, params, id } = event
     const { request } = params
 
-    console.log(params)
-
     // convert `requestParamsMessage` by using a method like hexToUtf8
     const decoded = Buffer.from(request.params[0], 'base64')
-    console.log(decoded)
     const transaction = Transaction.fromBytes(decoded)
-    console.log(transaction)
     const client = Client.forTestnet()
-    console.log(client)
-    client.setOperator(accountId, sessionStorage.getItem('privateKey'))
-    console.log('xxxxxxxxxxxxxxx')
 
-    console.log(transaction)
-    const signed = await transaction.signWithOperator(client)
-    console.log(signed)
-    const response = await signed.execute(client)
-    console.log(response)
-    const receipt = await response.getReceipt(client)
-    console.log(receipt)
-    const transactionId = receipt.transactionId.toString()
-    alert(`${transactionId} - has been submitted to the network.`)
+    // Set the operator with the account ID and private key (operator)
+    // The operator is the account that will, by default, pay the transaction fee for transactions and queries built with this client.
+    client.setOperator(accountId, PrivateKey.fromString(sessionStorage.getItem('privateKey')));
+
+    // const freezeTransaction = transaction.freezeWith(client)
+    const signedTransaction = await transaction.signWithOperator(client)
+    // const signed = await freezeTransaction.sign(PrivateKey.fromString(sessionStorage.getItem('privateKey')))
+    const transactionResponse = await signedTransaction.execute(client)
+
+    const transactionId = transactionResponse.transactionId;
+
+    const transactionReceipt = await transactionResponse.getReceipt(client)
+    console.log('Status:', transactionReceipt.status)
+    console.log(topic);
+
+    await signClient.respond({topic, response: {result: true, id, jsonrpc: '2.0'}});
+		alert(`${transactionId} - has been submitted to the network.`)
   })
 
   signClient.on('session_delete', () => {
