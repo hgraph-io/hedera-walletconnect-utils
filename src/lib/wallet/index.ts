@@ -7,13 +7,13 @@ import {
 import {
   Wallet as HederaWallet,
   Client,
-  LocalProvider,
   Transaction,
   // Query,
 } from '@hashgraph/sdk'
 
 import { HederaChainId } from '../shared'
 import BaseWallet from './base'
+import Provider from './provider'
 
 export default class Wallet extends BaseWallet {
   public supportedHederaNetworks: HederaChainId[] = Object.values(this.supportedHederaNetworks)
@@ -39,7 +39,7 @@ export default class Wallet extends BaseWallet {
     }
     // const client = Client[network]()
     const client = Client.forTestnet()
-    const provider = new LocalProvider({ client })
+    const provider = new Provider(client)
     this.hederaWallet = new HederaWallet(accountId, privateKey, provider)
     return new Promise((resolve, reject) => {
       resolve(['hedera:testnet:0.0.123'])

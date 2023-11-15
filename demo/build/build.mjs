@@ -6,8 +6,8 @@ const common = {
   sourcemap: false,
   platform: 'browser',
   format: 'esm',
-  loader: {
-    '.gql': 'text',
+  alias: {
+    '@hashgraph/sdk': './node_modules/@hashgraph/sdk/src/index.js',
   },
 }
 

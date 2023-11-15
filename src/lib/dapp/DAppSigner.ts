@@ -10,9 +10,7 @@ import {
   SignerSignature,
   Transaction,
   TransactionRecord,
-  //@ts-ignore
-} from '../../node_modules/@hashgraph/sdk/src/browser.js'
-// } from '@hashgraph/sdk'
+} from '@hashgraph/sdk'
 import { ISignClient } from '@walletconnect/types'
 
 import {
@@ -20,6 +18,7 @@ import {
   base64StringToTransaction,
   ledgerIdToCAIPChainId,
 } from '../shared'
+
 import { buildSignAndReturnTransactionParams, buildSignMessageParams } from './helpers'
 
 export class DAppSigner implements Signer {

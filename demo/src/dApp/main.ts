@@ -11,7 +11,7 @@ import {
   Hbar,
   Client,
   // RequestType,
-} from '../../../node_modules/@hashgraph/sdk/src/browser.js'
+} from '@hashgraph/sdk'
 
 /*
  * Required params for the demo

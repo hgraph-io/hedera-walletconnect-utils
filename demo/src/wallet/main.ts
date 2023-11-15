@@ -1,13 +1,8 @@
 import { Buffer } from 'buffer'
 import SignClient from '@walletconnect/sign-client'
-import {
-  Client,
-  Transaction,
-  AccountId,
-  PrivateKey,
-} from '../../../node_modules/@hashgraph/sdk/src/browser.js'
+import { Client, Transaction, AccountId, PrivateKey } from '@hashgraph/sdk'
 
-import { base64StringToTransaction } from '../../../src/lib/shared'
+import { base64StringToTransaction } from '@hashgraph/walletconnect'
 
 /*
  * Required params for the demo
