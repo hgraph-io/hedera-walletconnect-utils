@@ -1,12 +1,8 @@
 import { Buffer } from 'buffer'
 import SignClient from '@walletconnect/sign-client'
-import {
-  Client,
-  Transaction,
-  AccountId,
-} from '../../../node_modules/@hashgraph/sdk/src/browser.js'
+import { Client, Transaction, AccountId } from '@hashgraph/sdk'
 
-import { base64StringToTransaction } from '../../../src/lib/shared'
+import { base64StringToTransaction } from '@hashgraph/walletconnect'
 
 /*
  * Required params for the demo
@@ -126,7 +122,7 @@ async function initializeWalletConnect() {
     const receipt = await response.getReceipt(client)
     console.log(receipt)
     const transactionId = receipt.transactionId.toString()
-		alert(`${transactionId} - has been submitted to the network.`)
+    alert(`${transactionId} - has been submitted to the network.`)
   })
 
   signClient.on('session_delete', () => {

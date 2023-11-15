@@ -1,6 +1,4 @@
-// import { type Transaction } from '@hashgraph/sdk'
-// @ts-ignore
-import { type Transaction } from '../../node_modules/@hashgraph/sdk/src/browser.js'
+import { type Transaction } from '@hashgraph/sdk'
 import { EngineTypes } from '@walletconnect/types'
 import { HederaJsonRpcMethod, transactionToBase64String } from '../shared'
 
