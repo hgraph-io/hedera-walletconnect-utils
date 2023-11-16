@@ -3,7 +3,7 @@ import esbuild from 'esbuild'
 const common = {
   bundle: true,
   minify: false,
-  sourcemap: false,
+  // sourcemap: false,
   platform: 'browser',
   format: 'esm',
   alias: {
@@ -26,4 +26,3 @@ let walletCtx = await esbuild.context({
 // await ctx.watch()
 await Promise.all([dAppCtx.watch(), walletCtx.watch()])
 console.log('I`m watching for dAppCtx and walletCtx...')
-

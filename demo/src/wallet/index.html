@@ -36,19 +36,11 @@
   <body>
     <main>
       <h1>Wallet</h1>
-      <div class="toggle hidden">
-        <input type="text" name="uri" />
-        <button onclick="pair()">Pair</button>
-        <button onclick="sessionStorage.clear(); location.reload();">
-          Clear saved session
-        </button>
-      </div>
       <div class="toggle">
         <p>
           This demo requires a Hedera testnet account as well as a project id from
           WalletConnect.
         </p>
-
         <p>
           Please see
           <a target="_blank" href="https://portal.hedera.com"> https://portal.hedera.com </a>
@@ -71,10 +63,41 @@
               </label>
               <label>
                 WalletConnect Metadata:
-                <input type="textfield" name="metadata" />
+                <textarea name="metadata">
+{"name":"", "description":"", "url":"", "icons":[""] }</textarea
+                >
+                <pre class="hidden">
+interface Metadata {
+		name: string;
+		description: string;
+		url: string;
+		icons: string[];
+		redirect?: {
+				native?: string;
+				universal?: string;
+		};
+		verifyUrl?: string;
+}
+								</pre
+                >
               </label>
+              <div>
+                <button type="submit">Initialize WalletConnect</button>
+              </div>
             </fieldset>
-            <button type="submit">Initialize WalletConnect</button>
+          </form>
+          <br />
+          <form id="pair">
+            <fieldset>
+              <legend>Pairing string</legend>
+              <label>
+                dApp pairing string
+                <input type="text" name="uri" />
+              </label>
+              <div>
+                <button type="submit">Pair</button>
+              </div>
+            </fieldset>
           </form>
         </section>
         <hr />
@@ -95,7 +118,7 @@
           <button onclick="alert('not implemented')">Add account</button>
         </section>
       </div>
-      <script type="module" src="main.js?v=1"></script>
+      <script src="main.js" defer></script>
     </main>
   </body>
 </html>

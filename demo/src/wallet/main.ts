@@ -1,59 +1,39 @@
 import { type Web3WalletTypes } from '@walletconnect/web3wallet'
 import { getSdkError } from '@walletconnect/utils'
 import { AccountId } from '@hashgraph/sdk'
-import { Wallet, HederaChainId, base64StringToTransaction } from '@hashgraph/walletconnect'
+import { Wallet, base64StringToTransaction } from '@hashgraph/walletconnect'
 
-/*
- * Reference to wallet for use in the demo
- */
-let wallet: Wallet
-
-/*
- * Required params for the demo
- */
-const params = [
-  'account-id', // Hedera
-  'private-key', // Hedera
-  'project-id', // WallectConnect
-  'metadata', // WallectConnect
-]
+// referenced in handlers
+var wallet: Wallet | undefined
 
 // load saved params
-for (const key in params)
-  document.querySelector<HTMLInputElement>(key).value = localStorage.getItem(key) || ''
-
-/*
- * Handle pairing event on initialized wallet
- */
-document.querySelector<HTMLFormElement>('#pair').onSubmit = async function pair(event: Event) {
-  event.preventDefault()
-  const data = new FormData(event.target as HTMLFormElement)
-  const uri = data.get('uri') as string
-  localStorage.setItem('uri', uri)
-  await wallet.core.pairing.pair({ uri })
-}
+const savedData = JSON.parse(localStorage.getItem('wc-hedera-demo') || '[]')
+for (const [key, value] of savedData)
+  document.querySelector<HTMLInputElement>(key)?.setAttribute('value', value)
 
 /*
  * Initialize wallet
  */
-document.querySelector<HTMLFormElement>('#init').onSubmit = async function onSubmit(
-  event: Event,
-) {
-  event.preventDefault()
+async function init(e: Event) {
+  const form = new FormData(e.target as HTMLFormElement)
 
-  const projectId = document.querySelector('project-id')
-  const metadata = JSON.parse(localStorage.getItem('walletconnect-metadata'))
+  const projectId = form.get('project-id') as string
+  console.log(projectId)
+  const metadata = JSON.parse(form.get('metadata') as string)
+  console.log(metadata)
 
-  wallet = await Wallet.init({ projectId, metadata })
+  wallet = await Wallet.create(projectId, metadata)
+  console.log(wallet)
 
   /*
    * Add listeners
    */
   wallet.on('session_proposal', async (proposal: Web3WalletTypes.SessionProposal) => {
     // Client logic: prompt for approval of accounts
-    const network = AccountId.fromString(localStorage.getItem('hedera-network'))
-    const accountId = AccountId.fromString(localStorage.getItem('account-id'))
-    const accounts: HederaChainId[] = [`hedera:${network}:${accountId}`]
+    // const network = AccountId.fromString(localStorage.getItem('hedera-network'))
+    // const accountId = AccountId.fromString(localStorage.getItem('account-id'))
+    // const accounts: string[] = [`hedera:${network}:${accountId}`]
+    const accounts: string[] = [`hedera:testnet:0.0.123`, `hedera:mainnet:0.0.123`]
 
     if (confirm(`Do you want to connect to this session?: ${JSON.stringify(proposal)}`))
       wallet.buildAndApproveSession(accounts, proposal)
@@ -115,6 +95,52 @@ document.querySelector<HTMLFormElement>('#init').onSubmit = async function onSub
     // })
     // // alert(`${transactionId} - has been submitted to the network.`)
   })
+}
+document.querySelector<HTMLFormElement>('#init').onsubmit = async (e: Event) => {
+  e.preventDefault()
+  try {
+    const asdf = await init(e)
+    console.log(asdf)
+    console.log('bbbbbbbbbb')
+  } catch (error) {
+    console.log('aaaaaaaaaaa')
+    alert(error)
+  }
+}
+/*
+ * Handle pairing event on initialized wallet
+ */
+async function pair(event: Event) {
+  console.log('yyyyyyyyyyyyyyyyyyyyyy')
+  const form = new FormData(event.target as HTMLFormElement)
+  console.log(form)
+  const uri = form.get('uri') as string
+  localStorage.setItem('uri', uri)
+  const pairing = wallet.core.pairing.pair({ uri })
+  console.log('xxx')
+  console.log(pairing)
+}
+document.querySelector<HTMLFormElement>('#pair').onsubmit = async (e: Event) => {
+  e.preventDefault()
+  try {
+    await pair(e)
+  } catch (error) {
+    alert(error)
+  }
+}
+
+/*
+ * ui
+ */
+document.querySelector<HTMLTextAreaElement>('textarea[name=metadata]').onchange = function (
+  e: Event,
+) {
+  // @ts-ignore
+  const value = e.target.value
+  const obj = JSON.parse(value)
+  const pretty = JSON.stringify(obj, null, 2)
+  // @ts-ignore
+  e.target.value = pretty
 }
 
 /*

@@ -14,16 +14,47 @@ import Provider from './provider'
 
 // https://github.com/WalletConnect/walletconnect-monorepo/blob/v2.0/packages/web3wallet/src/client.ts
 export default class Wallet extends Web3Wallet {
-  // implements HederaNativeWallet
+  /*
+   * Set default values for chains, methods, events
+   */
   constructor(
-    public readonly projectId: string,
-    public readonly metadata: Web3WalletTypes.Metadata,
-    public chains: HederaChainId[] = [HederaChainId.Mainnet, HederaChainId.Testnet],
+    opts: Web3WalletTypes.Options,
+    public chains: HederaChainId[] | string[] = [HederaChainId.Mainnet, HederaChainId.Testnet],
+    public methods: HederaJsonRpcMethod[] | string[] = Object.values(HederaJsonRpcMethod).map(
+      (method) => `${HEDERA_JSON_RPC_PREFIX}${method}`,
+    ),
+    public sessionEvents: HederaSessionEvent[] | string[] = Object.values(HederaSessionEvent),
   ) {
-    super({
-      core: new Core({ projectId }),
-      metadata,
-    })
+    super(opts)
+  }
+
+  // wrapper to reduce needing to instantiate Core object on client, also add hedera sensible defaults
+  static async create(
+    projectId: string,
+    metadata: Web3WalletTypes.Metadata,
+    chains?: HederaChainId[],
+    methods?: HederaJsonRpcMethod[] | string[],
+    sessionEvents?: HederaSessionEvent[] | string[],
+  ) {
+    const wallet = new Wallet(
+      { core: new Core({ projectId }), metadata },
+      chains,
+      methods,
+      sessionEvents,
+    )
+
+    //https://github.com/WalletConnect/walletconnect-monorepo/blob/14f54684c3d89a5986a68f4dd700a79a958f1604/packages/web3wallet/src/client.ts#L178
+    wallet.logger.trace(`Initialized`)
+    try {
+      await wallet.engine.init()
+      wallet.logger.info(`Web3Wallet Initialization Success`)
+    } catch (error: any) {
+      wallet.logger.info(`Web3Wallet Initialization Failure`)
+      wallet.logger.error(error.message)
+      throw error
+    }
+
+    return wallet
   }
 
   // session proposal handler
@@ -38,10 +69,8 @@ export default class Wallet extends Web3Wallet {
         supportedNamespaces: {
           hedera: {
             chains: this.chains,
-            methods: Object.values(HederaJsonRpcMethod).map(
-              (method) => `${HEDERA_JSON_RPC_PREFIX}${method}`,
-            ),
-            events: Object.values(HederaSessionEvent),
+            methods: this.methods,
+            events: this.sessionEvents,
             accounts,
           },
         },

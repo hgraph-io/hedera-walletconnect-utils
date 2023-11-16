@@ -5,7 +5,6 @@ const common = {
   minify: false,
   sourcemap: false,
   platform: 'browser',
-  format: 'esm',
   alias: {
     '@hashgraph/sdk': './node_modules/@hashgraph/sdk/src/index.js',
   },
