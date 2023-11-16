@@ -1,7 +1,7 @@
 import { Core } from '@walletconnect/core'
 import { Web3Wallet, Web3WalletTypes } from '@walletconnect/web3wallet'
 import { buildApprovedNamespaces, getSdkError } from '@walletconnect/utils'
-import { Wallet as HederaWallet, Client } from '@hashgraph/sdk'
+import { Wallet as HederaWallet, Client, Transaction } from '@hashgraph/sdk'
 import {
   HederaChainId,
   HederaSessionEvent,
@@ -97,18 +97,18 @@ export default class HederaNativeWalletConnectWallet extends Web3Wallet {
     throw new Error('not implemented')
   }
 
-  async signTransactionAndSend(_signedTransaction: string): Promise<number> {
-    const transaction = base64StringToTransaction(_signedTransaction)
-
-    if (!(await this.approveJsonRpcMethodRequest(transaction)))
-      throw new Error('not implemented')
-
-    const wallet = this.hederaWallet!
-    const signedTransaction = await wallet.signTransaction(transaction)
-    const response = await wallet.call(signedTransaction)
+  public async hedera_signTransactionAndSend(
+    body: { signedTransaction: Transaction }, // can be signedTransaction or not signedTransaction
+    opts: {
+      account: string
+      privateKey: string
+    },
+  ): Promise<{ precheckcode: number }> {
+    const signer = this.getSigner(opts.account, opts.privateKey)
+    const response = await signer.call(await signer.signTransaction(body.signedTransaction))
     // buildAndSendFormattedResponse
     console.log(response)
-    return 1
+    return { precheckcode: 1 }
   }
 
   async signTransactionBody(signedTransaction: string): Promise<string> {

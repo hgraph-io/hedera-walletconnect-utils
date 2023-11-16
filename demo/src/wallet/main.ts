@@ -74,13 +74,15 @@ document.querySelector<HTMLFormElement>('#init').onSubmit = async function onSub
   wallet.on('session_request', async (event: Web3WalletTypes.SessionRequest) => {
 
 		// TODO: here
-    const transaction = base64StringToTransaction(event.params.request.params[0])
+		const method = event.params.request.method
+		// Could be signed or unsigned transaction
+    const signedTransaction = base64StringToTransaction(event.params.request.params[0])
 		const account = event.params.request.params[1] //|| wallet.getAccounts()[0]
-		const privateKey = 'xyz'
-		const signer = wallet.getSigner(account, privateKey)
-		signer.checkTransaction(transaction)
-		signer.populateTransaction(transaction)
 		// Client logic: prompt user for approval of transaction
+		alert('Do you want to proceed with this transaction?')
+
+		const privateKey = 'xyz'
+		const response = await wallet[method]({signedTransaction}, {account, privateKey})
     // Set the operator with the account ID and private key (operator)
     // The operator is the account that will, by default, pay the transaction fee for transactions and queries built with this client.
     // client.setOperator(accountId, PrivateKey.fromString(sessionStorage.getItem('privateKey')))
