@@ -9,9 +9,8 @@ import {
   TransactionId,
   TransferTransaction,
   Hbar,
-  Client,
   // RequestType,
-} from '../../../node_modules/@hashgraph/sdk/src/browser.js'
+} from '@hashgraph/sdk'
 
 /*
  * Required params for the demo
@@ -19,6 +18,11 @@ import {
 const params = {
   projectId: 'your dApp’s project id from https://cloud.walletconnect.com',
 }
+
+/*
+ * SignClient - @walletconnect api for encrypted connection between dApp and wallet
+ */
+let signClient: SignClient;
 
 /*
  * window.onload
@@ -41,6 +45,7 @@ window.onload = function onload() {
 /*
  * Prompt user for required params
  */
+// @ts-ignore
 window.initializeSession = async function initialize() {
   for (const [key, message] of Object.entries(params)) {
     const value = prompt(`Please enter ${message}`) || undefined
@@ -57,9 +62,9 @@ window.initializeSession = async function initialize() {
  * Initiate WalletConnect Sign Client
  */
 async function initializeWalletConnect() {
-  const projectId = sessionStorage.getItem('projectId')
+  const projectId = sessionStorage.getItem('projectId')!;
 
-  const signClient = await SignClient.init({
+  const InitializedSignClient = await SignClient.init({
     projectId,
     metadata: {
       name: 'Example dApp',
@@ -73,35 +78,36 @@ async function initializeWalletConnect() {
    * Add listeners
    */
 
-  signClient.on('session_event', (event) => {
+  InitializedSignClient.on('session_event', (event) => {
     console.log('session_event')
     // Handle session events, such as "chainChanged", "accountsChanged", etc.
   })
 
-  signClient.on('session_update', ({ topic, params }) => {
+  InitializedSignClient.on('session_update', ({ topic, params }) => {
     console.log('session_update')
-    const { namespaces } = params
-    const _session = signClient.session.get(topic)
+    // const { namespaces } = params
+    // const _session = signClient.session.get(topic)
     // Overwrite the `namespaces` of the existing session with the incoming one.
-    const updatedSession = { ..._session, namespaces }
+    // const updatedSession = { ..._session, namespaces }
     // Integrate the updated session state into your dapp state.
     // console.log(updatedSession)
   })
 
-  signClient.on('session_delete', () => {
+  InitializedSignClient.on('session_delete', () => {
     console.log('session deleted')
     // Session was deleted -> reset the dapp state, clean up from user session, etc.
   })
 
-  return signClient
+  return InitializedSignClient;
 }
 
 /*
  * Connect the application and specify session permissions.
  */
-document.getElementById('open-modal').onclick = async function openModal() {
-  const projectId = sessionStorage.getItem('projectId')
-  window.signClient = await initializeWalletConnect()
+document.getElementById('open-modal')!.onclick = async function openModal() {
+  signClient = await initializeWalletConnect();
+
+  const projectId = sessionStorage.getItem('projectId')!;
   // Create WalletConnectModal instance
   const walletConnectModal = new WalletConnectModal({
     projectId,
@@ -109,7 +115,7 @@ document.getElementById('open-modal').onclick = async function openModal() {
   })
 
   try {
-    const { uri, approval } = await window.signClient.connect({
+    const { uri, approval } = await signClient.connect({
       requiredNamespaces: {
         hedera: {
           methods: [
@@ -128,7 +134,7 @@ document.getElementById('open-modal').onclick = async function openModal() {
     if (uri) {
       walletConnectModal.openModal({ uri })
       // Await session approval from the wallet.
-      window.walletConnectSession = await approval()
+      await approval()
 
       ////////////////////////////////////////////////////////
       // Handle the returned session (e.g. update UI to "connected" state).
@@ -147,16 +153,20 @@ document.getElementById('open-modal').onclick = async function openModal() {
 /*
  * Sample transaction
  */
-document.getElementById('sign-execute-transaction').onclick =
+
+document.getElementById('sign-execute-transaction')!.onclick =
   async function signExecuteTransaction() {
     try {
       console.log('sign-execute-transaction');
       const sendHbarTo = prompt('Where would you like to send 100 hbar to?', '0.0.450178')
   
       if (!sendHbarTo) return;
+      
+      const lastKeyIndex = signClient.session.getAll().length - 1;
+      const walletConnectSession = signClient.session.getAll()[lastKeyIndex];
 
       const payerAccountId = AccountId.fromString(
-        window.walletConnectSession.namespaces?.hedera?.accounts?.[0]?.split(':')?.[2],
+        walletConnectSession.namespaces?.hedera?.accounts?.[0]?.split(':')?.[2],
       )
   
       // Create a transaction to transfer 100 hbars
@@ -169,15 +179,18 @@ document.getElementById('sign-execute-transaction').onclick =
         .toBytes()
   
       const params = [Buffer.from(transaction).toString('base64')]
-
-      window.signClient.request({
-        topic: window.walletConnectSession.topic,
+      
+      console.log('before response')
+      const response = await signClient.request({
+        topic: walletConnectSession.topic,
         chainId: 'hedera:testnet',
         request: {
           method: 'hedera_signAndExecuteTransaction',
           params,
         },
-      })
+      });
+
+      console.log(response);
     } catch (err) {
       console.log(err);
     }
