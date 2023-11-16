@@ -1,10 +1,7 @@
-import { Buffer } from 'buffer'
 import { type Web3WalletTypes } from '@walletconnect/web3wallet'
-import { SessionTypes } from '@walletconnect/types'
 import { getSdkError } from '@walletconnect/utils'
-
-import { Client, Transaction, AccountId, PrivateKey } from '@hashgraph/sdk'
-import { Wallet, type HederaChainId, base64StringToTransaction } from '@hashgraph/walletconnect'
+import { AccountId } from '@hashgraph/sdk'
+import { Wallet, HederaChainId, base64StringToTransaction } from '@hashgraph/walletconnect'
 
 /*
  * Reference to wallet for use in the demo
@@ -59,7 +56,7 @@ document.querySelector<HTMLFormElement>('#init').onSubmit = async function onSub
     const accounts: HederaChainId[] = [`hedera:${network}:${accountId}`]
 
     if (confirm(`Do you want to connect to this session?: ${JSON.stringify(proposal)}`))
-      await wallet.buildAndApproveSession(accounts, proposal)
+      wallet.buildAndApproveSession(accounts, proposal)
     else
       await wallet.rejectSession({
         id: proposal.id,
@@ -68,16 +65,35 @@ document.querySelector<HTMLFormElement>('#init').onSubmit = async function onSub
   })
 
   wallet.on('session_request', async (event: Web3WalletTypes.SessionRequest) => {
-    // TODO: here
     const method = event.params.request.method
     // Could be signed or unsigned transaction
-    const signedTransaction = base64StringToTransaction(event.params.request.params[0])
+    const body = base64StringToTransaction(event.params.request.params[0])
     const account = event.params.request.params[1] //|| wallet.getAccounts()[0]
+    const privateKey = localStorage.getItem('private-key')
     // Client logic: prompt user for approval of transaction
     alert('Do you want to proceed with this transaction?')
 
-    const privateKey = 'xyz'
-    const response = await wallet[method]({ signedTransaction }, { account, privateKey })
+    const response = await wallet[method](body, account, privateKey)
+
+    // const privateKey = 'xyz'
+    // let args = []
+
+    // switch (method) {
+    //   case HederaJsonRpcMethod.GetNodeAddresses:
+    //     break
+    //   case HederaJsonRpcMethod.SendTransactionOnly:
+    //     break
+    //   case HederaJsonRpcMethod.SignMessage:
+    //     break
+    //   case HederaJsonRpcMethod.SignQueryAndSend:
+    //     break
+    //   case HederaJsonRpcMethod.SignTransactionAndSend:
+    //     break
+    //   case HederaJsonRpcMethod.SignTransactionBody:
+    //     break
+    // }
+    // account and private key are optional - i.e. for sendTransactionOnly or getNodeAddresses
+
     // Set the operator with the account ID and private key (operator)
     // The operator is the account that will, by default, pay the transaction fee for transactions and queries built with this client.
     // client.setOperator(accountId, PrivateKey.fromString(sessionStorage.getItem('privateKey')))

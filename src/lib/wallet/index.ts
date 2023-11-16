@@ -1,20 +1,19 @@
 import { Core } from '@walletconnect/core'
 import { Web3Wallet, Web3WalletTypes } from '@walletconnect/web3wallet'
-import { buildApprovedNamespaces, getSdkError } from '@walletconnect/utils'
+import { buildApprovedNamespaces } from '@walletconnect/utils'
 import { Wallet as HederaWallet, Client, Transaction } from '@hashgraph/sdk'
 import {
   HederaChainId,
   HederaSessionEvent,
   HederaJsonRpcMethod,
   HEDERA_JSON_RPC_PREFIX,
-  base64StringToTransaction,
 } from '../shared'
 import Provider from './provider'
 
-import type { HederaNativeWallet, HederaWalletConnectWallet } from './wallet'
+// import type { HederaNativeWallet, HederaWalletConnectWallet } from './wallet'
 
 // https://github.com/WalletConnect/walletconnect-monorepo/blob/v2.0/packages/web3wallet/src/client.ts
-export default class HederaNativeWalletConnectWallet extends Web3Wallet {
+export default class Wallet extends Web3Wallet {
   // implements HederaNativeWallet
   constructor(
     public readonly projectId: string,
@@ -54,28 +53,13 @@ export default class HederaNativeWalletConnectWallet extends Web3Wallet {
    * Hedera Wallet Signer
    */
   //hedera:mainnet:0.0.123456
-  public getSigner(account: string, privateKey: string, _provider?: Provider): HederaWallet {
+  private getSigner(account: string, privateKey: string, _provider?: Provider): HederaWallet {
     const split = account.split(':')
     const network = split[1]
     const accountId = split[2]
     const client = Client.forName(network)
     const provider = _provider ?? new Provider(client)
     return new HederaWallet(accountId, privateKey, provider)
-  }
-
-  /*
-   *  Session Requests
-   */
-  async handleSessionRequest(): Promise<any> {
-    throw new Error('not implemented')
-  }
-
-  async validateRequest(): Promise<any> {
-    throw new Error('not implemented')
-  }
-
-  async buildAndSendResponse(): Promise<any> {
-    throw new Error('not implemented')
   }
 
   /*
@@ -99,6 +83,7 @@ export default class HederaNativeWalletConnectWallet extends Web3Wallet {
 
   public async hedera_signTransactionAndSend(
     body: { signedTransaction: Transaction }, // can be signedTransaction or not signedTransaction
+    // signer: HederaWallet,
     opts: {
       account: string
       privateKey: string
@@ -112,6 +97,21 @@ export default class HederaNativeWalletConnectWallet extends Web3Wallet {
   }
 
   async signTransactionBody(signedTransaction: string): Promise<string> {
+    throw new Error('not implemented')
+  }
+
+  /*
+   *  Session Requests
+   */
+  async handleSessionRequest(): Promise<any> {
+    throw new Error('not implemented')
+  }
+
+  async validateRequest(): Promise<any> {
+    throw new Error('not implemented')
+  }
+
+  async buildAndSendResponse(): Promise<any> {
     throw new Error('not implemented')
   }
 }

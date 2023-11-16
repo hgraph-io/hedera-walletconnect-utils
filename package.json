@@ -12,9 +12,10 @@
     "./dist/node-cjs.js": "./dist/browser-cjs.js",
     "./dist/node-esm.js": "./dist/browser-esm.js"
   },
-  "types": "./dist/index.d.ts",
-  "author": "Hedera Ecosystem Developers",
+  "types": "./dist/types/index.d.ts",
+  "author": "Hgraph <support@hgraph.io>",
   "keywords": [
+		"TODO: add additional authors",
     "hedera",
     "walletconnect",
     "hashgraph"
@@ -44,7 +45,7 @@
     "@walletconnect/web3wallet": "^1.9.3"
   },
   "scripts": {
-    "build": "node build.mjs",
+    "build": "rm -Rf dist && node build.mjs && npm run build:types",
     "build:types": "tsc --emitDeclarationOnly --declaration --declarationMap --outDir dist/types",
     "test": "jest",
     "demo:build": "sh ./demo/build/build.sh && sh ./demo/build/serve.sh",

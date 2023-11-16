@@ -8,62 +8,94 @@
       .hidden {
         display: none;
       }
+      body {
+        padding: 1rem;
+        background-color: lightgray;
+        font-family: sans-serif;
+      }
+      section {
+        background: white;
+        margin: 1rem 0;
+        padding: 1rem;
+
+        & form fieldset {
+          display: flex;
+          flex-direction: column;
+
+          & label {
+            padding: 1rem 0;
+          }
+        }
+      }
+      button {
+        margin: 1rem 0;
+        cursor: pointer;
+      }
     </style>
   </head>
   <body>
-    <h1>Wallet</h1>
-    <div class="toggle hidden">
-      <input type="text" name="uri" />
-      <button onclick="pair()">Pair</button>
-      <button onclick="sessionStorage.clear(); location.reload();">Clear saved session</button>
-    </div>
-    <div class="toggle">
-      <p>
-        This demo requires a Hedera testnet account as well as a project id from WalletConnect.
-      </p>
-
-      <p>
-        Please see
-        <a target="_blank" href="https://portal.hedera.com"> https://portal.hedera.com </a> and
-        <a target="_blank" href="https://cloud.walletconnect.com">
-          https://cloud.walletconnect.com
-        </a>
-      </p>
-      <p>
-        Disclaimer: This demo is for demonstration purposes only. It is not intended to be used
-        in production. Do not use your mainnet account or private key!
-      </p>
-      <div>
-        <form id="init">
-          <fieldset>
-            <legend>WalletConnect</legend>
-            <label>
-              WalletConnect Project Id:
-              <input type="text" name="project-id" />
-            </label>
-            <label>
-              WalletConnect Metadata:
-              <input type="textfield" name="metadata" />
-            </label>
-          </fieldset>
-          <button type="submit">Initialize WalletConnect</button>
-        </form>
-        <form class="hedera-account">
-          <fieldset>
-            <legend>Hedera</legend>
-            <label>
-              Hedera Account Id:
-              <input type="text" name="hedera-account-id[]" />
-            </label>
-            <label
-              >Hedera Private Key:
-              <input type="password" name="hedera-private-key[]" />
-            </label>
-          </fieldset>
-        </form>
-        <button onclick="alert('not implemented')">Add account</button>
+    <main>
+      <h1>Wallet</h1>
+      <div class="toggle hidden">
+        <input type="text" name="uri" />
+        <button onclick="pair()">Pair</button>
+        <button onclick="sessionStorage.clear(); location.reload();">
+          Clear saved session
+        </button>
       </div>
-    </div>
-    <script type="module" src="main.js?v=1"></script>
+      <div class="toggle">
+        <p>
+          This demo requires a Hedera testnet account as well as a project id from
+          WalletConnect.
+        </p>
+
+        <p>
+          Please see
+          <a target="_blank" href="https://portal.hedera.com"> https://portal.hedera.com </a>
+          and
+          <a target="_blank" href="https://cloud.walletconnect.com">
+            https://cloud.walletconnect.com
+          </a>
+        </p>
+        <p>
+          <b>Disclaimer:</b> This demo is for demonstration purposes only. It is not intended to
+          be used in production. Do not use your mainnet account or private key!
+        </p>
+        <section>
+          <form id="init">
+            <fieldset>
+              <legend>WalletConnect</legend>
+              <label>
+                WalletConnect Project Id:
+                <input type="text" name="project-id" />
+              </label>
+              <label>
+                WalletConnect Metadata:
+                <input type="textfield" name="metadata" />
+              </label>
+            </fieldset>
+            <button type="submit">Initialize WalletConnect</button>
+          </form>
+        </section>
+        <hr />
+        <section>
+          <form class="hedera-account">
+            <fieldset>
+              <legend>Hedera</legend>
+              <label>
+                Hedera Account Id:
+                <input type="text" name="hedera-account-id[]" />
+              </label>
+              <label
+                >Hedera Private Key:
+                <input type="password" name="hedera-private-key[]" />
+              </label>
+            </fieldset>
+          </form>
+          <button onclick="alert('not implemented')">Add account</button>
+        </section>
+      </div>
+      <script type="module" src="main.js?v=1"></script>
+    </main>
   </body>
 </html>

@@ -1,3 +1,3 @@
 export * from './shared'
-export * from './wallet'
+export { default as Wallet } from './wallet'
 export * from './dapp'
