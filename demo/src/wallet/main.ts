@@ -1,26 +1,44 @@
 import { Buffer } from 'buffer'
 import { type Web3WalletTypes } from '@walletconnect/web3wallet'
-import SignClient from '@walletconnect/sign-client'
-import { Client, Transaction, AccountId, PrivateKey } from '@hashgraph/sdk'
+import { SessionTypes } from '@walletconnect/types'
+import { getSdkError } from '@walletconnect/utils'
 
+import { Client, Transaction, AccountId, PrivateKey } from '@hashgraph/sdk'
 import { Wallet, type HederaChainId, base64StringToTransaction } from '@hashgraph/walletconnect'
+
+/*
+ * Reference to wallet for use in the demo
+ */
+let wallet: Wallet
 
 /*
  * Required params for the demo
  */
 const params = [
-  'account-id',
-  'hedera-private-key',
-  'walletconnect-project-id',
-  'walletconnect-metadata',
+  'account-id', // Hedera
+  'private-key', // Hedera
+  'project-id', // WallectConnect
+  'metadata', // WallectConnect
 ]
 
-/*
- * See if all required params are already in the session
- */
+// load saved params
 for (const key in params)
   document.querySelector<HTMLInputElement>(key).value = localStorage.getItem(key) || ''
 
+/*
+ * Handle pairing event on initialized wallet
+ */
+document.querySelector<HTMLFormElement>('#pair').onSubmit = async function pair(event: Event) {
+  event.preventDefault()
+  const data = new FormData(event.target as HTMLFormElement)
+  const uri = data.get('uri') as string
+  localStorage.setItem('uri', uri)
+  await wallet.core.pairing.pair({ uri })
+}
+
+/*
+ * Initialize wallet
+ */
 document.querySelector<HTMLFormElement>('#init').onSubmit = async function onSubmit(
   event: Event,
 ) {
@@ -29,68 +47,68 @@ document.querySelector<HTMLFormElement>('#init').onSubmit = async function onSub
   const projectId = document.querySelector('project-id')
   const metadata = JSON.parse(localStorage.getItem('walletconnect-metadata'))
 
-  const wallet = await Wallet.init({ projectId, metadata })
+  wallet = await Wallet.init({ projectId, metadata })
+
+  /*
+   * Create a session on user action
+   */
 
   /*
    * Add listeners
    */
-
-  wallet.on('session_proposal', async (params: Web3WalletTypes.SessionProposal) => {
-    // see which accounts to add
+  wallet.on('session_proposal', async (proposal: Web3WalletTypes.SessionProposal) => {
+    // Client logic: prompt for approval of accounts
     const network = AccountId.fromString(localStorage.getItem('hedera-network'))
     const accountId = AccountId.fromString(localStorage.getItem('account-id'))
     const accounts: HederaChainId[] = [`hedera:${network}:${accountId}`]
-    await wallet.approveSession(accounts, params)
+
+    if (confirm(`Do you want to connect to this session?: ${JSON.stringify(proposal)}`))
+      await wallet.buildAndApproveSession(accounts, proposal)
+    else
+      await wallet.rejectSession({
+        id: proposal.id,
+        reason: getSdkError('USER_REJECTED_METHODS'),
+      })
   })
 
-  signClient.on('session_update', ({ topic, params }) => {
-    console.log('session_update')
-    const { namespaces } = params
-    const _session = signClient.session.get(topic)
-    // Overwrite the `namespaces` of the existing session with the incoming one.
-    const updatedSession = { ..._session, namespaces }
-    // Integrate the updated session state into your dapp state.
-    console.log(updatedSession)
-  })
+  wallet.on('session_request', async (event: Web3WalletTypes.SessionRequest) => {
 
-  signClient.on('session_request', async (event) => {
-    console.log('session_request')
-    console.log(event)
-    const { topic, params, id } = event
-    const { request } = params
-
-    // convert `requestParamsMessage` by using a method like hexToUtf8
-    const decoded = Buffer.from(request.params[0], 'base64')
-    const transaction = Transaction.fromBytes(decoded)
-    const client = Client.forTestnet()
-
+		// TODO: here
+    const transaction = base64StringToTransaction(event.params.request.params[0])
+		const account = event.params.request.params[1] //|| wallet.getAccounts()[0]
+		const privateKey = 'xyz'
+		const signer = wallet.getSigner(account, privateKey)
+		signer.checkTransaction(transaction)
+		signer.populateTransaction(transaction)
+		// Client logic: prompt user for approval of transaction
     // Set the operator with the account ID and private key (operator)
     // The operator is the account that will, by default, pay the transaction fee for transactions and queries built with this client.
-    client.setOperator(accountId, PrivateKey.fromString(sessionStorage.getItem('privateKey')))
+    // client.setOperator(accountId, PrivateKey.fromString(sessionStorage.getItem('privateKey')))
 
-    // const freezeTransaction = transaction.freezeWith(client)
-    const signedTransaction = await transaction.signWithOperator(client)
-    // const signed = await freezeTransaction.sign(PrivateKey.fromString(sessionStorage.getItem('privateKey')))
-    const transactionResponse = await signedTransaction.execute(client)
+    // // const freezeTransaction = transaction.freezeWith(client)
+    // const signedTransaction = await transaction.signWithOperator(client)
+    // // const signed = await freezeTransaction.sign(PrivateKey.fromString(sessionStorage.getItem('privateKey')))
+    // const transactionResponse = await signedTransaction.execute(client)
 
-    const transactionId = transactionResponse.transactionId
+    // const transactionId = transactionResponse.transactionId
 
-    const transactionReceipt = await transactionResponse.getReceipt(client)
-    console.log('Status:', transactionReceipt.status)
-    console.log(topic)
+    // const transactionReceipt = await transactionResponse.getReceipt(client)
+    // console.log('Status:', transactionReceipt.status)
+    // console.log(topic)
 
-    await signClient.respond({ topic, response: { result: true, id, jsonrpc: '2.0' } })
-    alert(`${transactionId} - has been submitted to the network.`)
-  })
+    // await wallet.respondSessionRequest({
+			// id: event.id,
+    //   response: { result: true, id, jsonrpc: '2.0' },
+    // })
+    // // alert(`${transactionId} - has been submitted to the network.`)
+  // // })
 }
 
 /*
- * Create a session on user action
+ * Handle changes in wallet
  */
-window.pair = async function pair() {
-  const signClient = await initializeWalletConnect()
-  const uri = (document.querySelector('input[name="uri"]') as HTMLInputElement)?.value
-  if (!uri) throw new Error('No URI')
-
-  await signClient.core.pairing.pair({ uri })
-}
+// await web3wallet.updateSession({ topic, namespaces: newNs });
+// await web3wallet.disconnectSession({
+  // topic,
+  // reason: getSdkError("USER_DISCONNECTED"),
+// });
