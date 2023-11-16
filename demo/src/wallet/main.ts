@@ -1,90 +1,46 @@
 import { Buffer } from 'buffer'
+import { type Web3WalletTypes } from '@walletconnect/web3wallet'
 import SignClient from '@walletconnect/sign-client'
 import { Client, Transaction, AccountId, PrivateKey } from '@hashgraph/sdk'
 
-import { base64StringToTransaction } from '@hashgraph/walletconnect'
+import { Wallet, type HederaChainId, base64StringToTransaction } from '@hashgraph/walletconnect'
 
 /*
  * Required params for the demo
  */
-const params = {
-  accountId: 'your Hedera testnet account id. (https://portal.hedera.com/)',
-  privateKey: 'your Hedera testnet private key. (https://portal.hedera.com/)',
-  projectId: 'your wallet’s project id from https://cloud.walletconnect.com',
-}
+const params = [
+  'account-id',
+  'hedera-private-key',
+  'walletconnect-project-id',
+  'walletconnect-metadata',
+]
 
 /*
- * window.onload
  * See if all required params are already in the session
  */
-window.onload = function onload() {
-  for (const [key, _] of Object.entries(params))
-    if (!sessionStorage.getItem(key)) {
-      sessionStorage.clear()
-      throw new Error('Wallet environment not initialized')
-    }
+for (const key in params)
+  document.querySelector<HTMLInputElement>(key).value = localStorage.getItem(key) || ''
 
-  // if all env variables are initialized, show the pair button
-  document.querySelectorAll('.toggle').forEach((el) => {
-    el.classList.toggle('hidden')
-  })
-}
+document.querySelector<HTMLFormElement>('#init').onSubmit = async function onSubmit(
+  event: Event,
+) {
+  event.preventDefault()
 
-/*
- * Prompt user for required params
- */
-window.initializeSession = async function initialize() {
-  for (const [key, message] of Object.entries(params)) {
-    let value = undefined
-    while (!value) value = prompt(`Please enter ${message}`) || undefined
+  const projectId = document.querySelector('project-id')
+  const metadata = JSON.parse(localStorage.getItem('walletconnect-metadata'))
 
-    if (value) sessionStorage.setItem(key, value)
-    else throw new Error(`No ${key} provided`)
-  }
-
-  document.querySelectorAll('.toggle').forEach((el) => {
-    el.classList.toggle('hidden')
-  })
-}
-/*
- * WalletConnect setup
- * https://docs.walletconnect.com/2.0/api/sign/dapp-usage
- */
-async function initializeWalletConnect() {
-  const accountId = AccountId.fromString(sessionStorage.getItem('accountId'))
-  const projectId = sessionStorage.getItem('projectId')
-
-  const signClient = await SignClient.init({
-    projectId,
-    metadata: {
-      name: 'Wallet',
-      description: 'This is a wallet.',
-      url: 'https://hgraph.app',
-      icons: ['https://walletconnect.com/walletconnect-logo.png'],
-    },
-  })
+  const wallet = await Wallet.init({ projectId, metadata })
 
   /*
    * Add listeners
    */
 
-  signClient.on('session_proposal', async (event) => {
-    console.log('session_proposal')
-    console.log(event)
-    const {
-      id,
-      params: { requiredNamespaces },
-    } = event
-     await signClient.approve({
-      id,
-      namespaces: {
-        hedera: {
-          accounts: [`hedera:testnet:${accountId.toString()}`],
-          methods: requiredNamespaces.hedera.methods,
-          events: requiredNamespaces.hedera.events,
-        },
-      },
-    })
+  wallet.on('session_proposal', async (params: Web3WalletTypes.SessionProposal) => {
+    // see which accounts to add
+    const network = AccountId.fromString(localStorage.getItem('hedera-network'))
+    const accountId = AccountId.fromString(localStorage.getItem('account-id'))
+    const accounts: HederaChainId[] = [`hedera:${network}:${accountId}`]
+    await wallet.approveSession(accounts, params)
   })
 
   signClient.on('session_update', ({ topic, params }) => {
@@ -98,8 +54,8 @@ async function initializeWalletConnect() {
   })
 
   signClient.on('session_request', async (event) => {
-    console.log('session_request');
-    console.log(event);
+    console.log('session_request')
+    console.log(event)
     const { topic, params, id } = event
     const { request } = params
 
@@ -110,29 +66,22 @@ async function initializeWalletConnect() {
 
     // Set the operator with the account ID and private key (operator)
     // The operator is the account that will, by default, pay the transaction fee for transactions and queries built with this client.
-    client.setOperator(accountId, PrivateKey.fromString(sessionStorage.getItem('privateKey')));
+    client.setOperator(accountId, PrivateKey.fromString(sessionStorage.getItem('privateKey')))
 
     // const freezeTransaction = transaction.freezeWith(client)
     const signedTransaction = await transaction.signWithOperator(client)
     // const signed = await freezeTransaction.sign(PrivateKey.fromString(sessionStorage.getItem('privateKey')))
     const transactionResponse = await signedTransaction.execute(client)
 
-    const transactionId = transactionResponse.transactionId;
+    const transactionId = transactionResponse.transactionId
 
     const transactionReceipt = await transactionResponse.getReceipt(client)
     console.log('Status:', transactionReceipt.status)
-    console.log(topic);
+    console.log(topic)
 
-    await signClient.respond({topic, response: {result: true, id, jsonrpc: '2.0'}});
-		alert(`${transactionId} - has been submitted to the network.`)
+    await signClient.respond({ topic, response: { result: true, id, jsonrpc: '2.0' } })
+    alert(`${transactionId} - has been submitted to the network.`)
   })
-
-  signClient.on('session_delete', () => {
-    console.log('session deleted')
-    // Session was deleted -> reset the dapp state, clean up from user session, etc.
-  })
-
-  return signClient
 }
 
 /*

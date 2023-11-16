@@ -11,14 +11,15 @@ import {
 
 import type { HederaNativeWallet, HederaWalletConnectWallet } from './wallet'
 
-/*
- * Mark as abstract to force the implementer to implement the abstract methods
- */
 export default abstract class HederaNativeWalletConnectWallet
   implements HederaWalletConnectWallet, HederaNativeWallet
 {
-  abstract supportedHederaNetworks: HederaChainId[]
-  abstract addApprovedAccounts(): Promise<string[]>
+  private constructor(
+    public readonly projectId: string,
+    public readonly metadata: Web3WalletTypes.Metadata,
+    public chains: HederaChainId[] = [HederaChainId.Mainnet, HederaChainId.Testnet],
+  ) {}
+
   abstract approveJsonRpcMethodRequest(transaction: Transaction): Promise<boolean>
   abstract init(projectId: string, metadata: Web3WalletTypes.Metadata): Promise<void>
 
@@ -32,35 +33,28 @@ export default abstract class HederaNativeWalletConnectWallet
     return this.walletConnectWallet.pair(params)
   }
 
-  // session proposal
-  async handleSessionProposal({ id, params }: Web3WalletTypes.SessionProposal) {
-    // TODO: what if there's already a session?
-    try {
-      const accounts = await this.addApprovedAccounts()
-      const approvedNamespaces = buildApprovedNamespaces({
-        proposal: params,
-        supportedNamespaces: {
-          hedera: {
-            chains: this.supportedHederaNetworks,
-            methods: Object.values(HederaJsonRpcMethod).map(
-              (method) => `${HEDERA_JSON_RPC_PREFIX}${method}`,
-            ),
-            events: Object.values(HederaSessionEvent),
-            accounts,
-          },
+  // session proposal handler
+  async approveSession(
+    accounts: string[],
+    { id, params }: Web3WalletTypes.SessionProposal,
+  ) {
+    const approvedNamespaces = buildApprovedNamespaces({
+      proposal: params,
+      supportedNamespaces: {
+        hedera: {
+          chains: this.chains,
+          methods: Object.values(HederaJsonRpcMethod).map(
+            (method) => `${HEDERA_JSON_RPC_PREFIX}${method}`,
+          ),
+          events: Object.values(HederaSessionEvent),
+          accounts,
         },
-      })
-      this.session = this.walletConnectWallet?.approveSession({
-        id,
-        namespaces: approvedNamespaces,
-      })
-    } catch (error) {
-      // use the error.message to show toast/info-box letting the user know that the connection attempt was unsuccessful
-      this.walletConnectWallet?.rejectSession({
-        id,
-        reason: getSdkError('USER_REJECTED'),
-      })
-    }
+      },
+    })
+    this.session = this.walletConnectWallet?.approveSession({
+      id,
+      namespaces: approvedNamespaces,
+    })
   }
 
   /*

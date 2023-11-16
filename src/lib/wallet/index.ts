@@ -28,6 +28,9 @@ export default class Wallet extends BaseWallet {
 
     // set up event listeners
     this.walletConnectWallet.on('session_proposal', this.handleSessionProposal)
+    this.walletConnectWallet.on('session_update', this.handleSessionUpdate)
+    // Session was deleted -> reset the dapp state, clean up from user session, etc.
+    this.walletConnectWallet.on('session_delete', this.handleSessionDelete)
   }
 
   async addApprovedAccounts(): Promise<string[]> {

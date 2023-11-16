@@ -6,8 +6,8 @@ const common = {
   sourcemap: false,
   platform: 'browser',
   format: 'esm',
-  loader: {
-    '.gql': 'text',
+  alias: {
+    '@hashgraph/sdk': './node_modules/@hashgraph/sdk/src/index.js',
   },
 }
 
@@ -24,8 +24,6 @@ let walletCtx = await esbuild.context({
 })
 
 // await ctx.watch()
-await Promise.all([
-  dAppCtx.watch(),
-  walletCtx.watch(),
-]);
-console.log('I`m watching for dAppCtx and walletCtx...');
+await Promise.all([dAppCtx.watch(), walletCtx.watch()])
+console.log('I`m watching for dAppCtx and walletCtx...')
+
