@@ -44,6 +44,12 @@
         >
           hedera_signAndExecuteTransaction
         </button>
+        <button
+          id="sign-execute-transaction-immediate"
+          onclick="alert('Please initialize WalletConnect session first')"
+        >
+          hedera_signAndExecuteTransaction (immediate)
+        </button>
         <button onclick="sessionStorage.clear(); location.reload();">
           Clear saved session
         </button>

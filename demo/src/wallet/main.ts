@@ -5,6 +5,7 @@ import {
 import {
   parseSessionRequest,
 } from '@src/utils/walletUtils';
+import { collectSessionCredentials } from '@src/utils/sharedUtils';
 
 /*
  * Required params for the demo
@@ -104,11 +105,8 @@ async function initializeWalletConnect() {
     console.log('session_request');
     const { topic, params, id } = event;
 
-    const responseResult = await parseSessionRequest(params, {
-      hederaAccountId: accountId.toString(),
-      hederaPrivateKey: sessionStorage.getItem('privateKey') ?? undefined,
-      walletConnectProjectId: sessionStorage.getItem('projectId') ?? undefined,
-    });
+    const sessionCredentials = collectSessionCredentials();
+    const responseResult = await parseSessionRequest(params, sessionCredentials);
 
     await signClient.respond({topic, response: {result: responseResult, id, jsonrpc: '2.0'}});
   })

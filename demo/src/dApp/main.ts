@@ -1,17 +1,9 @@
-import { Buffer } from 'buffer';
-
 /*
  * https://docs.walletconnect.com/2.0/api/sign/dapp-usage
  */
 import SignClient from '@walletconnect/sign-client'
 import { WalletConnectModal } from '@walletconnect/modal'
-import {
-  AccountId,
-  TransactionId,
-  TransferTransaction,
-  Hbar,
-  // RequestType,
-} from '@hashgraph/sdk'
+import { signExecuteTransaction } from '@src/utils/dAppUtils';
 
 /*
  * Required params for the demo
@@ -155,47 +147,43 @@ document.getElementById('open-modal')!.onclick = async function openModal() {
  * Sample transaction
  */
 
-document.getElementById('sign-execute-transaction')!.onclick =
-  async function signExecuteTransaction() {
-    try {
-      console.log('sign-execute-transaction');
-      const sendHbarTo = prompt('Where would you like to send 100 hbar to?', '0.0.450178')
-  
-      if (!sendHbarTo) return;
-      
-      const lastKeyIndex = signClient.session.getAll().length - 1;
-      const walletConnectSession = signClient.session.getAll()[lastKeyIndex];
+document.getElementById('sign-execute-transaction')!.onclick = async function() {
+  const recipientAccountId = prompt('Where would you like to send 100 hbar to?', '0.0.450178')
 
-      const payerAccountId = AccountId.fromString(
-        walletConnectSession.namespaces?.hedera?.accounts?.[0]?.split(':')?.[2],
-      )
+  if (!recipientAccountId) return;
   
-      // Create a transaction to transfer 100 hbars
-      const transaction = new TransferTransaction()
-        .setNodeAccountIds([new AccountId(3)]) // Useless here I guess.
-        .setTransactionId(TransactionId.generate(payerAccountId))
-        .addHbarTransfer(payerAccountId, new Hbar(-100))
-        .addHbarTransfer(sendHbarTo, new Hbar(100))
-        .freeze() // Freeze this transaction from further modification to prepare for signing or serialization. 
-        .toBytes()
+  const walletConnectSession = signClient?.session?.getAll?.()?.[signClient?.session?.getAll?.()?.length - 1];
+  if (!walletConnectSession) return;
+
+  const payerAccountId = walletConnectSession.namespaces?.hedera?.accounts?.[0]?.split(':')?.[2];
+
+  const response = await signExecuteTransaction(signClient, {
+    payerAccountId,
+    recipientAccountId,
+    hbarCount: 100,
+  })
+
+  console.log(response);
+  alert(`Response: ${response} \rLook in the console for more information!`);
+}
+
+document.getElementById('sign-execute-transaction-immediate')!.onclick = async function() {
+  const recipientAccountId = prompt('Where would you like to send 100 hbar to?', '0.0.450178')
+
+  if (!recipientAccountId) return;
   
-      const params = {
-        bodyBytes: Buffer.from(transaction).toString('base64'),
-        // sigMap: undefined
-      }
+  const walletConnectSession = signClient?.session?.getAll?.()?.[signClient?.session?.getAll?.()?.length - 1];
+  if (!walletConnectSession) return;
 
-      const response = await signClient.request({
-        topic: walletConnectSession.topic,
-        chainId: 'hedera:testnet',
-        request: {
-          method: 'hedera_signAndExecuteTransaction',
-          params,
-        },
-      });
+  const payerAccountId = walletConnectSession.namespaces?.hedera?.accounts?.[0]?.split(':')?.[2];
 
-      console.log(response);
-      alert(`Response: ${response} \rLook in the console for more information!`);
-    } catch (err) {
-      console.log(err);
-    }
-  }
+  const response = await signExecuteTransaction(signClient, {
+    payerAccountId,
+    recipientAccountId,
+    hbarCount: 100,
+    immidiateResponse: true,
+  })
+
+  console.log(response);
+  alert(`Response: ${response} \rLook in the console for more information!`);
+}

@@ -13,3 +13,9 @@ export type SessionCredentials = {
     hederaPrivateKey?: string;
     walletConnectProjectId?: string;
 }
+
+export type SignExecuteTransactionReqParams = {
+    bodyBytes: string;
+    sigMap?: any;
+    immidiateResponse?: boolean;
+}
