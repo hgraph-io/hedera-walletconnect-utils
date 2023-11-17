@@ -12,6 +12,11 @@ import {
   Client,
   // RequestType,
 } from '@hashgraph/sdk'
+import {
+  HederaNamespaceAllMethods,
+  HederaChainId,
+  HederaSessionEvent,
+} from '@hashgraph/walletconnect'
 
 /*
  * Required params for the demo
@@ -101,29 +106,25 @@ async function initializeWalletConnect() {
  */
 document.getElementById('open-modal').onclick = async function openModal() {
   const projectId = sessionStorage.getItem('projectId')
+  const chains = [HederaChainId.Testnet]
   window.signClient = await initializeWalletConnect()
   // Create WalletConnectModal instance
   const walletConnectModal = new WalletConnectModal({
     projectId,
-    chains: ['hedera:testnet'],
+    chains,
   })
 
   try {
     const { uri, approval } = await window.signClient.connect({
       requiredNamespaces: {
         hedera: {
-          methods: [
-            'hedera_xxx',
-            'hedera_signAndExecuteTransaction',
-            'hedera_signAndReturnTransaction',
-            'hedera_signMessage',
-          ],
-          chains: ['hedera:testnet'],
-          events: ['chainChanged', 'accountsChanged'],
+          methods: HederaNamespaceAllMethods,
+          chains: [HederaChainId.Testnet],
+          events: [HederaSessionEvent.ChainChanged, HederaSessionEvent.AccountsChanged],
         },
       },
     })
-  
+
     // Open QRCode modal if a URI was returned (i.e. we're not connecting an existing pairing).
     if (uri) {
       walletConnectModal.openModal({ uri })
@@ -141,7 +142,7 @@ document.getElementById('open-modal').onclick = async function openModal() {
       alert('Connected!')
     }
   } catch (err) {
-    console.log(err);
+    console.log(err)
   }
 }
 /*
@@ -150,24 +151,24 @@ document.getElementById('open-modal').onclick = async function openModal() {
 document.getElementById('sign-execute-transaction').onclick =
   async function signExecuteTransaction() {
     try {
-      console.log('sign-execute-transaction');
+      console.log('sign-execute-transaction')
       const sendHbarTo = prompt('Where would you like to send 100 hbar to?', '0.0.450178')
-  
-      if (!sendHbarTo) return;
+
+      if (!sendHbarTo) return
 
       const payerAccountId = AccountId.fromString(
         window.walletConnectSession.namespaces?.hedera?.accounts?.[0]?.split(':')?.[2],
       )
-  
+
       // Create a transaction to transfer 100 hbars
       const transaction = new TransferTransaction()
         .setNodeAccountIds([new AccountId(3)]) // Useless here I guess.
         .setTransactionId(TransactionId.generate(payerAccountId))
         .addHbarTransfer(payerAccountId, new Hbar(-100))
         .addHbarTransfer(sendHbarTo, new Hbar(100))
-        .freeze() // Freeze this transaction from further modification to prepare for signing or serialization. 
+        .freeze() // Freeze this transaction from further modification to prepare for signing or serialization.
         .toBytes()
-  
+
       const params = [Buffer.from(transaction).toString('base64')]
 
       window.signClient.request({
@@ -179,6 +180,6 @@ document.getElementById('sign-execute-transaction').onclick =
         },
       })
     } catch (err) {
-      console.log(err);
+      console.log(err)
     }
   }

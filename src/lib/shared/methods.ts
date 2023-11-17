@@ -8,3 +8,7 @@ export enum HederaJsonRpcMethod {
   SignTransactionAndSend = 'signTransactionAndSend',
   SignTransactionBody = 'signTransactionBody',
 }
+
+export const HederaNamespaceAllMethods = Object.values(HederaJsonRpcMethod).map(
+  (method) => `${HEDERA_JSON_RPC_PREFIX}${method}`,
+)

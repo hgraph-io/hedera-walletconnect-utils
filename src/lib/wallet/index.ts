@@ -2,12 +2,7 @@ import { Core } from '@walletconnect/core'
 import { Web3Wallet, Web3WalletTypes } from '@walletconnect/web3wallet'
 import { buildApprovedNamespaces } from '@walletconnect/utils'
 import { Wallet as HederaWallet, Client, Transaction } from '@hashgraph/sdk'
-import {
-  HederaChainId,
-  HederaSessionEvent,
-  HederaJsonRpcMethod,
-  HEDERA_JSON_RPC_PREFIX,
-} from '../shared'
+import { HederaChainId, HederaSessionEvent, HederaNamespaceAllMethods } from '../shared'
 import Provider from './provider'
 
 // import type { HederaNativeWallet, HederaWalletConnectWallet } from './wallet'
@@ -20,9 +15,7 @@ export default class Wallet extends Web3Wallet {
   constructor(
     opts: Web3WalletTypes.Options,
     public chains: HederaChainId[] | string[] = [HederaChainId.Mainnet, HederaChainId.Testnet],
-    public methods: HederaJsonRpcMethod[] | string[] = Object.values(HederaJsonRpcMethod).map(
-      (method) => `${HEDERA_JSON_RPC_PREFIX}${method}`,
-    ),
+    public methods: string[] = HederaNamespaceAllMethods,
     public sessionEvents: HederaSessionEvent[] | string[] = Object.values(HederaSessionEvent),
   ) {
     super(opts)
@@ -33,7 +26,7 @@ export default class Wallet extends Web3Wallet {
     projectId: string,
     metadata: Web3WalletTypes.Metadata,
     chains?: HederaChainId[],
-    methods?: HederaJsonRpcMethod[] | string[],
+    methods?: string[],
     sessionEvents?: HederaSessionEvent[] | string[],
   ) {
     const wallet = new Wallet(
@@ -62,6 +55,10 @@ export default class Wallet extends Web3Wallet {
     accounts: string[],
     { id, params }: Web3WalletTypes.SessionProposal,
   ) {
+    console.log(accounts)
+    console.log(id)
+    console.log(params)
+
     this.approveSession({
       id,
       namespaces: buildApprovedNamespaces({
