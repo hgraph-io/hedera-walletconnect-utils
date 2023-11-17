@@ -4,30 +4,28 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>dApp</title>
-    <style>
-      .toggle {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        justify-content: space-around;
-
-        /* nesting natively supported by some browsers */
-        & button {
-          margin: 1rem;
-        }
-      }
-      .hidden {
-        display: none;
-      }
-    </style>
+    <link rel="stylesheet" href="/main.css" />
   </head>
   <body>
     <main>
       <h1>dApp</h1>
-      <div class="toggle">
+      <div>
         <p>This demo dApp requires a project id from WalletConnect.</p>
-
+        <section>
+          <form id="init">
+            <fieldset>
+              <legend>WalletConnect</legend>
+              <label>
+                WalletConnect Project Id:
+                <input type="text" name="project-id" />
+              </label>
+              <div>
+                <button type="submit">Initialize WalletConnect</button>
+              </div>
+            </fieldset>
+          </form>
+          <br />
+        </section>
         <p>
           Please see
           <a target="_blank" href="https://cloud.walletconnect.com">
@@ -36,7 +34,7 @@
         </p>
         <button onclick="initializeSession()">Initialize session</button>
       </div>
-      <div class="toggle hidden">
+      <div>
         <button id="open-modal">Connect via WalletConnect</button>
         <button
           id="sign-execute-transaction"

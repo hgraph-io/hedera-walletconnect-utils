@@ -55,10 +55,6 @@ export default class Wallet extends Web3Wallet {
     accounts: string[],
     { id, params }: Web3WalletTypes.SessionProposal,
   ) {
-    console.log(accounts)
-    console.log(id)
-    console.log(params)
-
     this.approveSession({
       id,
       namespaces: buildApprovedNamespaces({

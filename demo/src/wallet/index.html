@@ -4,39 +4,12 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Wallet</title>
-    <style>
-      .hidden {
-        display: none;
-      }
-      body {
-        padding: 1rem;
-        background-color: lightgray;
-        font-family: sans-serif;
-      }
-      section {
-        background: white;
-        margin: 1rem 0;
-        padding: 1rem;
-
-        & form fieldset {
-          display: flex;
-          flex-direction: column;
-
-          & label {
-            padding: 1rem 0;
-          }
-        }
-      }
-      button {
-        margin: 1rem 0;
-        cursor: pointer;
-      }
-    </style>
+    <link rel="stylesheet" href="/main.css" />
   </head>
   <body>
     <main>
       <h1>Wallet</h1>
-      <div class="toggle">
+      <div>
         <p>
           This demo requires a Hedera testnet account as well as a project id from
           WalletConnect.
@@ -61,26 +34,6 @@
                 WalletConnect Project Id:
                 <input type="text" name="project-id" />
               </label>
-              <label>
-                WalletConnect Metadata:
-                <textarea name="metadata">
-{"name":"", "description":"", "url":"", "icons":[""] }</textarea
-                >
-                <pre class="hidden">
-interface Metadata {
-		name: string;
-		description: string;
-		url: string;
-		icons: string[];
-		redirect?: {
-				native?: string;
-				universal?: string;
-		};
-		verifyUrl?: string;
-}
-								</pre
-                >
-              </label>
               <div>
                 <button type="submit">Initialize WalletConnect</button>
               </div>
@@ -102,7 +55,7 @@ interface Metadata {
         </section>
         <hr />
         <section>
-          <form class="hedera-account">
+          <form>
             <fieldset>
               <legend>Hedera</legend>
               <label>

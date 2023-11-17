@@ -1,0 +1,42 @@
+* {
+  box-sizing: border-box;
+  border-radius: 4px;
+  appearance: none;
+}
+body {
+  padding: 1rem;
+  background-color: lightgray;
+  font-family: sans-serif;
+}
+section {
+  background: white;
+  margin: 1rem 0;
+  padding: 1rem;
+
+  /* nesting natively supported by some browsers */
+  & form fieldset {
+    display: flex;
+    flex-direction: column;
+
+    & label {
+      padding: 1rem 0;
+    }
+  }
+}
+
+button {
+  cursor: pointer;
+  margin: 1rem 0;
+  background-color: rebeccapurple;
+  color: white;
+  appearance: none;
+  padding: 0.5rem 1rem;
+  border: none;
+
+  &:hover {
+    background-color: indigo;
+  }
+}
+.invert {
+  filter: invert(1);
+}

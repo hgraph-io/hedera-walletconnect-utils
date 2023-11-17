@@ -11,6 +11,12 @@ const common = {
   },
 }
 
+let mainCtx = await esbuild.context({
+  ...common,
+  outfile: 'demo/dist/main.js',
+  entryPoints: ['demo/src/main.ts'],
+})
+
 let dAppCtx = await esbuild.context({
   ...common,
   outfile: 'demo/dist/dApp/main.js',
@@ -24,5 +30,5 @@ let walletCtx = await esbuild.context({
 })
 
 // await ctx.watch()
-await Promise.all([dAppCtx.watch(), walletCtx.watch()])
+await Promise.all([mainCtx.watch(), dAppCtx.watch(), walletCtx.watch()])
 console.log('I`m watching for dAppCtx and walletCtx...')

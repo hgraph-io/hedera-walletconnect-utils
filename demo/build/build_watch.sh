@@ -6,6 +6,7 @@ mkdir -p demo/dist/wallet
 mkdir -p demo/dist/dApp
 
 ln -s ../src/index.html demo/dist/index.html
+ln -s ../src/main.css demo/dist/main.css
 ln -s ../../src/wallet/index.html demo/dist/wallet/index.html
 ln -s ../../src/dApp/index.html demo/dist/dApp/index.html
 

@@ -18,12 +18,9 @@ async function init(e: Event) {
   const form = new FormData(e.target as HTMLFormElement)
 
   const projectId = form.get('project-id') as string
-  console.log(projectId)
   const metadata = JSON.parse(form.get('metadata') as string)
-  console.log(metadata)
 
   wallet = await Wallet.create(projectId, metadata)
-  console.log(wallet)
 
   /*
    * Add listeners
@@ -100,10 +97,7 @@ document.querySelector<HTMLFormElement>('#init').onsubmit = async (e: Event) => 
   e.preventDefault()
   try {
     const asdf = await init(e)
-    console.log(asdf)
-    console.log('bbbbbbbbbb')
   } catch (error) {
-    console.log('aaaaaaaaaaa')
     alert(error)
   }
 }
@@ -111,14 +105,10 @@ document.querySelector<HTMLFormElement>('#init').onsubmit = async (e: Event) => 
  * Handle pairing event on initialized wallet
  */
 async function pair(event: Event) {
-  console.log('yyyyyyyyyyyyyyyyyyyyyy')
   const form = new FormData(event.target as HTMLFormElement)
-  console.log(form)
   const uri = form.get('uri') as string
   localStorage.setItem('uri', uri)
   const pairing = wallet.core.pairing.pair({ uri })
-  console.log('xxx')
-  console.log(pairing)
 }
 document.querySelector<HTMLFormElement>('#pair').onsubmit = async (e: Event) => {
   e.preventDefault()
