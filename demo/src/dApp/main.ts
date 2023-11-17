@@ -1,4 +1,5 @@
-import { Buffer } from 'buffer'
+import { Buffer } from 'buffer';
+
 /*
  * https://docs.walletconnect.com/2.0/api/sign/dapp-usage
  */
@@ -178,9 +179,11 @@ document.getElementById('sign-execute-transaction')!.onclick =
         .freeze() // Freeze this transaction from further modification to prepare for signing or serialization. 
         .toBytes()
   
-      const params = [Buffer.from(transaction).toString('base64')]
-      
-      console.log('before response')
+      const params = {
+        bodyBytes: Buffer.from(transaction).toString('base64'),
+        // sigMap: undefined
+      }
+
       const response = await signClient.request({
         topic: walletConnectSession.topic,
         chainId: 'hedera:testnet',
@@ -191,6 +194,7 @@ document.getElementById('sign-execute-transaction')!.onclick =
       });
 
       console.log(response);
+      alert(`Response: ${response} \rLook in the console for more information!`);
     } catch (err) {
       console.log(err);
     }

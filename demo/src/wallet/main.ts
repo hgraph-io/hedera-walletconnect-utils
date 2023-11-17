@@ -1,11 +1,10 @@
-import { Buffer } from 'buffer'
 import SignClient from '@walletconnect/sign-client'
 import {
-  Client,
-  Transaction,
   AccountId,
-  PrivateKey,
 } from '@hashgraph/sdk'
+import {
+  parseSessionRequest,
+} from '@src/utils/walletUtils';
 
 /*
  * Required params for the demo
@@ -103,36 +102,15 @@ async function initializeWalletConnect() {
 
   signClient.on('session_request', async (event) => {
     console.log('session_request');
-    console.log(event);
-    const { topic, params, id } = event
-    const { request } = params
+    const { topic, params, id } = event;
 
-    try {
-      // convert `requestParamsMessage` by using a method like hexToUtf8
-      const decoded = Buffer.from(request.params[0], 'base64')
-      const transaction = Transaction.fromBytes(decoded)
-      const client = Client.forTestnet()
-  
-      // Set the operator with the account ID and private key (operator)
-      // The operator is the account that will, by default, pay the transaction fee for transactions and queries built with this client.
-      client.setOperator(accountId, PrivateKey.fromString(sessionStorage.getItem('privateKey')!));
-  
-      // const freezeTransaction = transaction.freezeWith(client)
-      const signedTransaction = await transaction.signWithOperator(client)
-      // const signed = await freezeTransaction.sign(PrivateKey.fromString(sessionStorage.getItem('privateKey')))
-      const transactionResponse = await signedTransaction.execute(client)
-  
-      const transactionId = transactionResponse.transactionId;
-  
-      const transactionReceipt = await transactionResponse.getReceipt(client)
-      console.log('Status:', transactionReceipt.status)
-  
-      await signClient.respond({topic, response: {result: true, id, jsonrpc: '2.0'}});
-      alert(`${transactionId} - has been submitted to the network.`)
-    } catch (err) {
-      console.log(err);
-      await signClient.respond({topic, response: {result: false, id, jsonrpc: '2.0'}});
-    }
+    const responseResult = await parseSessionRequest(params, {
+      hederaAccountId: accountId.toString(),
+      hederaPrivateKey: sessionStorage.getItem('privateKey') ?? undefined,
+      walletConnectProjectId: sessionStorage.getItem('projectId') ?? undefined,
+    });
+
+    await signClient.respond({topic, response: {result: responseResult, id, jsonrpc: '2.0'}});
   })
 
   signClient.on('session_delete', () => {
