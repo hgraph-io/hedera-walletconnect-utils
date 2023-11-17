@@ -1,9 +1,9 @@
 /*
  * https://docs.walletconnect.com/2.0/api/sign/dapp-usage
  */
-import SignClient from '@walletconnect/sign-client'
-import { WalletConnectModal } from '@walletconnect/modal'
-import { signExecuteTransaction } from '@src/utils/dAppUtils';
+import { DAppConnector } from '../lib';
+import { LedgerId } from '@hashgraph/sdk';
+import { collectSessionCredentials } from '@src/utils/sharedUtils';
 
 /*
  * Required params for the demo
@@ -13,9 +13,9 @@ const params = {
 }
 
 /*
- * SignClient - @walletconnect api for encrypted connection between dApp and wallet
+ * DAppConnector - connector between hedera and walletConnect
  */
-let signClient: SignClient;
+let dAppConnector: DAppConnector;
 
 /*
  * window.onload
@@ -54,136 +54,81 @@ window.initializeSession = async function initialize() {
 /*
  * Initiate WalletConnect Sign Client
  */
-async function initializeWalletConnect() {
-  const projectId = sessionStorage.getItem('projectId')!;
+async function initializeDAppConnector() {
+  const creadentials = collectSessionCredentials();
 
-  const InitializedSignClient = await SignClient.init({
-    projectId,
-    metadata: {
-      name: 'Example dApp',
-      description: 'This is an Example dApp',
-      url: 'https://hgraph.app',
-      icons: ['https://walletconnect.com/walletconnect-logo.png'],
-    },
-  })
+  if (!creadentials.walletConnectProjectId) {
+    throw Error('There is no walletConnectProjectId');
+  }
 
-  /*
-   * Add listeners
-   */
+  const metadata = {
+    name: 'Example dApp',
+    description: 'This is an Example dApp',
+    url: 'https://hgraph.app',
+    icons: ['https://walletconnect.com/walletconnect-logo.png'],
+  };
 
-  InitializedSignClient.on('session_event', (event) => {
-    console.log('session_event')
-    // Handle session events, such as "chainChanged", "accountsChanged", etc.
-  })
+  const dAppConnector = new DAppConnector(
+    metadata,
+    LedgerId.TESTNET,
+    creadentials.walletConnectProjectId,
+  );
 
-  InitializedSignClient.on('session_update', ({ topic, params }) => {
-    console.log('session_update')
-    // const { namespaces } = params
-    // const _session = signClient.session.get(topic)
-    // Overwrite the `namespaces` of the existing session with the incoming one.
-    // const updatedSession = { ..._session, namespaces }
-    // Integrate the updated session state into your dapp state.
-    // console.log(updatedSession)
-  })
+  await dAppConnector.init({logger: 'error'});
 
-  InitializedSignClient.on('session_delete', () => {
-    console.log('session deleted')
-    // Session was deleted -> reset the dapp state, clean up from user session, etc.
-  })
-
-  return InitializedSignClient;
+  return dAppConnector;
 }
 
 /*
  * Connect the application and specify session permissions.
  */
 document.getElementById('open-modal')!.onclick = async function openModal() {
-  signClient = await initializeWalletConnect();
+  dAppConnector = await initializeDAppConnector();
 
-  const projectId = sessionStorage.getItem('projectId')!;
-  // Create WalletConnectModal instance
-  const walletConnectModal = new WalletConnectModal({
-    projectId,
-    chains: ['hedera:testnet'],
-  })
-
-  try {
-    const { uri, approval } = await signClient.connect({
-      requiredNamespaces: {
-        hedera: {
-          methods: [
-            'hedera_xxx',
-            'hedera_signAndExecuteTransaction',
-            'hedera_signAndReturnTransaction',
-            'hedera_signMessage',
-          ],
-          chains: ['hedera:testnet'],
-          events: ['chainChanged', 'accountsChanged'],
-        },
-      },
-    })
-  
-    // Open QRCode modal if a URI was returned (i.e. we're not connecting an existing pairing).
-    if (uri) {
-      walletConnectModal.openModal({ uri })
-      // Await session approval from the wallet.
-      await approval()
-
-      ////////////////////////////////////////////////////////
-      // Handle the returned session (e.g. update UI to "connected" state).
-      // * onSessionConnect(session) *
-      ////////////////////////////////////////////////////////
-
-      // Close the QRCode modal in case it was open.
-      walletConnectModal.closeModal()
-
-      alert('Connected!')
-    }
-  } catch (err) {
-    console.log(err);
-  }
+  const connected = await dAppConnector.connectQR();
+  console.log(connected);
 }
 /*
  * Sample transaction
  */
 
 document.getElementById('sign-execute-transaction')!.onclick = async function() {
-  const recipientAccountId = prompt('Where would you like to send 100 hbar to?', '0.0.450178')
+  // const recipientAccountId = prompt('Where would you like to send 100 hbar to?', '0.0.450178')
 
-  if (!recipientAccountId) return;
+  // if (!recipientAccountId) return;
   
-  const walletConnectSession = signClient?.session?.getAll?.()?.[signClient?.session?.getAll?.()?.length - 1];
-  if (!walletConnectSession) return;
+  // const walletConnectSession = signClient?.session?.getAll?.()?.[signClient?.session?.getAll?.()?.length - 1];
+  // if (!walletConnectSession) return;
 
-  const payerAccountId = walletConnectSession.namespaces?.hedera?.accounts?.[0]?.split(':')?.[2];
+  // const payerAccountId = walletConnectSession.namespaces?.hedera?.accounts?.[0]?.split(':')?.[2];
 
-  const response = await signExecuteTransaction(signClient, {
-    payerAccountId,
-    recipientAccountId,
-    hbarCount: 100,
-  })
+  // const response = await signExecuteTransaction(signClient, {
+  //   payerAccountId,
+  //   recipientAccountId,
+  //   hbarCount: 100,
+  // })
 
-  console.log(response);
-  alert(`Response: ${response} \rLook in the console for more information!`);
+  // console.log(response);
+  // alert(`Response: ${response} \rLook in the console for more information!`);
 }
 
 document.getElementById('sign-execute-transaction-immediate')!.onclick = async function() {
-  const recipientAccountId = prompt('Where would you like to send 100 hbar to?', '0.0.450178')
+  // const recipientAccountId = prompt('Where would you like to send 100 hbar to?', '0.0.450178')
 
-  if (!recipientAccountId) return;
+  // if (!recipientAccountId) return;
   
-  const walletConnectSession = signClient?.session?.getAll?.()?.[signClient?.session?.getAll?.()?.length - 1];
-  if (!walletConnectSession) return;
+  // const walletConnectSession = signClient?.session?.getAll?.()?.[signClient?.session?.getAll?.()?.length - 1];
+  // if (!walletConnectSession) return;
 
-  const payerAccountId = walletConnectSession.namespaces?.hedera?.accounts?.[0]?.split(':')?.[2];
+  // const payerAccountId = walletConnectSession.namespaces?.hedera?.accounts?.[0]?.split(':')?.[2];
 
-  const response = await signExecuteTransaction(signClient, {
-    payerAccountId,
-    recipientAccountId,
-    hbarCount: 100,
-    immidiateResponse: true,
-  })
+  // const response = await signExecuteTransaction(signClient, {
+  //   payerAccountId,
+  //   recipientAccountId,
+  //   hbarCount: 100,
+  //   immidiateResponse: true,
+  // })
 
-  console.log(response);
-  alert(`Response: ${response} \rLook in the console for more information!`);
+  // console.log(response);
+  // alert(`Response: ${response} \rLook in the console for more information!`);
 }
