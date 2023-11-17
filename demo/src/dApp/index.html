@@ -9,45 +9,62 @@
   <body>
     <main>
       <h1>dApp</h1>
-      <div>
-        <p>This demo dApp requires a project id from WalletConnect.</p>
-        <section>
-          <form id="init">
-            <fieldset>
-              <legend>WalletConnect</legend>
-              <label>
-                WalletConnect Project Id:
-                <input type="text" name="project-id" />
-              </label>
-              <div>
-                <button type="submit">Initialize WalletConnect</button>
-              </div>
-            </fieldset>
-          </form>
-          <br />
-        </section>
-        <p>
-          Please see
-          <a target="_blank" href="https://cloud.walletconnect.com">
-            https://cloud.walletconnect.com
-          </a>
-        </p>
-        <button onclick="initializeSession()">Initialize session</button>
-      </div>
-      <div>
-        <button id="open-modal">Connect via WalletConnect</button>
-        <button
-          id="sign-execute-transaction"
-          onclick="alert('Please initialize WalletConnect session first')"
-        >
-          hedera_signAndExecuteTransaction
-        </button>
-        <button onclick="sessionStorage.clear(); location.reload();">
-          Clear saved session
-        </button>
-      </div>
+      <p>
+        This demo dApp requires a project id from WalletConnect. Please see
+        <a target="_blank" href="https://cloud.walletconnect.com">
+          https://cloud.walletconnect.com
+        </a>
+      </p>
+      <section>
+        <form id="init">
+          <fieldset>
+            <legend>Initialize WalletConnect</legend>
+            <label>
+              WalletConnect Project Id:
+              <input type="text" name="project-id" required />
+            </label>
+            <button type="submit">Initialize WalletConnect</button>
+            <button
+              type="button"
+              onclick="sessionStorage.clear(); localStorage.clear(); location.reload();"
+            >
+              Clear saved session
+            </button>
+          </fieldset>
+        </form>
+      </section>
+      <section>
+        <form id="connect">
+          <fieldset>
+            <legend>Connect a wallet</legend>
+            <button type="button" id="open-modal">Open WalletConnect Modal</button>
+          </fieldset>
+        </form>
+      </section>
+      <section>
+        <form id="transact">
+          <fieldset>
+            <legend>Submit transactions</legend>
+            <label
+              >Transaction type:
+              <select name="transaction-type">
+                <option value="hbar-transfer">Hbar Transfer</option>
+              </select>
+            </label>
+            <label
+              >Send to address:
+              <input name="to" />
+            </label>
+            <label
+              >Send from address:
+              <input name="from" />
+            </label>
+            <button type="submit">Submit to wallet</button>
+          </fieldset>
+        </form>
+      </section>
+      <div></div>
     </main>
-
-    <script type="module" src="main.js?v=2"></script>
+    <script type="module" src="main.js"></script>
   </body>
 </html>

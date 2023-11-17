@@ -26,6 +26,7 @@ export function setDefaultNodeAccountIds<T extends Transaction>(transaction: T):
   const isNodeAccountIdNotSet =
     !transaction.nodeAccountIds || transaction.nodeAccountIds.length === 0
   if (!transaction.isFrozen() && isNodeAccountIdNotSet) {
+    //TODO: add nodes
     transaction.setNodeAccountIds([new AccountId(3)])
   }
 }
@@ -166,7 +167,7 @@ export function networkNameToCAIPChainId(networkName: string): string {
 
 /**
  * Create a `ProposalTypes.RequiredNamespaces` object for a given ledgerId.
- * @param ledgerId LeggarId
+ * @param ledgerId LedgerId
  * @param methods string[]
  * @param events string[]
  * @returns `ProposalTypes.RequiredNamespaces`
