@@ -24,22 +24,14 @@
               <input type="text" name="project-id" required />
             </label>
             <button type="submit">Initialize WalletConnect</button>
-            <button
-              type="button"
-              onclick="sessionStorage.clear(); localStorage.clear(); location.reload();"
-            >
-              Clear saved session
-            </button>
           </fieldset>
         </form>
       </section>
       <section>
-        <form id="connect">
-          <fieldset>
-            <legend>Connect a wallet</legend>
-            <button type="button" id="open-modal">Open WalletConnect Modal</button>
-          </fieldset>
-        </form>
+        <fieldset>
+          <legend>Connect a wallet</legend>
+          <button type="button" id="open-modal">Open WalletConnect Modal</button>
+        </fieldset>
       </section>
       <section>
         <form id="transact">
@@ -53,17 +45,24 @@
             </label>
             <label
               >Send to address:
-              <input name="to" />
+              <input name="to" required />
             </label>
             <label
               >Send from address:
-              <input name="from" />
+              <input name="from" required />
             </label>
             <button type="submit">Submit to wallet</button>
           </fieldset>
         </form>
       </section>
-      <div></div>
+      <section>
+        <button
+          type="button"
+          onclick="sessionStorage.clear(); localStorage.clear(); location.reload();"
+        >
+          Clear saved session
+        </button>
+      </section>
     </main>
     <script type="module" src="main.js"></script>
   </body>

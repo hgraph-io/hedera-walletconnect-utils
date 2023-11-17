@@ -1,7 +1,7 @@
 import { type Web3WalletTypes } from '@walletconnect/web3wallet'
 import { getSdkError } from '@walletconnect/utils'
 import { AccountId } from '@hashgraph/sdk'
-import { Wallet, base64StringToTransaction } from '@hashgraph/walletconnect'
+import { Wallet } from '@hashgraph/walletconnect'
 
 // referenced in handlers
 var wallet: Wallet | undefined
@@ -27,10 +27,8 @@ async function init(e: Event) {
    */
   wallet.on('session_proposal', async (proposal: Web3WalletTypes.SessionProposal) => {
     // Client logic: prompt for approval of accounts
-    // const network = AccountId.fromString(localStorage.getItem('hedera-network'))
-    // const accountId = AccountId.fromString(localStorage.getItem('account-id'))
-    // const accounts: string[] = [`hedera:${network}:${accountId}`]
-    const accounts: string[] = [`hedera:testnet:0.0.123`, `hedera:mainnet:0.0.123`]
+    const accountId = AccountId.fromString(localStorage.getItem('account-id'))
+    const accounts: string[] = [`hedera:testnet:${accountId}`]
 
     if (confirm(`Do you want to connect to this session?: ${JSON.stringify(proposal)}`))
       wallet.buildAndApproveSession(accounts, proposal)
@@ -42,64 +40,29 @@ async function init(e: Event) {
   })
 
   wallet.on('session_request', async (event: Web3WalletTypes.SessionRequest) => {
-    const method = event.params.request.method
-    // Could be signed or unsigned transaction
-    const body = base64StringToTransaction(event.params.request.params[0])
-    const account = event.params.request.params[1] //|| wallet.getAccounts()[0]
-    const privateKey = localStorage.getItem('private-key')
     // Client logic: prompt user for approval of transaction
-    alert('Do you want to proceed with this transaction?')
+    const { method, body, account } = wallet.parseSessionRequest(event)
+    if (
+      !confirm(
+        `Do you want to proceed with this transaction?: ${JSON.stringify({
+          method,
+          body,
+          account,
+        })}`,
+      )
+    )
+      throw getSdkError('USER_REJECTED_METHODS')
 
-    const response = await wallet[method](body, account, privateKey)
+    const privateKey = localStorage.getItem('private-key')
+    const hederaWallet = wallet.getHederaWallet(account, privateKey) // Can also use a custom signer / provider
 
-    // const privateKey = 'xyz'
-    // let args = []
-
-    // switch (method) {
-    //   case HederaJsonRpcMethod.GetNodeAddresses:
-    //     break
-    //   case HederaJsonRpcMethod.SendTransactionOnly:
-    //     break
-    //   case HederaJsonRpcMethod.SignMessage:
-    //     break
-    //   case HederaJsonRpcMethod.SignQueryAndSend:
-    //     break
-    //   case HederaJsonRpcMethod.SignTransactionAndSend:
-    //     break
-    //   case HederaJsonRpcMethod.SignTransactionBody:
-    //     break
-    // }
-    // account and private key are optional - i.e. for sendTransactionOnly or getNodeAddresses
-
-    // Set the operator with the account ID and private key (operator)
-    // The operator is the account that will, by default, pay the transaction fee for transactions and queries built with this client.
-    // client.setOperator(accountId, PrivateKey.fromString(sessionStorage.getItem('privateKey')))
-
-    // // const freezeTransaction = transaction.freezeWith(client)
-    // const signedTransaction = await transaction.signWithOperator(client)
-    // // const signed = await freezeTransaction.sign(PrivateKey.fromString(sessionStorage.getItem('privateKey')))
-    // const transactionResponse = await signedTransaction.execute(client)
-
-    // const transactionId = transactionResponse.transactionId
-
-    // const transactionReceipt = await transactionResponse.getReceipt(client)
-    // console.log('Status:', transactionReceipt.status)
-    // console.log(topic)
-
-    // await wallet.respondSessionRequest({
-    // id: event.id,
-    //   response: { result: true, id, jsonrpc: '2.0' },
-    // })
-    // // alert(`${transactionId} - has been submitted to the network.`)
+    return await wallet.call(event, hederaWallet)
   })
 }
+
 document.querySelector<HTMLFormElement>('#init').onsubmit = async (e: Event) => {
   e.preventDefault()
-  try {
-    const asdf = await init(e)
-  } catch (error) {
-    alert(error)
-  }
+  await init(e)
 }
 /*
  * Handle pairing event on initialized wallet
@@ -107,30 +70,26 @@ document.querySelector<HTMLFormElement>('#init').onsubmit = async (e: Event) => 
 async function pair(event: Event) {
   const form = new FormData(event.target as HTMLFormElement)
   const uri = form.get('uri') as string
-  localStorage.setItem('uri', uri)
-  const pairing = wallet.core.pairing.pair({ uri })
+  wallet.core.pairing.pair({ uri })
 }
 document.querySelector<HTMLFormElement>('#pair').onsubmit = async (e: Event) => {
   e.preventDefault()
-  try {
-    await pair(e)
-  } catch (error) {
-    alert(error)
-  }
+  await pair(e)
 }
 
-/*
- * ui
- */
+document.querySelector<HTMLFormElement>('#set-account').onsubmit = (e: Event) => {
+  e.preventDefault()
+  const form = new FormData(e.target as HTMLFormElement)
+  localStorage.setItem('account-id', form.get('account-id') as string)
+  localStorage.setItem('private-key', form.get('private-key') as string)
+}
+
+// ui
 document.querySelector<HTMLTextAreaElement>('textarea[name=metadata]').onchange = function (
   e: Event,
 ) {
-  // @ts-ignore
-  const value = e.target.value
-  const obj = JSON.parse(value)
-  const pretty = JSON.stringify(obj, null, 2)
-  // @ts-ignore
-  e.target.value = pretty
+  const target = e.target as HTMLTextAreaElement
+  target.value = JSON.stringify(JSON.parse(target.value), null, 2)
 }
 
 /*

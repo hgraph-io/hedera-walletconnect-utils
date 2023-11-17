@@ -55,20 +55,20 @@
         </section>
         <hr />
         <section>
-          <form>
+          <form id="set-account">
             <fieldset>
               <legend>Hedera</legend>
               <label>
-                Hedera Account Id:
-                <input type="text" name="hedera-account-id[]" />
+                Hedera Testnet Account Id:
+                <input type="text" name="account-id" required />
               </label>
               <label
-                >Hedera Private Key:
-                <input type="password" name="hedera-private-key[]" />
+                >Hedera Testnet Private Key:
+                <input type="password" name="private-key" required />
               </label>
             </fieldset>
           </form>
-          <button onclick="alert('not implemented')">Add account</button>
+          <button type="submit">Add account</button>
         </section>
       </div>
       <script src="main.js" defer></script>
