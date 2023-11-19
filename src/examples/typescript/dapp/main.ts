@@ -9,9 +9,11 @@ import {
   HederaJsonRpcMethod,
   // transactionToBase64String,
 } from '@hashgraph/walletconnect'
+import { saveState, loadState } from '../shared'
 
 // referenced in handlers
 var signClient: SignClient | undefined
+loadState() // load previous state if it exists
 
 async function init(e: Event) {
   e.preventDefault()

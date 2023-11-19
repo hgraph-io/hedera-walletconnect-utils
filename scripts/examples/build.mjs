@@ -20,7 +20,6 @@ export const config = {
   ],
   outdir: 'dist/examples/typescript',
   entryPoints: [
-    'src/examples/typescript/main.ts',
     'src/examples/typescript/dapp/main.ts',
     'src/examples/typescript/wallet/main.ts',
   ],

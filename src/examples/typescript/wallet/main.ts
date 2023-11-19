@@ -1,21 +1,21 @@
-import { type Web3WalletTypes } from '@walletconnect/web3wallet'
+// https://github.com/WalletConnect/walletconnect-monorepo/tree/v2.0/packages/web3wallet
+import type { Web3WalletTypes } from '@walletconnect/web3wallet'
 import { getSdkError } from '@walletconnect/utils'
 import { AccountId } from '@hashgraph/sdk'
 import { Wallet } from '@hashgraph/walletconnect'
+import { loadState, saveState, getState } from '../shared'
 
 // referenced in handlers
 var wallet: Wallet | undefined
-
-// load saved params
-const savedData = JSON.parse(localStorage.getItem('wc-hedera-demo') || '[]')
-for (const [key, value] of savedData)
-  document.querySelector<HTMLInputElement>(key)?.setAttribute('value', value)
+loadState() // load previous state if it exists
 
 /*
  * Initialize wallet
  */
 async function init(e: Event) {
+  e.preventDefault()
   const form = new FormData(e.target as HTMLFormElement)
+  saveState(form)
 
   const projectId = form.get('project-id') as string
   const metadata = JSON.parse(form.get('metadata') as string)
@@ -25,6 +25,7 @@ async function init(e: Event) {
   /*
    * Add listeners
    */
+  // called after pairing to set parameters of session, i.e. accounts, chains, methods, events
   wallet.on('session_proposal', async (proposal: Web3WalletTypes.SessionProposal) => {
     // Client logic: prompt for approval of accounts
     const accountId = AccountId.fromString(localStorage.getItem('account-id'))
@@ -39,6 +40,7 @@ async function init(e: Event) {
       })
   })
 
+  // requests to call a JSON-RPC method
   wallet.on('session_request', async (event: Web3WalletTypes.SessionRequest) => {
     // Client logic: prompt user for approval of transaction
     const { method, body, account } = wallet.parseSessionRequest(event)
@@ -53,42 +55,51 @@ async function init(e: Event) {
     )
       throw getSdkError('USER_REJECTED_METHODS')
 
-    const privateKey = localStorage.getItem('private-key')
-    const hederaWallet = wallet.getHederaWallet(account, privateKey) // Can also use a custom signer / provider
+    // A custom provider/signer can be used to sign transactions
+    // https://docs.hedera.com/hedera/sdks-and-apis/sdks/signature-provider/wallet
+    const hederaWallet = wallet.getHederaWallet(account, getState('private-key'))
 
-    return await wallet.call(event, hederaWallet)
+    return await wallet.executeSessionRequest(event, hederaWallet)
   })
 }
 
-document.querySelector<HTMLFormElement>('#init').onsubmit = async (e: Event) => {
-  e.preventDefault()
-  await init(e)
-}
+document.querySelector<HTMLFormElement>('#init').onsubmit = init
 /*
  * Handle pairing event on initialized wallet
  */
-async function pair(event: Event) {
-  const form = new FormData(event.target as HTMLFormElement)
+async function pair(e: Event) {
+  e.preventDefault()
+  const form = new FormData(e.target as HTMLFormElement)
+  saveState(form)
   const uri = form.get('uri') as string
   wallet.core.pairing.pair({ uri })
 }
-document.querySelector<HTMLFormElement>('#pair').onsubmit = async (e: Event) => {
-  e.preventDefault()
-  await pair(e)
-}
 
-document.querySelector<HTMLFormElement>('#set-account').onsubmit = (e: Event) => {
+document.querySelector<HTMLFormElement>('#pair').onsubmit = pair
+
+/*
+ * Handling adding a hedera account
+ */
+async function addHederaAccount(e: Event) {
   e.preventDefault()
   const form = new FormData(e.target as HTMLFormElement)
-  localStorage.setItem('account-id', form.get('account-id') as string)
-  localStorage.setItem('private-key', form.get('private-key') as string)
+  saveState(form)
 }
+
+document.querySelector<HTMLFormElement>('#set-account').onsubmit = addHederaAccount
 
 /*
  * Handle changes in wallet
  */
+async function disconnect(e: Event) {
+  e.preventDefault()
+  for (const [key, value] of Object.entries(wallet.getActiveSessions())) {
+    console.log(key)
+    await wallet.disconnectSession({
+      topic: value.topic,
+      reason: getSdkError('USER_DISCONNECTED'),
+    })
+  }
+}
+document.querySelector<HTMLFormElement>('#disconnect').onsubmit = disconnect
 // await web3wallet.updateSession({ topic, namespaces: newNs });
-// await web3wallet.disconnectSession({
-// topic,
-// reason: getSdkError("USER_DISCONNECTED"),
-// });
