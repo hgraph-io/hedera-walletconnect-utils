@@ -1,5 +1,4 @@
 import { Core } from '@walletconnect/core'
-// import type { JsonRpcResponse } from '@walletconnect/jsonrpc-utils'
 import { Web3Wallet, Web3WalletTypes } from '@walletconnect/web3wallet'
 import { buildApprovedNamespaces } from '@walletconnect/utils'
 import { Wallet as HederaWallet, Client, Transaction } from '@hashgraph/sdk'
@@ -24,6 +23,7 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
     public sessionEvents: HederaSessionEvent[] | string[] = Object.values(HederaSessionEvent),
   ) {
     super(opts)
+    console.log('hi')
   }
 
   // wrapper to reduce needing to instantiate Core object on client, also add hedera sensible defaults
@@ -99,25 +99,26 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
    */
   parseSessionRequest(event: Web3WalletTypes.SessionRequest): {
     id: number
+    topic: string
     method: HederaJsonRpcMethod
     body: Transaction
     account: string
   } {
     const method = event.params.request.method as HederaJsonRpcMethod
+    const topic = event.topic
     // Could be signed or unsigned transaction
     const body = base64StringToTransaction(event.params.request.params[0])
     const account = event.params.request.params[1] //|| wallet.getAccounts()[0]
     const id = event.id
-    return { id, method, body, account }
+    return { id, topic, method, body, account }
   }
 
   async executeSessionRequest(
     event: Web3WalletTypes.SessionRequest,
     hederaWallet: HederaWallet,
   ): Promise<void> {
-    const { id, method, body }: { id: number; method: HederaJsonRpcMethod; body: Transaction } =
-      this.parseSessionRequest(event)
-    return this[method](id, body, hederaWallet)
+    const { id, topic, method, body } = this.parseSessionRequest(event)
+    return this[method](id, topic, body, hederaWallet)
   }
 
   /*
@@ -125,14 +126,13 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
    */
   public async hedera_signTransactionAndSend(
     id: number,
+    topic: string,
     body: Transaction, // can be signedTransaction or not signedTransaction
     signer: HederaWallet,
   ): Promise<void> {
-    const hederaResponse = await signer.call(
-      await signer.signTransaction(body),
-    )
+    const hederaResponse = await signer.call(await signer.signTransaction(body))
     return this.respondSessionRequest({
-      topic: '123',
+      topic,
       response: { id, result: hederaResponse, jsonrpc: '2.0' },
     })
   }

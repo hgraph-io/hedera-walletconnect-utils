@@ -15,9 +15,10 @@ export interface HederaNativeWallet {
 
   [Method.SignTransactionAndSend](
     id: number,
+    topic: string,
     body: Transaction,
     signer: HederaWallet,
-  ): Promise<void> // precheckCode
+  ): Promise<void>
 
   // [Method.SignTransactionBody](signedTransaction: string): Promise<string> // signatureMap
 }

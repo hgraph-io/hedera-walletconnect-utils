@@ -2,13 +2,12 @@
 import SignClient from '@walletconnect/sign-client'
 import { SignClientTypes } from '@walletconnect/types'
 import { WalletConnectModal } from '@walletconnect/modal'
-import { TransferTransaction, Hbar } from '@hashgraph/sdk'
+// import { TransferTransaction, Hbar } from '@hashgraph/sdk'
 import {
-  HederaNamespaceAllMethods,
   HederaChainId,
   HederaSessionEvent,
   HederaJsonRpcMethod,
-  transactionToBase64String,
+  // transactionToBase64String,
 } from '@hashgraph/walletconnect'
 
 // referenced in handlers
@@ -45,7 +44,7 @@ async function init(e: Event) {
   const { uri, approval } = await signClient.connect({
     requiredNamespaces: {
       hedera: {
-        methods: HederaNamespaceAllMethods,
+        methods: Object.values(HederaJsonRpcMethod),
         chains,
         events: [HederaSessionEvent.ChainChanged, HederaSessionEvent.AccountsChanged],
       },

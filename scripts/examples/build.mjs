@@ -1,6 +1,7 @@
-import esbuild from 'esbuild'
+import * as esbuild from 'esbuild'
+import copy from 'esbuild-plugin-copy'
 
-esbuild.build({
+export const config = {
   bundle: true,
   minify: false,
   platform: 'browser',
@@ -11,10 +12,10 @@ esbuild.build({
   plugins: [
     copy({
       assets: {
-        from: ['src/examples/**/*.html', 'src/examples/**/*.css'],
-        to: ['dist/examples'],
+        from: ['src/examples/typescript/**/*.(html|css|ico)'],
+        to: ['./'],
       },
-      watch: true,
+      watch: true, // for ../dev.mjs
     }),
   ],
   outdir: 'dist/examples/typescript',
@@ -23,4 +24,6 @@ esbuild.build({
     'src/examples/typescript/dapp/main.ts',
     'src/examples/typescript/wallet/main.ts',
   ],
-})
+}
+
+esbuild.build(config)
