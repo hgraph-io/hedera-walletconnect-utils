@@ -9,7 +9,7 @@ import {
   HederaJsonRpcMethod,
   // transactionToBase64String,
 } from '@hashgraph/walletconnect'
-import { saveState, loadState } from '../shared'
+import { saveState, getState, loadState } from '../shared'
 
 // referenced in handlers
 var signClient: SignClient | undefined
@@ -18,30 +18,44 @@ loadState() // load previous state if it exists
 async function init(e: Event) {
   e.preventDefault()
   const form = new FormData(e.target as HTMLFormElement)
+  saveState(form)
+
   const projectId = form.get('project-id') as string
-  const metadata = JSON.parse(form.get('metadata') as string) as SignClientTypes.Metadata
+  const metadata: SignClientTypes.Metadata = {
+    name: form.get('name') as string,
+    description: form.get('description') as string,
+    url: form.get('url') as string,
+    icons: [form.get('icons') as string],
+  }
   signClient = await SignClient.init({ projectId, metadata })
 
   signClient.on('session_event', (event) => {
-    alert('There has been a session event!')
     // Handle session events, such as "chainChanged", "accountsChanged", etc.
+    alert('There has been a session event!')
+    console.log(event)
   })
 
   signClient.on('session_update', ({ topic, params }) => {
-    console.log('session_update')
+    // Handle session update
+    alert('There has been a update to the session!')
     const { namespaces } = params
     const _session = signClient.session.get(topic)
     // Overwrite the `namespaces` of the existing session with the incoming one.
     const updatedSession = { ..._session, namespaces }
     // Integrate the updated session state into your dapp state.
-    // console.log(updatedSession)
+    console.log(updatedSession)
   })
 
   signClient.on('session_delete', () => {
-    console.log('session deleted')
     // Session was deleted -> reset the dapp state, clean up from user session, etc.
+    alert('Session deleted!')
   })
+}
 
+document.getElementById('init').onsubmit = init
+
+async function connect(e: Event) {
+  e.preventDefault()
   const chains = [HederaChainId.Testnet]
   const { uri, approval } = await signClient.connect({
     requiredNamespaces: {
@@ -52,9 +66,8 @@ async function init(e: Event) {
       },
     },
   })
-
   const walletConnectModal = new WalletConnectModal({
-    projectId,
+    projectId: getState('project-id'),
     chains,
   })
 
@@ -62,8 +75,7 @@ async function init(e: Event) {
   await approval()
   walletConnectModal.closeModal()
 }
-
-document.getElementById('init').onsubmit = init
+document.getElementById('connect').onsubmit = connect
 
 // // Sample transaction
 // async function signExecuteTransaction() {

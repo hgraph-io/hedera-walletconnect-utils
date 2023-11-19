@@ -20,18 +20,33 @@
           <fieldset>
             <legend>Step 1: Initialize WalletConnect</legend>
             <label>
-              WalletConnect Project Id:
+              Project Id:
               <input type="text" name="project-id" required />
             </label>
-            <button type="submit">Initialize WalletConnect</button>
+            <label>
+              Name:
+              <input type="text" name="name" required />
+            </label>
+            <label>
+              Description:
+              <input type="text" name="description" required />
+            </label>
+            <label>
+              Url:
+              <input type="text" name="url" required />
+            </label>
+            <label>
+              Icons:
+              <input type="text" name="icons" required />
+            </label>
           </fieldset>
+          <button type="submit">Initialize WalletConnect</button>
         </form>
       </section>
       <section>
-        <fieldset>
-          <legend>Step 2: Connect a wallet</legend>
-          <button type="button" id="open-modal">Open WalletConnect Modal</button>
-        </fieldset>
+        <form id="connect">
+          <button type="submit">Open WalletConnect Modal</button>
+        </form>
       </section>
       <section>
         <form id="transact">
@@ -51,16 +66,13 @@
               >Send from address:
               <input name="from" required />
             </label>
-            <button type="submit">Submit to wallet</button>
           </fieldset>
+          <button type="submit">Submit to wallet</button>
         </form>
       </section>
       <section>
-        <form id="session">
-          <fieldset>
-            <legend>Session management</legend>
-            <button type="submit">Clear saved session</button>
-          </fieldset>
+        <form id="disconnect">
+          <button type="submit">Disconnect all active sessions</button>
         </form>
       </section>
     </main>

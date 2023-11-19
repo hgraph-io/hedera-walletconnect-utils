@@ -18,7 +18,7 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
    */
   constructor(
     opts: Web3WalletTypes.Options,
-    public chains: HederaChainId[] | string[] = [HederaChainId.Mainnet, HederaChainId.Testnet],
+    public chains: HederaChainId[] | string[] = Object.values(HederaChainId),
     public methods: string[] = Object.values(HederaJsonRpcMethod),
     public sessionEvents: HederaSessionEvent[] | string[] = Object.values(HederaSessionEvent),
   ) {
@@ -77,13 +77,18 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
     accounts: string[],
     { id, params }: Web3WalletTypes.SessionProposal,
   ) {
+    // just get unique chains
+    const chains = accounts
+      .map((account) => account.split(':').slice(0, 2).join(':'))
+      .filter((x, i, a) => a.indexOf(x) == i)
+
     this.approveSession({
       id,
       namespaces: buildApprovedNamespaces({
         proposal: params,
         supportedNamespaces: {
           hedera: {
-            chains: this.chains,
+            chains,
             methods: this.methods,
             events: this.sessionEvents,
             accounts,

@@ -31,12 +31,24 @@
             <fieldset>
               <legend>Step 1: Initialize WalletConnect</legend>
               <label>
-                WalletConnect Project Id:
+                Project Id:
                 <input type="text" name="project-id" required />
               </label>
               <label>
-                WalletConnect Project Id:
-                <input type="text" name="project-id" required />
+                Name:
+                <input type="text" name="name" required />
+              </label>
+              <label>
+                Description:
+                <input type="text" name="description" required />
+              </label>
+              <label>
+                Url:
+                <input type="text" name="url" required />
+              </label>
+              <label>
+                Icons:
+                <input type="text" name="icons" required />
               </label>
             </fieldset>
             <button type="submit">Initialize WalletConnect</button>
@@ -72,10 +84,7 @@
         </section>
         <section>
           <form id="disconnect">
-            <fieldset>
-              <legend>Session management</legend>
-              <button type="submit">Disconnect all active sessions</button>
-            </fieldset>
+            <button type="submit">Disconnect all active sessions</button>
           </form>
         </section>
       </div>

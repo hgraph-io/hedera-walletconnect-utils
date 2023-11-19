@@ -18,7 +18,12 @@ async function init(e: Event) {
   saveState(form)
 
   const projectId = form.get('project-id') as string
-  const metadata = JSON.parse(form.get('metadata') as string)
+  const metadata: Web3WalletTypes.Metadata = {
+    name: form.get('name') as string,
+    description: form.get('description') as string,
+    url: form.get('url') as string,
+    icons: [form.get('icons') as string],
+  }
 
   wallet = await Wallet.create(projectId, metadata)
 
@@ -28,7 +33,7 @@ async function init(e: Event) {
   // called after pairing to set parameters of session, i.e. accounts, chains, methods, events
   wallet.on('session_proposal', async (proposal: Web3WalletTypes.SessionProposal) => {
     // Client logic: prompt for approval of accounts
-    const accountId = AccountId.fromString(localStorage.getItem('account-id'))
+    const accountId = getState('account-id')
     const accounts: string[] = [`hedera:testnet:${accountId}`]
 
     if (confirm(`Do you want to connect to this session?: ${JSON.stringify(proposal)}`))
@@ -78,7 +83,7 @@ async function pair(e: Event) {
 document.querySelector<HTMLFormElement>('#pair').onsubmit = pair
 
 /*
- * Handling adding a hedera account
+ * Handle adding a hedera account
  */
 async function addHederaAccount(e: Event) {
   e.preventDefault()
@@ -94,7 +99,6 @@ document.querySelector<HTMLFormElement>('#set-account').onsubmit = addHederaAcco
 async function disconnect(e: Event) {
   e.preventDefault()
   for (const [key, value] of Object.entries(wallet.getActiveSessions())) {
-    console.log(key)
     await wallet.disconnectSession({
       topic: value.topic,
       reason: getSdkError('USER_DISCONNECTED'),
