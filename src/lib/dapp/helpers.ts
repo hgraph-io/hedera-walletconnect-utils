@@ -1,3 +1,4 @@
+//@ts-nocheck
 import { type Transaction } from '@hashgraph/sdk'
 import { EngineTypes } from '@walletconnect/types'
 import { HederaJsonRpcMethod, transactionToBase64String } from '../shared'

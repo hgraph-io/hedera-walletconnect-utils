@@ -1,5 +1,5 @@
 import { Core } from '@walletconnect/core'
-import type { JsonRpcResponse } from '@walletconnect/jsonrpc-utils'
+// import type { JsonRpcResponse } from '@walletconnect/jsonrpc-utils'
 import { Web3Wallet, Web3WalletTypes } from '@walletconnect/web3wallet'
 import { buildApprovedNamespaces } from '@walletconnect/utils'
 import { Wallet as HederaWallet, Client, Transaction } from '@hashgraph/sdk'
@@ -114,9 +114,9 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
   async executeSessionRequest(
     event: Web3WalletTypes.SessionRequest,
     hederaWallet: HederaWallet,
-  ): Promise<JsonRpcResponse> {
-    const { id, method, body } = this.parseSessionRequest(event)
-    //@ts-ignore
+  ): Promise<void> {
+    const { id, method, body }: { id: number; method: HederaJsonRpcMethod; body: Transaction } =
+      this.parseSessionRequest(event)
     return this[method](id, body, hederaWallet)
   }
 
@@ -125,11 +125,11 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
    */
   public async hedera_signTransactionAndSend(
     id: number,
-    body: { signedTransaction: Transaction }, // can be signedTransaction or not signedTransaction
+    body: Transaction, // can be signedTransaction or not signedTransaction
     signer: HederaWallet,
   ): Promise<void> {
     const hederaResponse = await signer.call(
-      await signer.signTransaction(body.signedTransaction),
+      await signer.signTransaction(body),
     )
     return this.respondSessionRequest({
       topic: '123',
