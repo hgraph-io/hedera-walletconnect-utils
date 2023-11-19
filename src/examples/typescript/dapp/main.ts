@@ -61,6 +61,7 @@ async function init(e: Event) {
   await approval()
   walletConnectModal.closeModal()
 }
+
 document.getElementById('init').onsubmit = init
 
 // // Sample transaction

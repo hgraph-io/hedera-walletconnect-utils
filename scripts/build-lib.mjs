@@ -1,8 +1,6 @@
 import esbuild from 'esbuild'
-import fs from 'fs'
 
 // https://esbuild.github.io/api/#main-fields-for-package-authors
-
 const common = {
   entryPoints: ['src/index.ts'],
   bundle: true,
@@ -14,11 +12,8 @@ const common = {
   // https://github.com/evanw/esbuild/issues/1275
   alias: {
     '@hashgraph/sdk': './node_modules/@hashgraph/sdk/src/index.js',
+    '@': './src',
   },
-  // logLevel: 'verbose',
-  // alias: {
-  //   '@': './src',
-  // },
 }
 
 esbuild.build({
@@ -52,8 +47,3 @@ esbuild.build({
   target: ['chrome58', 'firefox57', 'safari11', 'edge88'],
   outfile: 'dist/browser-cjs.js',
 })
-
-// TODO: generate types with tsc
-// fs.mkdir('dist', console.error)
-// fs.mkdir('dist', () => {})
-// fs.copyFile('src/types/index.ts', 'dist/index.d.ts', () => {})

@@ -4,11 +4,11 @@ function checkFocus() {
   const wallet = iframes[1]
   if (document.activeElement === dApp) {
     // dApp.style.filter = 'invert(1)'
-		dApp.style.filter = 'none'
+    dApp.style.filter = 'none'
     wallet.style.filter = 'blur(1px) opacity(0.2)'
   } else {
     dApp.style.filter = 'blur(1px) opacity(0.2)'
-		wallet.style.filter = 'none'
+    wallet.style.filter = 'none'
     // wallet.style.filter = 'invert(1)'
   }
 }
