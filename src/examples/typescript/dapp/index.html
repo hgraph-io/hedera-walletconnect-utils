@@ -18,7 +18,7 @@
       <section>
         <form id="init">
           <fieldset>
-            <legend>Initialize WalletConnect</legend>
+            <legend>Step 1: Initialize WalletConnect</legend>
             <label>
               WalletConnect Project Id:
               <input type="text" name="project-id" required />
@@ -29,14 +29,14 @@
       </section>
       <section>
         <fieldset>
-          <legend>Connect a wallet</legend>
+          <legend>Step 2: Connect a wallet</legend>
           <button type="button" id="open-modal">Open WalletConnect Modal</button>
         </fieldset>
       </section>
       <section>
         <form id="transact">
           <fieldset>
-            <legend>Submit transactions</legend>
+            <legend>Step 3: Submit transactions</legend>
             <label
               >Transaction type:
               <select name="transaction-type">
@@ -56,12 +56,12 @@
         </form>
       </section>
       <section>
-        <button
-          type="button"
-          onclick="sessionStorage.clear(); localStorage.clear(); location.reload();"
-        >
-          Clear saved session
-        </button>
+        <form id="session">
+          <fieldset>
+            <legend>Session management</legend>
+            <button type="submit">Clear saved session</button>
+          </fieldset>
+        </form>
       </section>
     </main>
     <script type="module" src="main.js"></script>

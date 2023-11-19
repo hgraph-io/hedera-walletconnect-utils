@@ -23,7 +23,6 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
     public sessionEvents: HederaSessionEvent[] | string[] = Object.values(HederaSessionEvent),
   ) {
     super(opts)
-    console.log('hi')
   }
 
   // wrapper to reduce needing to instantiate Core object on client, also add hedera sensible defaults

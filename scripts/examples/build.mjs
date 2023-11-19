@@ -12,7 +12,7 @@ export const config = {
   plugins: [
     copy({
       assets: {
-        from: ['src/examples/typescript/**/*.(html|css|ico)'],
+        from: ['src/examples/typescript/**/*.(html|css|ico|jpg|png)'],
         to: ['./'],
       },
       watch: true, // for ../dev.mjs

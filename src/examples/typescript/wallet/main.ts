@@ -84,14 +84,6 @@ document.querySelector<HTMLFormElement>('#set-account').onsubmit = (e: Event) =>
   localStorage.setItem('private-key', form.get('private-key') as string)
 }
 
-// ui
-document.querySelector<HTMLTextAreaElement>('textarea[name=metadata]').onchange = function (
-  e: Event,
-) {
-  const target = e.target as HTMLTextAreaElement
-  target.value = JSON.stringify(JSON.parse(target.value), null, 2)
-}
-
 /*
  * Handle changes in wallet
  */

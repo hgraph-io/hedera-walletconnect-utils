@@ -29,35 +29,23 @@
         <section>
           <form id="init">
             <fieldset>
-              <legend>WalletConnect</legend>
+              <legend>Step 1: Initialize WalletConnect</legend>
               <label>
                 WalletConnect Project Id:
-                <input type="text" name="project-id" />
+                <input type="text" name="project-id" required />
               </label>
-              <div>
-                <button type="submit">Initialize WalletConnect</button>
-              </div>
-            </fieldset>
-          </form>
-          <br />
-          <form id="pair">
-            <fieldset>
-              <legend>Pairing string</legend>
               <label>
-                dApp pairing string
-                <input type="text" name="uri" />
+                WalletConnect Project Id:
+                <input type="text" name="project-id" required />
               </label>
-              <div>
-                <button type="submit">Pair</button>
-              </div>
             </fieldset>
+            <button type="submit">Initialize WalletConnect</button>
           </form>
         </section>
-        <hr />
         <section>
           <form id="set-account">
             <fieldset>
-              <legend>Hedera</legend>
+              <legend>Step 2: Add a Hedera account</legend>
               <label>
                 Hedera Testnet Account Id:
                 <input type="text" name="account-id" required />
@@ -67,8 +55,28 @@
                 <input type="password" name="private-key" required />
               </label>
             </fieldset>
+            <button type="submit">Add account</button>
           </form>
-          <button type="submit">Add account</button>
+        </section>
+        <section>
+          <form id="pair">
+            <fieldset>
+              <legend>Step 3: Connect a dApp</legend>
+              <label>
+                dApp pairing string
+                <input type="text" name="uri" required />
+              </label>
+            </fieldset>
+            <button type="submit">Pair</button>
+          </form>
+        </section>
+        <section>
+          <form id="session">
+            <fieldset>
+              <legend>Session management</legend>
+              <button type="submit">Clear saved session</button>
+            </fieldset>
+          </form>
         </section>
       </div>
       <script src="main.js" defer></script>
