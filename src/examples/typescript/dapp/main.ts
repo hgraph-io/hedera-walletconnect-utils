@@ -54,6 +54,7 @@ async function init(e: Event) {
   signClient.on('session_delete', () => {
     // Session was deleted -> reset the dapp state, clean up from user session, etc.
     alert('Session deleted!')
+		//
   })
 }
 
