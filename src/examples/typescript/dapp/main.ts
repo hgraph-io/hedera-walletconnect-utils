@@ -66,7 +66,7 @@ async function init(e: Event) {
   //@ts-ignore
   e.target.querySelectorAll('input,button').forEach((input) => (input.disabled = true))
   document
-    .querySelectorAll('.toggle input,.toggle button')
+    .querySelectorAll('.toggle input,.toggle button, .toggle select')
     //@ts-ignore
     .forEach((element) => (element.disabled = false))
 }
