@@ -63,6 +63,12 @@ async function init(e: Event) {
     alert(`Dapp: Pairing deleted by wallet!`)
     // clean up after the pairing for `topic` was deleted.
   })
+  //@ts-ignore
+  e.target.querySelectorAll('input,button').forEach((input) => (input.disabled = true))
+  document
+    .querySelectorAll('.toggle input,.toggle button')
+    //@ts-ignore
+    .forEach((element) => (element.disabled = false))
 }
 
 document.getElementById('init').onsubmit = init
@@ -123,7 +129,7 @@ document.getElementById('hedera_signTransactionAndSend').onsubmit =
 async function disconnect(e: Event) {
   e.preventDefault()
   for (const session of signClient.session.getAll()) {
-		console.log(`Disconnecting from session: ${session}`)
+    console.log(`Disconnecting from session: ${session}`)
     await signClient.disconnect({
       topic: session.topic,
       reason: getSdkError('USER_DISCONNECTED'),
@@ -131,7 +137,7 @@ async function disconnect(e: Event) {
   }
   //https://docs.walletconnect.com/api/core/pairing
   for (const pairing of signClient.core.pairing.getPairings()) {
-		console.log(`Disconnecting from pairing: ${pairing}`)
+    console.log(`Disconnecting from pairing: ${pairing}`)
     await signClient.disconnect({
       topic: pairing.topic,
       reason: getSdkError('USER_DISCONNECTED'),
