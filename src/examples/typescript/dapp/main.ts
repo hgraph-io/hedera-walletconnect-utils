@@ -2,7 +2,14 @@
 import SignClient from '@walletconnect/sign-client'
 import { SignClientTypes } from '@walletconnect/types'
 import { WalletConnectModal } from '@walletconnect/modal'
-import { TransferTransaction, Hbar, TransactionId } from '@hashgraph/sdk'
+import {
+  TransactionResponseJSON,
+  TransactionResponse,
+  TransferTransaction,
+  Hbar,
+  TransactionId,
+  Client,
+} from '@hashgraph/sdk'
 import {
   HederaChainId,
   HederaSessionEvent,
@@ -88,7 +95,7 @@ async function hedera_signTransactionAndSend(e: Event) {
     .reverse()
     .find((session: { expiry: number }) => session.expiry > Date.now() / 1000)
 
-  signClient.request({
+  const response: TransactionResponseJSON = await signClient.request({
     topic: activeSession.topic,
     chainId: HederaChainId.Testnet,
     request: {
@@ -96,6 +103,13 @@ async function hedera_signTransactionAndSend(e: Event) {
       params: [transactionToBase64String(transaction)],
     },
   })
+  const transactionResponse = TransactionResponse.fromJSON(response)
+  const client = Client.forName('testnet')
+  const receipt = await transactionResponse.getReceipt(client)
+  alert(`${transactionResponse.transactionId}:${receipt.status.toString()}!`)
+  //TODO: get record is a payed operation, we can use hedera_signQueryAndSend to get the query
+  // const record = await transactionResponse.getRecord(client)
+  // console.log(record)
 }
 
 document.getElementById('hedera_signTransactionAndSend').onsubmit =
