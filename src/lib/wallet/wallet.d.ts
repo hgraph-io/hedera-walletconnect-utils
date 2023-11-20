@@ -1,5 +1,4 @@
 import type { Web3WalletTypes } from '@walletconnect/types'
-// import type { JsonRpcResponse } from '@walletconnect/jsonrpc-utils'
 import type { IWeb3Wallet } from '@walletconnect/web3wallet'
 import type { Transaction, Wallet as HederaWallet } from '@hashgraph/sdk'
 import type { HederaJsonRpcMethod as Method } from '../shared'
