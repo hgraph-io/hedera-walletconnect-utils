@@ -25,7 +25,7 @@ export const config = {
     'src/examples/typescript/wallet/main.ts',
   ],
   define: {
-    'process.env.dappUrl': '"https://dapp.wc.hgraph.app/dapp/index.html"',
+    'process.env.dappUrl': '"https://wc.hgraph.app/dapp/index.html"',
     'process.env.walletUrl': '"https://wallet.wc.hgraph.app/wallet/index.html"',
   },
 }
