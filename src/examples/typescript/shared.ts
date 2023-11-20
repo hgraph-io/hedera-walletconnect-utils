@@ -3,11 +3,15 @@
  */
 export function loadState() {
   const state = JSON.parse(localStorage.getItem('hedera-wc-example-saved-state') || '{}')
-  console.log('loadState', state)
   for (const [key, value] of Object.entries(state))
     document
       .querySelector<HTMLInputElement>(`[name="${key}"]`)
       ?.setAttribute('value', value as string)
+  // disable form inputs until wc is initialized
+  document
+    .querySelectorAll('.toggle input,.toggle button, .toggle select')
+    //@ts-ignore
+    .forEach((element) => (element.disabled = true))
 }
 
 export function saveState(e: Event): { [key: string]: string } {

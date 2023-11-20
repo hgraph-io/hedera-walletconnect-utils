@@ -77,6 +77,13 @@ async function init(e: Event) {
     alert(`Wallet: Pairing deleted by dapp!`)
     // clean up after the pairing for `topic` was deleted.
   })
+
+  //@ts-ignore
+  e.target.querySelectorAll('input,button').forEach((input) => (input.disabled = true))
+  document
+    .querySelectorAll('.toggle input,.toggle button, .toggle select')
+    //@ts-ignore
+    .forEach((element) => (element.disabled = false))
 }
 
 document.querySelector<HTMLFormElement>('#init').onsubmit = init
