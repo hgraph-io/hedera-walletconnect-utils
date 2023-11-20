@@ -1,0 +1,16 @@
+name: Build typescript example
+on:
+  push:
+    branches: ['release/hip-820']
+  pull_request:
+    branches: ['release/hip-820']
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Build lib and example
+        run: |
+          npm run build
+          node scripts/examples/dev.mjs
