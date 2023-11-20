@@ -6,14 +6,18 @@ This library is a work in progress and open for contribution. The final destinat
 community supported and governed helper library implementing WalletConnect will be
 `@hashgraph/walletconnect`.
 
-This library was originally built utilizing the spec set out by the
+The main branch of this library is deprecated and was originally built utilizing the spec set
+out by the
 [Hedera <> WalletConnect JSON-RPC spec](https://walletconnect-specs-git-fork-hgraph-io-main-walletconnect1.vercel.app/2.0/blockchain-rpc/hedera-rpc).
 
 There is an active discussion surrounding standardizing the "Integration of Wallet Connect 2.0
 Protocol for Wallets and dApps on Hedera" via the
 [HIP-820 discussion](https://github.com/hashgraph/hedera-improvement-proposal/discussions/819).
 
-We will update this helper library as well as the
+The `release/hip-820` branch of this repo is the upstream branch of this repository as we
+migrate to this spec.
+
+We are working on this library as well as the
 [WalletConnect Spec PR](https://github.com/WalletConnect/walletconnect-specs/pull/117) based on
 the results of
 [HIP-820](https://github.com/hashgraph/hedera-improvement-proposal/pull/820/files).
@@ -92,18 +96,16 @@ const signClient = await SignClient.init({ ...signClientProps })
 import { AccountId, TransactionId, TopicMessageSubmitTransaction } from '@hashgraph/sdk'
 
 const payerAccountId = new AccountId(userAccountId)
-const nodeAccountIds = [new AccountId(3)]
 const transactionId = TransactionId.generate(payerAccountId)
 
 const transaction = new TopicMessageSubmitTransaction()
   .setTransactionId(transactionId)
-  .setNodeAccountIds(nodeAccountIds)
   .setTopicId(topicId)
   .setMessage('Hello Future')
 ```
 
-3. **Build the Session Request Payload**: The `@hashgraph/walletconnect` library provides a
-   seamless way to prepare the session request payload.
+3. TODO: outdated - **Build the Session Request Payload**: The `@hashgraph/walletconnect`
+   library provides a seamless way to prepare the session request payload.
 
 ```javascript
 import { HederaSessionRequest, networkNameToCAIPChainId } from '@hashgraph/walletconnect'
@@ -128,7 +130,7 @@ console.log(result)
 By following these steps, your dApp has access to the full set of Hedera network services. Be
 sure to refer to the linked documentation for in-depth details, best practices, and updates.
 
-### Wallet
+### TODO: explain utilization of Web3Wallet helper
 
 There are 2 core WalletConnect APIs to be implemented by a Wallet:
 
