@@ -1,7 +1,7 @@
 import { Core } from '@walletconnect/core'
 import { Web3Wallet, Web3WalletTypes } from '@walletconnect/web3wallet'
-import { buildApprovedNamespaces } from '@walletconnect/utils'
-import { Wallet as HederaWallet, Client, Transaction, AccountId } from '@hashgraph/sdk'
+import { buildApprovedNamespaces, getSdkError } from '@walletconnect/utils'
+import { Wallet as HederaWallet, Client, AccountId, FileId, FileContentsQuery } from '@hashgraph/sdk'
 import {
   HederaChainId,
   HederaSessionEvent,
@@ -10,6 +10,8 @@ import {
 } from '../shared'
 import Provider from './provider'
 import { type HederaNativeWallet } from './wallet'
+import {Buffer} from 'buffer';
+
 
 // https://github.com/WalletConnect/walletconnect-monorepo/blob/v2.0/packages/web3wallet/src/client.ts
 export default class Wallet extends Web3Wallet implements HederaNativeWallet {
@@ -104,25 +106,24 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
     id: number
     topic: string
     chainId: HederaChainId
-    accountId: AccountId
     method: HederaJsonRpcMethod
-    body: Transaction
+    requestParams: any
   } {
     const { id, topic } = event
     const {
-      request: { method, params },
+      request: {
+        method,
+        params: requestParams,
+      },
       chainId,
     } = event.params
 
-    const body = base64StringToTransaction(params[0])
-    const accountId = body!.transactionId!.accountId!
     return {
       id,
       topic,
       chainId: chainId as HederaChainId,
       method: method as HederaJsonRpcMethod,
-      body,
-      accountId,
+      requestParams,
     }
   }
 
@@ -130,8 +131,9 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
     event: Web3WalletTypes.SessionRequest,
     hederaWallet: HederaWallet,
   ): Promise<void> {
-    const { id, topic, method, body } = this.parseSessionRequest(event)
-    return this[method](id, topic, body, hederaWallet)
+    const { id, topic, method, requestParams } = this.parseSessionRequest(event)
+
+    return this[method](id, topic, requestParams, hederaWallet)
   }
 
   /*
@@ -140,13 +142,47 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
   public async hedera_signTransactionAndSend(
     id: number,
     topic: string,
-    body: Transaction, // can be signedTransaction or not signedTransaction
+    requestParams: any,
     signer: HederaWallet,
   ): Promise<void> {
+    const body = base64StringToTransaction(requestParams[0])
     const hederaResponse = await signer.call(await signer.signTransaction(body))
+
+    if (
+      !confirm(
+        `Do you want to proceed with this transaction?: ${JSON.stringify({
+          body,
+        })}`,
+      )
+    )
+      throw getSdkError('USER_REJECTED_METHODS')
+
     return this.respondSessionRequest({
       topic,
       response: { id, result: hederaResponse, jsonrpc: '2.0' },
+    })
+  }
+
+
+  public async hedera_getNodeAddresses(
+    id: number,
+    topic: string,
+    requestParams: any,
+    signer: HederaWallet,
+  ): Promise<void> {
+    // Create the query
+    // The mainnet address book file ID on mainnet is 0.0.102
+    const fileQuery = new FileContentsQuery()
+    .setFileId( FileId.fromString("0.0.102"));
+
+    // Sign with the operator private key and submit to a Hedera network
+    const mainnetNodeAdressBook = Buffer.from(await fileQuery.executeWithSigner(signer)).toString('hex');
+
+
+    console.log((await fileQuery.executeWithSigner(signer)).toString())
+    return this.respondSessionRequest({
+      topic,
+      response: { id, result: mainnetNodeAdressBook, jsonrpc: '2.0' },
     })
   }
 }

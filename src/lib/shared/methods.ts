@@ -1,5 +1,5 @@
 export enum HederaJsonRpcMethod {
-  // GetNodeAddresses = 'hedera_getNodeAddresses',
+  GetNodeAddresses = 'hedera_getNodeAddresses',
   // SendTransactionOnly = 'hedera_sendTransactionOnly',
   // SignMessage = 'hedera_signMessage',
   // SignQueryAndSend = 'hedera_signQueryAndSend',

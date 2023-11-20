@@ -15,7 +15,7 @@ import {
   HederaSessionEvent,
   HederaJsonRpcMethod,
   transactionToBase64String,
-} from '@hashgraph/walletconnect'
+} from '../../../lib';
 import { saveState, loadState } from '../shared'
 
 // referenced in handlers
@@ -55,6 +55,10 @@ async function init(e: Event) {
     // Session was deleted -> reset the dapp state, clean up from user session, etc.
     alert('Session deleted!')
   })
+
+  console.log('-'.repeat(10));
+  console.log('dApp: WalletConnect initialized!');
+  console.log('-'.repeat(10));
 }
 
 document.getElementById('init').onsubmit = init
@@ -103,6 +107,7 @@ async function hedera_signTransactionAndSend(e: Event) {
       params: [transactionToBase64String(transaction)],
     },
   })
+
   const transactionResponse = TransactionResponse.fromJSON(response)
   const client = Client.forName('testnet')
   const receipt = await transactionResponse.getReceipt(client)
@@ -114,3 +119,23 @@ async function hedera_signTransactionAndSend(e: Event) {
 
 document.getElementById('hedera_signTransactionAndSend').onsubmit =
   hedera_signTransactionAndSend
+
+async function hedera_getNodeAddresses() {
+  const activeSession = signClient.session
+    .getAll()
+    .reverse()
+    .find((session: { expiry: number }) => session.expiry > Date.now() / 1000)
+
+  const response: TransactionResponseJSON = await signClient.request({
+    topic: activeSession.topic,
+    chainId: HederaChainId.Testnet,
+    request: {
+      method: HederaJsonRpcMethod.GetNodeAddresses,
+      params: [],
+    },
+  })
+
+  console.log(response);
+}
+
+document.getElementById('hedera_getNodeAddresses').onsubmit = hedera_getNodeAddresses
