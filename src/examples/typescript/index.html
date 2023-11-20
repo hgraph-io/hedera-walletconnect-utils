@@ -22,26 +22,9 @@
   <body>
     <main>
       <!-- need to be on different host / port combinations https://github.com/WalletConnect/walletconnect-monorepo/issues/2975 -->
-      <iframe src="dapp/index.html"></iframe>
-      <iframe src="wallet/index.html"></iframe>
+      <iframe src=""></iframe>
+      <iframe src=""></iframe>
     </main>
-    <script>
-      // more easily see which iframe is focused
-      function checkFocus() {
-        const iframes = document.getElementsByTagName('iframe')
-        const dApp = iframes[0]
-        const wallet = iframes[1]
-        if (document.activeElement === dApp) {
-          // dApp.style.filter = 'invert(1)'
-          dApp.style.filter = 'none'
-          wallet.style.filter = 'blur(1px) opacity(0.2)'
-        } else {
-          dApp.style.filter = 'blur(1px) opacity(0.2)'
-          wallet.style.filter = 'none'
-          // wallet.style.filter = 'invert(1)'
-        }
-      }
-      window.setInterval(checkFocus, 200)
-    </script>
+    <script src="main.js"></script>
   </body>
 </html>

@@ -20,9 +20,14 @@ export const config = {
   ],
   outdir: 'dist/examples/typescript',
   entryPoints: [
+    'src/examples/typescript/main.ts',
     'src/examples/typescript/dapp/main.ts',
     'src/examples/typescript/wallet/main.ts',
   ],
+  define: {
+    'process.env.dappUrl': '"https://dapp.wc.hgraph.app/dapp/index.html"',
+    'process.env.walletUrl': '"https://wallet.wc.hgraph.app/wallet/index.html"',
+  },
 }
 
 esbuild.build(config)
