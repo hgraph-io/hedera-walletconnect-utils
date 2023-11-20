@@ -1,7 +1,7 @@
 name: Build example
 on:
   push:
-    branches: ['release/hip-820']
+    branches: ['release/hip-820', 'feature/pages']
   pull_request:
     branches: ['release/hip-820']
   workflow_dispatch:
