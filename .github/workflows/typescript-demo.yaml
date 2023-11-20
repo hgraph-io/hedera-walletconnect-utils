@@ -15,4 +15,4 @@ jobs:
       - name: Build lib and example
         run: |
           npm run build
-          node scripts/examples/dev.mjs
+          npm run build:example
