@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>dApp</title>
+    <link rel="stylesheet" href="/main.css" />
+  </head>
+  <body>
+    <main>
+      <h1>dApp</h1>
+      <p>
+        This demo dApp requires a project id from WalletConnect. Please see
+        <a target="_blank" href="https://cloud.walletconnect.com">
+          https://cloud.walletconnect.com
+        </a>
+      </p>
+      <section>
+        <form id="init">
+          <fieldset>
+            <legend>Step 1: Initialize WalletConnect</legend>
+            <label>
+              Project Id:
+              <input type="text" name="project-id" required />
+            </label>
+            <label>
+              Name:
+              <input type="text" name="name" required />
+            </label>
+            <label>
+              Description:
+              <input type="text" name="description" required />
+            </label>
+            <label>
+              Url:
+              <input type="text" name="url" required />
+            </label>
+            <label>
+              Icons:
+              <input type="text" name="icons" required />
+            </label>
+          </fieldset>
+          <button type="submit">Initialize WalletConnect</button>
+        </form>
+      </section>
+      <section>
+        <form id="connect">
+          <button type="submit">Open WalletConnect Modal</button>
+        </form>
+      </section>
+      <section>
+        <form id="hedera_signTransactionAndSend">
+          <fieldset>
+            <legend>hedera_signTransactionAndSend</legend>
+            <label
+              >Transaction type:
+              <select name="transaction-type">
+                <option value="hbar-transfer">Hbar Transfer</option>
+              </select>
+            </label>
+            <label
+              >Send to address:
+              <input name="to" required />
+            </label>
+            <label
+              >Send from address:
+              <input name="from" required />
+            </label>
+            <label
+              >Amount in Hbar:
+              <input name="amount" required />
+            </label>
+          </fieldset>
+          <button type="submit">Submit to wallet</button>
+        </form>
+      </section>
+      <section>
+        <form id="disconnect">
+          <button type="submit">Disconnect all active sessions</button>
+        </form>
+      </section>
+    </main>
+    <script type="module" src="main.js"></script>
+  </body>
+</html>

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hedera &lt;&gt; WalletConnect dApp &amp; Wallet</title>
+    <style>
+      body {
+        margin: 0;
+      }
+      main {
+        display: flex;
+      }
+      iframe {
+        width: 50vw;
+        height: 100vh;
+        margin: 0;
+        padding: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <!-- need to be on different host / port combinations https://github.com/WalletConnect/walletconnect-monorepo/issues/2975 -->
+      <iframe src="/dApp/index.html"></iframe>
+      <iframe src="http://localhost:8081/wallet/index.html"></iframe>
+    </main>
+    <script>
+      // more easily see which iframe is focused
+      function checkFocus() {
+        const iframes = document.getElementsByTagName('iframe')
+        const dApp = iframes[0]
+        const wallet = iframes[1]
+        if (document.activeElement === dApp) {
+          // dApp.style.filter = 'invert(1)'
+          dApp.style.filter = 'none'
+          wallet.style.filter = 'blur(1px) opacity(0.2)'
+        } else {
+          dApp.style.filter = 'blur(1px) opacity(0.2)'
+          wallet.style.filter = 'none'
+          // wallet.style.filter = 'invert(1)'
+        }
+      }
+      window.setInterval(checkFocus, 200)
+    </script>
+  </body>
+</html>
