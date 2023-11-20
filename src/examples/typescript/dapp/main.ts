@@ -2,6 +2,7 @@
 import SignClient from '@walletconnect/sign-client'
 import { SignClientTypes } from '@walletconnect/types'
 import { WalletConnectModal } from '@walletconnect/modal'
+import { getSdkError } from '@walletconnect/utils'
 import {
   TransactionResponseJSON,
   TransactionResponse,
@@ -53,8 +54,14 @@ async function init(e: Event) {
 
   signClient.on('session_delete', () => {
     // Session was deleted -> reset the dapp state, clean up from user session, etc.
-    alert('Session deleted!')
-		//
+    alert('Dapp: Session deleted by wallet!')
+    //
+  })
+  signClient.core.pairing.events.on('pairing_delete', (pairing) => {
+    // Session was deleted
+    console.log(pairing)
+    alert(`Dapp: Pairing deleted by wallet!`)
+    // clean up after the pairing for `topic` was deleted.
   })
 }
 
@@ -108,10 +115,27 @@ async function hedera_signTransactionAndSend(e: Event) {
   const client = Client.forName('testnet')
   const receipt = await transactionResponse.getReceipt(client)
   alert(`${transactionResponse.transactionId}:${receipt.status.toString()}!`)
-  //TODO: get record is a payed operation, we can use hedera_signQueryAndSend to get the query
-  // const record = await transactionResponse.getRecord(client)
-  // console.log(record)
 }
 
 document.getElementById('hedera_signTransactionAndSend').onsubmit =
   hedera_signTransactionAndSend
+
+async function disconnect(e: Event) {
+  e.preventDefault()
+  for (const session of signClient.session.getAll()) {
+		console.log(`Disconnecting from session: ${session}`)
+    await signClient.disconnect({
+      topic: session.topic,
+      reason: getSdkError('USER_DISCONNECTED'),
+    })
+  }
+  //https://docs.walletconnect.com/api/core/pairing
+  for (const pairing of signClient.core.pairing.getPairings()) {
+		console.log(`Disconnecting from pairing: ${pairing}`)
+    await signClient.disconnect({
+      topic: pairing.topic,
+      reason: getSdkError('USER_DISCONNECTED'),
+    })
+  }
+}
+document.querySelector<HTMLFormElement>('#disconnect').onsubmit = disconnect

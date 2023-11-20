@@ -7,17 +7,7 @@ body {
   margin: 0;
   font-family: sans-serif;
   color: white;
-  background: url('/background.jpg');
-  background-size: cover;
-
-  &::before {
-    content: '';
-    position: absolute;
-    background: rgba(0, 0, 0, 0.7);
-    height: 100%;
-    width: 100%;
-    z-index: -1;
-  }
+  background: black;
 }
 main {
   padding: 1rem;

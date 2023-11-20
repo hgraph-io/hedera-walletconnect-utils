@@ -65,6 +65,18 @@ async function init(e: Event) {
 
     return await wallet.executeSessionRequest(event, hederaWallet)
   })
+  wallet.on('session_delete', () => {
+    // Session was deleted
+    alert('Wallet: Session deleted by dapp!')
+    //
+  })
+  //https://docs.walletconnect.com/api/core/pairing
+  wallet.core.pairing.events.on('pairing_delete', (pairing) => {
+    // Session was deleted
+    console.log(pairing)
+    alert(`Wallet: Pairing deleted by dapp!`)
+    // clean up after the pairing for `topic` was deleted.
+  })
 }
 
 document.querySelector<HTMLFormElement>('#init').onsubmit = init
@@ -88,9 +100,18 @@ document.querySelector<HTMLFormElement>('#set-account').onsubmit = saveState
  */
 async function disconnect(e: Event) {
   e.preventDefault()
-  for (const [key, value] of Object.entries(wallet.getActiveSessions())) {
+  //https://docs.walletconnect.com/web3wallet/wallet-usage#session-disconnect
+  for (const session of Object.values(wallet.getActiveSessions())) {
+    console.log(`Disconnecting from session: ${session}`)
     await wallet.disconnectSession({
-      topic: value.topic,
+      topic: session.topic,
+      reason: getSdkError('USER_DISCONNECTED'),
+    })
+  }
+  for (const pairing of wallet.core.pairing.getPairings()) {
+    console.log(`Disconnecting from pairing: ${pairing}`)
+    await wallet.disconnectSession({
+      topic: pairing.topic,
       reason: getSdkError('USER_DISCONNECTED'),
     })
   }
