@@ -1,8 +1,17 @@
 import * as esbuild from 'esbuild'
 import { config } from './build.mjs'
 
-let ctx8080 = await esbuild.context(config)
-let ctx8081 = await esbuild.context(config)
+const devConfig = {
+  ...config,
+  define: {
+    'process.env.dappUrl': '"http://localhost:8080/dapp/index.html"',
+    'process.env.walletUrl': '"http://localhost:8081/wallet/index.html"',
+  },
+}
+console.log(devConfig)
+
+let ctx8080 = await esbuild.context(devConfig)
+let ctx8081 = await esbuild.context(devConfig)
 
 /*
  * watches for file changes and serves most recent files

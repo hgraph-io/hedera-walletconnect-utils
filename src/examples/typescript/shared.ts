@@ -1,7 +1,6 @@
 /*
  * Simple helpers to persist state in the browser for development purposes
  */
-
 export function loadState() {
   const state = JSON.parse(localStorage.getItem('hedera-wc-example-saved-state') || '{}')
   console.log('loadState', state)
