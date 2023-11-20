@@ -1,7 +1,7 @@
 import { Core } from '@walletconnect/core'
 import { Web3Wallet, Web3WalletTypes } from '@walletconnect/web3wallet'
 import { buildApprovedNamespaces } from '@walletconnect/utils'
-import { Wallet as HederaWallet, Client, Transaction } from '@hashgraph/sdk'
+import { Wallet as HederaWallet, Client, Transaction, AccountId } from '@hashgraph/sdk'
 import {
   HederaChainId,
   HederaSessionEvent,
@@ -58,13 +58,12 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
    * Hedera Wallet Signer
    */
   public getHederaWallet(
-    account: string,
+    chainId: HederaChainId,
+    accountId: AccountId | string,
     privateKey: string,
     _provider?: Provider,
   ): HederaWallet {
-    const split = account.split(':')
-    const network = split[1]
-    const accountId = split[2]
+    const network = chainId.split(':')[1]
     const client = Client.forName(network)
     const provider = _provider ?? new Provider(client)
     return new HederaWallet(accountId, privateKey, provider)
@@ -104,17 +103,27 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
   parseSessionRequest(event: Web3WalletTypes.SessionRequest): {
     id: number
     topic: string
+    chainId: HederaChainId
+    accountId: AccountId
     method: HederaJsonRpcMethod
     body: Transaction
-    account: string
   } {
-    const method = event.params.request.method as HederaJsonRpcMethod
-    const topic = event.topic
-    // Could be signed or unsigned transaction
-    const body = base64StringToTransaction(event.params.request.params[0])
-    const account = event.params.request.params[1] //|| wallet.getAccounts()[0]
-    const id = event.id
-    return { id, topic, method, body, account }
+    const { id, topic } = event
+    const {
+      request: { method, params },
+      chainId,
+    } = event.params
+
+    const body = base64StringToTransaction(params[0])
+    const accountId = body!.transactionId!.accountId!
+    return {
+      id,
+      topic,
+      chainId: chainId as HederaChainId,
+      method: method as HederaJsonRpcMethod,
+      body,
+      accountId,
+    }
   }
 
   async executeSessionRequest(

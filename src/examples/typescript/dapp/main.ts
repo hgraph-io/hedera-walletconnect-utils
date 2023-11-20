@@ -2,30 +2,28 @@
 import SignClient from '@walletconnect/sign-client'
 import { SignClientTypes } from '@walletconnect/types'
 import { WalletConnectModal } from '@walletconnect/modal'
-// import { TransferTransaction, Hbar } from '@hashgraph/sdk'
+import { TransferTransaction, Hbar, TransactionId } from '@hashgraph/sdk'
 import {
   HederaChainId,
   HederaSessionEvent,
   HederaJsonRpcMethod,
-  // transactionToBase64String,
+  transactionToBase64String,
 } from '@hashgraph/walletconnect'
-import { saveState, getState, loadState } from '../shared'
+import { saveState, loadState } from '../shared'
 
 // referenced in handlers
 var signClient: SignClient | undefined
 loadState() // load previous state if it exists
 
 async function init(e: Event) {
-  e.preventDefault()
-  const form = new FormData(e.target as HTMLFormElement)
-  saveState(form)
+  const state = saveState(e)
 
-  const projectId = form.get('project-id') as string
+  const projectId = state['project-id']
   const metadata: SignClientTypes.Metadata = {
-    name: form.get('name') as string,
-    description: form.get('description') as string,
-    url: form.get('url') as string,
-    icons: [form.get('icons') as string],
+    name: state['name'],
+    description: state['description'],
+    url: state['url'],
+    icons: [state['icons']],
   }
   signClient = await SignClient.init({ projectId, metadata })
 
@@ -55,7 +53,7 @@ async function init(e: Event) {
 document.getElementById('init').onsubmit = init
 
 async function connect(e: Event) {
-  e.preventDefault()
+  const state = saveState(e)
   const chains = [HederaChainId.Testnet]
   const { uri, approval } = await signClient.connect({
     requiredNamespaces: {
@@ -67,7 +65,7 @@ async function connect(e: Event) {
     },
   })
   const walletConnectModal = new WalletConnectModal({
-    projectId: getState('project-id'),
+    projectId: state['project-id'],
     chains,
   })
 
@@ -77,19 +75,28 @@ async function connect(e: Event) {
 }
 document.getElementById('connect').onsubmit = connect
 
-// // Sample transaction
-// async function signExecuteTransaction() {
-//   const transaction = new TransferTransaction()
-//     .addHbarTransfer('123', new Hbar(-100))
-//     .addHbarTransfer('1234', new Hbar(100))
-//   // console.log(signClient)
+async function hedera_signTransactionAndSend(e: Event) {
+  const state = saveState(e)
+  // Sample transaction
+  const transaction = new TransferTransaction()
+    .setTransactionId(TransactionId.generate(state['from']))
+    .addHbarTransfer(state['from'], new Hbar(-state['amount']))
+    .addHbarTransfer(state['to'], new Hbar(+state['amount']))
 
-//   // signClient.request({
-//   //   topic: 'asdf',
-//   //   chainId: HederaChainId.Testnet,
-//   //   request: {
-//   //     method: HederaJsonRpcMethod.SignTransactionAndSend,
-//   //     params: [transactionToBase64String(transaction)],
-//   //   },
-//   // })
-// }
+  const activeSession = signClient.session
+    .getAll()
+    .reverse()
+    .find((session: { expiry: number }) => session.expiry > Date.now() / 1000)
+
+  signClient.request({
+    topic: activeSession.topic,
+    chainId: HederaChainId.Testnet,
+    request: {
+      method: HederaJsonRpcMethod.SignTransactionAndSend,
+      params: [transactionToBase64String(transaction)],
+    },
+  })
+}
+
+document.getElementById('hedera_signTransactionAndSend').onsubmit =
+  hedera_signTransactionAndSend

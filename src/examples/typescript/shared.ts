@@ -11,12 +11,15 @@ export function loadState() {
       ?.setAttribute('value', value as string)
 }
 
-export function saveState(form: FormData): void {
+export function saveState(e: Event): { [key: string]: string } {
+  e.preventDefault()
+  const form = new FormData(e.target as HTMLFormElement)
   const state = JSON.parse(localStorage.getItem('hedera-wc-example-saved-state') || '{}')
   for (const [key, value] of form.entries()) state[key] = value
   // delete state['private-key'] // don't save the private key
 
   localStorage.setItem('hedera-wc-example-saved-state', JSON.stringify(state))
+  return state
 }
 
 export function getState(key: string) {

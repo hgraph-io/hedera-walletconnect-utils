@@ -49,9 +49,9 @@
         </form>
       </section>
       <section>
-        <form id="transact">
+        <form id="hedera_signTransactionAndSend">
           <fieldset>
-            <legend>Step 3: Submit transactions</legend>
+            <legend>hedera_signTransactionAndSend</legend>
             <label
               >Transaction type:
               <select name="transaction-type">
@@ -65,6 +65,10 @@
             <label
               >Send from address:
               <input name="from" required />
+            </label>
+            <label
+              >Amount in Hbar:
+              <input name="amount" required />
             </label>
           </fieldset>
           <button type="submit">Submit to wallet</button>
