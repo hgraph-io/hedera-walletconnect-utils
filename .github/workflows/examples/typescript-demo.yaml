@@ -1,4 +1,4 @@
-name: Build typescript example
+name: Build example
 on:
   push:
     branches: ['release/hip-820']
