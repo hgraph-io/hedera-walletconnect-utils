@@ -171,7 +171,6 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
     signer: HederaWallet,
   ): Promise<void> {
     const result = transactionToBase64String(await signer.signTransaction(body))
-    console.log('ressssssssssssss', result)
     return this.respondSessionRequest({
       topic,
       response: { id, result, jsonrpc: '2.0' },
