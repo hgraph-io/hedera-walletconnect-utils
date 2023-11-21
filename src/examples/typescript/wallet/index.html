@@ -89,6 +89,12 @@
         <section>
           <form id="disconnect" class="toggle">
             <button type="submit">Disconnect all sessions and pairings</button>
+            <button
+              type="button"
+              onclick="localStorage.clear(); sessionStorage.clear(); location.reload();"
+            >
+              Clear saved data
+            </button>
           </form>
         </section>
       </div>

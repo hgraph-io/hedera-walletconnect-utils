@@ -65,6 +65,12 @@ async function init(e: Event) {
     alert(`Dapp: Pairing deleted by wallet!`)
     // clean up after the pairing for `topic` was deleted.
   })
+
+  activeSession = signClient.session
+    .getAll()
+    .reverse()
+    .find((session: { expiry: number }) => session.expiry > Date.now() / 1000)
+
   //@ts-ignore
   e.target.querySelectorAll('input,button').forEach((input) => (input.disabled = true))
   document
@@ -108,6 +114,9 @@ document.getElementById('connect').onsubmit = connect
  */
 async function hedera_signTransactionBody(e: Event) {
   const state = saveState(e)
+  console.log(state)
+  console.log(activeSession)
+  console.log(signClient)
   // Sample transaction
   const transaction = new TransferTransaction()
     .setTransactionId(TransactionId.generate(state['sign-from']))
@@ -123,8 +132,9 @@ async function hedera_signTransactionBody(e: Event) {
     },
   })
 
+  console.log(response)
   console.log(base64StringToTransaction(response))
-  alert('Transaction body signed!')
+  alert(`Transaction body signed: ${response}!`)
 }
 document.getElementById('hedera_signTransactionBody').onsubmit = hedera_signTransactionBody
 
@@ -152,9 +162,9 @@ async function hedera_signTransactionAndSend(e: Event) {
   const state = saveState(e)
   // Sample transaction
   const transaction = new TransferTransaction()
-    .setTransactionId(TransactionId.generate(state['send-from']))
-    .addHbarTransfer(state['send-from'], new Hbar(-state['send-amount']))
-    .addHbarTransfer(state['send-to'], new Hbar(+state['send-amount']))
+    .setTransactionId(TransactionId.generate(state['sign-send-from']))
+    .addHbarTransfer(state['sign-send-from'], new Hbar(-state['sign-send-amount']))
+    .addHbarTransfer(state['sign-send-to'], new Hbar(+state['sign-send-amount']))
 
   const response: TransactionResponseJSON = await signClient.request({
     topic: activeSession.topic,
