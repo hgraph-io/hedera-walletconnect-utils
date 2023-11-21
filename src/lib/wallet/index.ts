@@ -10,7 +10,7 @@ import {
   transactionToBase64String,
 } from '../shared'
 import Provider from './provider'
-import { type HederaNativeWallet } from './wallet'
+import type { HederaNativeWallet } from './wallet'
 
 // https://github.com/WalletConnect/walletconnect-monorepo/blob/v2.0/packages/web3wallet/src/client.ts
 export default class Wallet extends Web3Wallet implements HederaNativeWallet {

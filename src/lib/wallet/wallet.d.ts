@@ -6,7 +6,12 @@ import type { HederaJsonRpcMethod as Method } from '../shared'
 export interface HederaNativeWallet {
   // [Method.GetNodeAddresses](): Promise<string[]>
 
-  // [Method.SendTransactionOnly](signedTransaction: string): Promise<number> // precheckCode
+  [Method.SendTransactionOnly](
+    id: number,
+    topic: string,
+    body: Transaction,
+    signer: HederaWallet,
+  ): Promise<void>
 
   // [Method.SignMessage](message: string): Promise<string> // signatureMap
 
@@ -19,7 +24,12 @@ export interface HederaNativeWallet {
     signer: HederaWallet,
   ): Promise<void>
 
-  // [Method.SignTransactionBody](signedTransaction: string): Promise<string> // signatureMap
+  [Method.SignTransactionBody](
+    id: number,
+    topic: string,
+    body: Transaction,
+    signer: HederaWallet,
+  ): Promise<void>
 }
 
 // placeholder for EIP:155 support
