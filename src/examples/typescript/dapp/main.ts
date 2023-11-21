@@ -10,6 +10,9 @@ import {
   Hbar,
   TransactionId,
   Client,
+  FileContentsQuery,
+  FileId,
+  AccountInfoQuery
 } from '@hashgraph/sdk'
 import {
   HederaChainId,
@@ -19,6 +22,7 @@ import {
   base64StringToTransaction,
 } from '../../../lib/index'
 import { saveState, loadState } from '../shared'
+import {Buffer} from 'buffer';
 
 // referenced in handlers
 var signClient: SignClient | undefined
@@ -257,4 +261,47 @@ async function hedera_signMessage(event) {
   alert(response.join('\n\n'));
 }
 
-document.getElementById('hedera_signMessage').onsubmit = hedera_signMessage
+document.getElementById('hedera_signMessage').onsubmit = hedera_signMessage;
+
+
+async function hedera_signQueryAndSend(event, queryName: string) {
+  const state = saveState(event);
+
+  const activeSession = signClient.session
+    .getAll()
+    .reverse()
+    .find((session: { expiry: number }) => session.expiry > Date.now() / 1000)
+
+  let query: any;
+
+  if (queryName === 'AccountInfoQuery') {
+    query = new AccountInfoQuery()
+      .setAccountId(state['query-account-id']);
+  } else if (queryName === 'FileContentsQuery') {
+    query = new FileContentsQuery()
+      .setFileId(FileId.fromString(state['query-file-id']));
+  }
+
+  const base64Query = Buffer.from(query.toBytes()).toString('base64');
+  
+  const response: string = await signClient.request({
+    topic: activeSession.topic,
+    chainId: HederaChainId.Testnet,
+    request: {
+      method: HederaJsonRpcMethod.SignQueryAndSend,
+      params: [base64Query],
+    },
+  })
+
+  let parsedResponse = JSON.parse(atob(response));
+
+  if (parsedResponse.isBinaryBase64Data) {
+    parsedResponse.data = Buffer.from(parsedResponse.data, 'base64');
+  }
+
+  console.log(parsedResponse);
+  alert(JSON.stringify(parsedResponse.data));
+}
+
+document.getElementById('hedera_signQueryAndSend-1').onsubmit = (event) => hedera_signQueryAndSend(event, 'AccountInfoQuery');
+document.getElementById('hedera_signQueryAndSend-2').onsubmit = (event) => hedera_signQueryAndSend(event, 'FileContentsQuery');

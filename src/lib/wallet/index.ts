@@ -1,7 +1,7 @@
 import { Core } from '@walletconnect/core'
 import { Web3Wallet, Web3WalletTypes } from '@walletconnect/web3wallet'
 import { buildApprovedNamespaces } from '@walletconnect/utils'
-import { Wallet as HederaWallet, Client, AccountId, FileId, FileContentsQuery, Transaction } from '@hashgraph/sdk'
+import { Wallet as HederaWallet, Client, AccountId, FileId, FileContentsQuery, Transaction, Query } from '@hashgraph/sdk'
 import {
   HederaChainId,
   HederaSessionEvent,
@@ -66,7 +66,7 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
     privateKey: string,
     _provider?: Provider,
   ): HederaWallet {
-    const network = chainId.split(':')[1]
+    const network = chainId.split(':')[1];
     const client = Client.forName(network)
     const provider = _provider ?? new Provider(client)
     return new HederaWallet(accountId, privateKey, provider)
@@ -203,10 +203,11 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
     // Create the query
     // The mainnet address book file ID on mainnet is 0.0.102
     const fileQuery = new FileContentsQuery()
-    .setFileId( FileId.fromString("0.0.102"));
+    .setFileId(FileId.fromString("0.0.102"));
 
     // Sign with the operator private key and submit to a Hedera network
-    const mainnetNodeAdressBook = Buffer.from(await fileQuery.executeWithSigner(signer)).toString('utf-8');
+    const contents = await fileQuery.executeWithSigner(signer);
+    const mainnetNodeAdressBook = Buffer.from(contents).toString('utf-8');
 
     return this.respondSessionRequest({
       topic,
@@ -238,12 +239,41 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
     })
   }
 
+  // Unified flex version
   public async hedera_signQueryAndSend(
     id: number,
     topic: string,
-    messages: any,
+    body: any,
     signer: HederaWallet,
   ): Promise<void> {
-    console.log('Not Implemented');
+
+    const decoded = Buffer.from(body[0], 'base64');
+    const query = Query.fromBytes(decoded);
+    
+    const hederaResponse = await query.executeWithSigner(signer);
+    let data: any = hederaResponse;
+    let isBinaryBase64Data = false;
+
+    if (
+      hederaResponse instanceof ArrayBuffer ||
+      hederaResponse instanceof Uint8Array
+    ) {
+      data = Buffer.from(hederaResponse).toString('base64');
+      isBinaryBase64Data = true;
+    }
+
+    const response = {
+      data,
+      isBinaryBase64Data,
+    };
+
+    return this.respondSessionRequest({
+      topic,
+      response: {
+        id,
+        result: Buffer.from(JSON.stringify(response)).toString('base64'),
+        jsonrpc: '2.0',
+      },
+    })
   }
 }
