@@ -7,24 +7,14 @@ body {
   margin: 0;
   font-family: sans-serif;
   color: white;
-  background: url('/background.jpg');
-  background-size: cover;
-
-  &::before {
-    content: '';
-    position: absolute;
-    background: rgba(0, 0, 0, 0.7);
-    height: 100%;
-    width: 100%;
-    z-index: -1;
-  }
+  background: black;
 }
 main {
   padding: 1rem;
 }
 section {
   color: black;
-  background-color: #f9f9f9;
+  background-color: white;
   margin: 3rem 0;
   padding: 1rem;
   background: linear-gradient(white, white) padding-box,
@@ -84,17 +74,29 @@ button {
   &:hover::before {
     opacity: 1;
   }
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
 }
 
 input,
 select {
   width: 100%;
   height: 2rem;
-  border: 1px solid;
+  border: 1px solid black;
   margin: 0.5rem 0;
   padding: 0.5rem;
+  &:disabled {
+    color: transparent;
+    border: 1px solid lightgrey;
+    background-color: #fafafa;
+  }
 }
-
-.invert {
-  filter: invert(1);
+#init input,
+#init select {
+  &:disabled {
+    color: black;
+    border: 1px solid black;
+  }
 }

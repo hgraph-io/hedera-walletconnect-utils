@@ -55,9 +55,13 @@
           </form>
         </section>
         <section>
-          <form id="set-account">
+          <form id="set-account" class="toggle">
             <fieldset>
-              <legend>Step 2: Add a Hedera account</legend>
+              <legend>Step 2: Hedera account</legend>
+              <p>
+                For brevity, this demo only supports a single account, though WalletConnect
+                supports multiple accounts.
+              </p>
               <label>
                 Hedera Testnet Account Id:
                 <input type="text" name="account-id" required />
@@ -67,11 +71,11 @@
                 <input type="password" name="private-key" required />
               </label>
             </fieldset>
-            <button type="submit">Add account</button>
+            <button type="submit">Set account</button>
           </form>
         </section>
         <section>
-          <form id="pair">
+          <form id="pair" class="toggle">
             <fieldset>
               <legend>Step 3: Connect a dApp</legend>
               <label>
@@ -83,8 +87,14 @@
           </form>
         </section>
         <section>
-          <form id="disconnect">
-            <button type="submit">Disconnect all active sessions</button>
+          <form id="disconnect" class="toggle">
+            <button type="submit">Disconnect all sessions and pairings</button>
+            <button
+              type="button"
+              onclick="localStorage.clear(); sessionStorage.clear(); location.reload();"
+            >
+              Clear saved data
+            </button>
           </form>
         </section>
       </div>

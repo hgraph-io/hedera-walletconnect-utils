@@ -5,7 +5,7 @@ export const config = {
   bundle: true,
   minify: false,
   platform: 'browser',
-  format: 'esm',
+  // format: 'esm',
   alias: {
     '@hashgraph/sdk': './node_modules/@hashgraph/sdk/src/index.js',
   },
@@ -20,9 +20,14 @@ export const config = {
   ],
   outdir: 'dist/examples/typescript',
   entryPoints: [
+    'src/examples/typescript/main.ts',
     'src/examples/typescript/dapp/main.ts',
     'src/examples/typescript/wallet/main.ts',
   ],
+  define: {
+    'process.env.dappUrl': '"https://wc.hgraph.app/dapp/index.html"',
+    'process.env.walletUrl': '"https://wallet.wc.hgraph.app/wallet/index.html"',
+  },
 }
 
 esbuild.build(config)

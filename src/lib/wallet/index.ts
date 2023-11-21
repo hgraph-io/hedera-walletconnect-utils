@@ -1,17 +1,17 @@
 import { Core } from '@walletconnect/core'
 import { Web3Wallet, Web3WalletTypes } from '@walletconnect/web3wallet'
 import { buildApprovedNamespaces, getSdkError } from '@walletconnect/utils'
-import { Wallet as HederaWallet, Client, AccountId, FileId, FileContentsQuery } from '@hashgraph/sdk'
+import { Wallet as HederaWallet, Client, AccountId, FileId, FileContentsQuery, Transaction } from '@hashgraph/sdk'
 import {
   HederaChainId,
   HederaSessionEvent,
   HederaJsonRpcMethod,
   base64StringToTransaction,
+  transactionToBase64String,
 } from '../shared'
 import Provider from './provider'
-import { type HederaNativeWallet } from './wallet'
+import type { HederaNativeWallet } from './wallet'
 import {Buffer} from 'buffer';
-
 
 // https://github.com/WalletConnect/walletconnect-monorepo/blob/v2.0/packages/web3wallet/src/client.ts
 export default class Wallet extends Web3Wallet implements HederaNativeWallet {
@@ -139,6 +139,19 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
   /*
    * JSON RPC Methods
    */
+  public async hedera_sendTransactionOnly(
+    id: number,
+    topic: string,
+    body: Transaction, // must be signedTransaction
+    signer: HederaWallet,
+  ): Promise<void> {
+    const hederaResponse = await signer.call(body)
+    return this.respondSessionRequest({
+      topic,
+      response: { id, result: hederaResponse, jsonrpc: '2.0' },
+    })
+  }
+
   public async hedera_signTransactionAndSend(
     id: number,
     topic: string,
@@ -160,6 +173,19 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
     return this.respondSessionRequest({
       topic,
       response: { id, result: hederaResponse, jsonrpc: '2.0' },
+    })
+  }
+
+  public async hedera_signTransactionBody(
+    id: number,
+    topic: string,
+    body: Transaction,
+    signer: HederaWallet,
+  ): Promise<void> {
+    const result = transactionToBase64String(await signer.signTransaction(body))
+    return this.respondSessionRequest({
+      topic,
+      response: { id, result, jsonrpc: '2.0' },
     })
   }
 
