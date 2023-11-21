@@ -17,7 +17,7 @@ import {
   HederaJsonRpcMethod,
   transactionToBase64String,
   base64StringToTransaction,
-} from '@hashgraph/walletconnect'
+} from '../../../lib/index'
 import { saveState, loadState } from '../shared'
 
 // referenced in handlers
@@ -206,13 +206,15 @@ async function disconnect(e: Event) {
 }
 document.querySelector<HTMLFormElement>('#disconnect').onsubmit = disconnect
 
-async function hedera_getNodeAddresses() {
+async function hedera_getNodeAddresses(event) {
+  event.preventDefault();
+
   const activeSession = signClient.session
     .getAll()
     .reverse()
     .find((session: { expiry: number }) => session.expiry > Date.now() / 1000)
 
-  const response: TransactionResponseJSON = await signClient.request({
+  const response = await signClient.request({
     topic: activeSession.topic,
     chainId: HederaChainId.Testnet,
     request: {

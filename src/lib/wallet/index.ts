@@ -1,6 +1,6 @@
 import { Core } from '@walletconnect/core'
 import { Web3Wallet, Web3WalletTypes } from '@walletconnect/web3wallet'
-import { buildApprovedNamespaces, getSdkError } from '@walletconnect/utils'
+import { buildApprovedNamespaces } from '@walletconnect/utils'
 import { Wallet as HederaWallet, Client, AccountId, FileId, FileContentsQuery, Transaction } from '@hashgraph/sdk'
 import {
   HederaChainId,
@@ -107,33 +107,37 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
     topic: string
     chainId: HederaChainId
     method: HederaJsonRpcMethod
+    body: any
     requestParams: any
   } {
     const { id, topic } = event
     const {
-      request: {
-        method,
-        params: requestParams,
-      },
+      request: { method, params: requestParams },
       chainId,
     } = event.params
+
+    let body: any = requestParams[0] 
+      ? base64StringToTransaction(requestParams[0])
+      : requestParams;
 
     return {
       id,
       topic,
       chainId: chainId as HederaChainId,
       method: method as HederaJsonRpcMethod,
+      body,
       requestParams,
     }
   }
+
 
   async executeSessionRequest(
     event: Web3WalletTypes.SessionRequest,
     hederaWallet: HederaWallet,
   ): Promise<void> {
-    const { id, topic, method, requestParams } = this.parseSessionRequest(event)
+    const { id, topic, method, body } = this.parseSessionRequest(event);
 
-    return this[method](id, topic, requestParams, hederaWallet)
+    return this[method](id, topic, body, hederaWallet)
   }
 
   /*
@@ -155,21 +159,10 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
   public async hedera_signTransactionAndSend(
     id: number,
     topic: string,
-    requestParams: any,
+    body: Transaction, // can be signedTransaction or not signedTransaction
     signer: HederaWallet,
   ): Promise<void> {
-    const body = base64StringToTransaction(requestParams[0])
     const hederaResponse = await signer.call(await signer.signTransaction(body))
-
-    if (
-      !confirm(
-        `Do you want to proceed with this transaction?: ${JSON.stringify({
-          body,
-        })}`,
-      )
-    )
-      throw getSdkError('USER_REJECTED_METHODS')
-
     return this.respondSessionRequest({
       topic,
       response: { id, result: hederaResponse, jsonrpc: '2.0' },
@@ -193,19 +186,18 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
   public async hedera_getNodeAddresses(
     id: number,
     topic: string,
-    requestParams: any,
+    body: any,
     signer: HederaWallet,
   ): Promise<void> {
+    // fee is $0.0001
     // Create the query
     // The mainnet address book file ID on mainnet is 0.0.102
     const fileQuery = new FileContentsQuery()
     .setFileId( FileId.fromString("0.0.102"));
 
     // Sign with the operator private key and submit to a Hedera network
-    const mainnetNodeAdressBook = Buffer.from(await fileQuery.executeWithSigner(signer)).toString('hex');
+    const mainnetNodeAdressBook = Buffer.from(await fileQuery.executeWithSigner(signer)).toString('utf-8');
 
-
-    console.log((await fileQuery.executeWithSigner(signer)).toString())
     return this.respondSessionRequest({
       topic,
       response: { id, result: mainnetNodeAdressBook, jsonrpc: '2.0' },
