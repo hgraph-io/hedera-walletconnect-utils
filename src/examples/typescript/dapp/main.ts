@@ -1,6 +1,6 @@
 // https://docs.walletconnect.com/2.0/api/sign/dapp-usage
 import SignClient from '@walletconnect/sign-client'
-import { SignClientTypes } from '@walletconnect/types'
+import { SessionTypes, SignClientTypes } from '@walletconnect/types'
 import { WalletConnectModal } from '@walletconnect/modal'
 import { getSdkError } from '@walletconnect/utils'
 import {
@@ -16,11 +16,13 @@ import {
   HederaSessionEvent,
   HederaJsonRpcMethod,
   transactionToBase64String,
+  base64StringToTransaction,
 } from '@hashgraph/walletconnect'
 import { saveState, loadState } from '../shared'
 
 // referenced in handlers
 var signClient: SignClient | undefined
+var activeSession: SessionTypes.Struct | undefined
 loadState() // load previous state if it exists
 
 async function init(e: Event) {
@@ -93,21 +95,66 @@ async function connect(e: Event) {
   walletConnectModal.openModal({ uri })
   await approval()
   walletConnectModal.closeModal()
+
+  activeSession = signClient.session
+    .getAll()
+    .reverse()
+    .find((session: { expiry: number }) => session.expiry > Date.now() / 1000)
 }
 document.getElementById('connect').onsubmit = connect
 
+/*
+ * JSON RPC Methods
+ */
+async function hedera_signTransactionBody(e: Event) {
+  const state = saveState(e)
+  // Sample transaction
+  const transaction = new TransferTransaction()
+    .setTransactionId(TransactionId.generate(state['sign-from']))
+    .addHbarTransfer(state['sign-from'], new Hbar(-state['sign-amount']))
+    .addHbarTransfer(state['sign-to'], new Hbar(+state['sign-amount']))
+
+  const response: string = await signClient.request({
+    topic: activeSession.topic,
+    chainId: HederaChainId.Testnet,
+    request: {
+      method: HederaJsonRpcMethod.SignTransactionBody,
+      params: [transactionToBase64String(transaction)],
+    },
+  })
+
+  console.log(base64StringToTransaction(response))
+  alert('Transaction body signed!')
+}
+document.getElementById('hedera_signTransactionBody').onsubmit = hedera_signTransactionBody
+
+//
+async function hedera_sendTransactionOnly(e: Event) {
+  const state = saveState(e)
+
+  const response: TransactionResponseJSON = await signClient.request({
+    topic: activeSession.topic,
+    chainId: HederaChainId.Testnet,
+    request: {
+      method: HederaJsonRpcMethod.SendTransactionOnly,
+      params: [state['send-transaction']],
+    },
+  })
+  const transactionResponse = TransactionResponse.fromJSON(response)
+  const client = Client.forName('testnet')
+  const receipt = await transactionResponse.getReceipt(client)
+  alert(`${transactionResponse.transactionId}:${receipt.status.toString()}!`)
+}
+document.getElementById('hedera_sendTransactionOnly').onsubmit = hedera_sendTransactionOnly
+
+//
 async function hedera_signTransactionAndSend(e: Event) {
   const state = saveState(e)
   // Sample transaction
   const transaction = new TransferTransaction()
-    .setTransactionId(TransactionId.generate(state['from']))
-    .addHbarTransfer(state['from'], new Hbar(-state['amount']))
-    .addHbarTransfer(state['to'], new Hbar(+state['amount']))
-
-  const activeSession = signClient.session
-    .getAll()
-    .reverse()
-    .find((session: { expiry: number }) => session.expiry > Date.now() / 1000)
+    .setTransactionId(TransactionId.generate(state['send-from']))
+    .addHbarTransfer(state['send-from'], new Hbar(-state['send-amount']))
+    .addHbarTransfer(state['send-to'], new Hbar(+state['send-amount']))
 
   const response: TransactionResponseJSON = await signClient.request({
     topic: activeSession.topic,
@@ -122,7 +169,6 @@ async function hedera_signTransactionAndSend(e: Event) {
   const receipt = await transactionResponse.getReceipt(client)
   alert(`${transactionResponse.transactionId}:${receipt.status.toString()}!`)
 }
-
 document.getElementById('hedera_signTransactionAndSend').onsubmit =
   hedera_signTransactionAndSend
 

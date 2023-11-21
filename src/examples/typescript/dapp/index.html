@@ -49,7 +49,45 @@
         </form>
       </section>
       <section>
-        <form id="hedera_signTransactionAndSend" class=toggle>
+        <form id="hedera_signTransactionBody" class="toggle">
+          <fieldset>
+            <legend>hedera_signTransactionBody</legend>
+            <label
+              >Transaction type:
+              <select name="transaction-type">
+                <option value="hbar-transfer">Hbar Transfer</option>
+              </select>
+            </label>
+            <label
+              >Send to address:
+              <input name="sign-to" required />
+            </label>
+            <label
+              >Send from address:
+              <input name="sign-from" required />
+            </label>
+            <label
+              >Amount in Hbar:
+              <input name="sign-amount" required />
+            </label>
+          </fieldset>
+          <button type="submit">Submit to wallet</button>
+        </form>
+      </section>
+      <section>
+        <form id="hedera_sendTransactionOnly" class="toggle">
+          <fieldset>
+            <legend>hedera_sendTransactionOnly</legend>
+            <label
+              >Signed transaction bytes:
+              <input name="send-transaction" required />
+            </label>
+          </fieldset>
+          <button type="submit">Submit to wallet</button>
+        </form>
+      </section>
+      <section>
+        <form id="hedera_signTransactionAndSend" class="toggle">
           <fieldset>
             <legend>hedera_signTransactionAndSend</legend>
             <label
@@ -60,22 +98,23 @@
             </label>
             <label
               >Send to address:
-              <input name="to" required />
+              <input name="sign-send-to" required />
             </label>
             <label
               >Send from address:
-              <input name="from" required />
+              <input name="sign-send-from" required />
             </label>
             <label
               >Amount in Hbar:
-              <input name="amount" required />
+              <input name="sign-send-amount" required />
             </label>
           </fieldset>
           <button type="submit">Submit to wallet</button>
         </form>
       </section>
+
       <section>
-        <form id="disconnect" class=toggle>
+        <form id="disconnect" class="toggle">
           <button type="submit">Disconnect all sessions and pairings</button>
         </form>
       </section>
