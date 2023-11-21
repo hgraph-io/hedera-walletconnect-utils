@@ -12,6 +12,7 @@ import {
 import Provider from './provider'
 import type { HederaNativeWallet } from './wallet'
 import {Buffer} from 'buffer';
+import {keccak256} from 'web3-utils';
 
 // https://github.com/WalletConnect/walletconnect-monorepo/blob/v2.0/packages/web3wallet/src/client.ts
 export default class Wallet extends Web3Wallet implements HederaNativeWallet {
@@ -115,10 +116,19 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
       request: { method, params: requestParams },
       chainId,
     } = event.params
+    
+    let body: any = requestParams;
 
-    let body: any = requestParams[0] 
-      ? base64StringToTransaction(requestParams[0])
-      : requestParams;
+    const methodsWithoutTransaction = [
+      HederaJsonRpcMethod.SendTransactionOnly,
+      HederaJsonRpcMethod.SignTransactionAndSend,
+      HederaJsonRpcMethod.SignTransactionBody,
+      HederaJsonRpcMethod.SignTransactionAndSend,
+    ];
+
+    if (methodsWithoutTransaction.includes(method as HederaJsonRpcMethod)) {
+      body = base64StringToTransaction(requestParams[0]);
+    }
 
     return {
       id,
@@ -202,5 +212,38 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
       topic,
       response: { id, result: mainnetNodeAdressBook, jsonrpc: '2.0' },
     })
+  }
+
+  public async hedera_signMessage(
+    id: number,
+    topic: string,
+    messages: any,
+    signer: HederaWallet,
+  ): Promise<void> {
+    const hederaMessages = messages.map((messageBase64: string) => {
+      const message = Buffer.from(messageBase64, 'base64').toString('utf-8')
+      const hederaMessage = keccak256("\x19Hedera Signed Message:\n" + message.length + message);
+      const hederaMessageUInt8 = Uint8Array.from(Buffer.from(hederaMessage, 'hex'));
+
+      return hederaMessageUInt8;
+    });
+
+    const signerSignatures = await signer.sign(hederaMessages);
+    const signaturesBase64 = signerSignatures
+      .map(signerSignature => Buffer.from(signerSignature.signature).toString('base64'))
+
+    return this.respondSessionRequest({
+      topic,
+      response: { id, result: signaturesBase64, jsonrpc: '2.0' },
+    })
+  }
+
+  public async hedera_signQueryAndSend(
+    id: number,
+    topic: string,
+    messages: any,
+    signer: HederaWallet,
+  ): Promise<void> {
+    console.log('Not Implemented');
   }
 }

@@ -227,3 +227,34 @@ async function hedera_getNodeAddresses(event) {
 }
 
 document.getElementById('hedera_getNodeAddresses').onsubmit = hedera_getNodeAddresses
+
+async function hedera_signMessage(event) {
+  const state = saveState(event);
+
+  const activeSession = signClient.session
+    .getAll()
+    .reverse()
+    .find((session: { expiry: number }) => session.expiry > Date.now() / 1000)
+
+  const messages: string[] = [];
+  if (state['message-to-sign-1']) messages.push(state['message-to-sign-1']);
+  if (state['message-to-sign-2']) messages.push(state['message-to-sign-2']);
+
+  if (!messages.length) {
+    throw Error('There is no messages to sign');
+  }
+  
+  const response: string[] = await signClient.request({
+    topic: activeSession.topic,
+    chainId: HederaChainId.Testnet,
+    request: {
+      method: HederaJsonRpcMethod.SignMessage,
+      params: messages,
+    },
+  })
+
+  console.log('base64Signatures: ', response);
+  alert(response.join('\n\n'));
+}
+
+document.getElementById('hedera_signMessage').onsubmit = hedera_signMessage

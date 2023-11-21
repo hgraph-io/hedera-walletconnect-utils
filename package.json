@@ -40,7 +40,8 @@
     "@walletconnect/qrcode-modal": "^1.8.0",
     "@walletconnect/types": "^2.10.0",
     "@walletconnect/utils": "^2.10.0",
-    "@walletconnect/web3wallet": "^1.9.3"
+    "@walletconnect/web3wallet": "^1.9.3",
+    "web3-utils": "^4.0.7"
   },
   "scripts": {
     "build": "rm -Rf dist && npm run build:types && node scripts/lib/build.mjs",
