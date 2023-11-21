@@ -8,7 +8,6 @@ const devConfig = {
     'process.env.walletUrl': '"http://localhost:8081/wallet/index.html"',
   },
 }
-console.log(devConfig)
 
 let ctx8080 = await esbuild.context(devConfig)
 let ctx8081 = await esbuild.context(devConfig)

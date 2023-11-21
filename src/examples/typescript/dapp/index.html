@@ -54,7 +54,7 @@
             <legend>hedera_signTransactionBody</legend>
             <label
               >Transaction type:
-              <select name="transaction-type">
+              <select name="sign-transaction-type">
                 <option value="hbar-transfer">Hbar Transfer</option>
               </select>
             </label>
@@ -92,7 +92,7 @@
             <legend>hedera_signTransactionAndSend</legend>
             <label
               >Transaction type:
-              <select name="transaction-type">
+              <select name="sign-send-transaction-type">
                 <option value="hbar-transfer">Hbar Transfer</option>
               </select>
             </label>
@@ -116,9 +116,15 @@
       <section>
         <form id="disconnect" class="toggle">
           <button type="submit">Disconnect all sessions and pairings</button>
+          <button
+            type="button"
+            onclick="localStorage.clear(); sessionStorage.clear(); location.reload();"
+          >
+            Clear saved data
+          </button>
         </form>
       </section>
     </main>
-    <script type="module" src="main.js"></script>
+    <script src="main.js" defer></script>
   </body>
 </html>

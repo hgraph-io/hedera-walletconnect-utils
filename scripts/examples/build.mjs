@@ -5,7 +5,7 @@ export const config = {
   bundle: true,
   minify: false,
   platform: 'browser',
-  format: 'esm',
+  // format: 'esm',
   alias: {
     '@hashgraph/sdk': './node_modules/@hashgraph/sdk/src/index.js',
   },

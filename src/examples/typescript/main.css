@@ -90,6 +90,7 @@ select {
   &:disabled {
     color: transparent;
     border: 1px solid lightgrey;
+    background-color: #fafafa;
   }
 }
 #init input,
