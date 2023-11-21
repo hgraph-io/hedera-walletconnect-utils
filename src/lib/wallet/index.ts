@@ -1,7 +1,7 @@
 import { Core } from '@walletconnect/core'
 import { Web3Wallet, Web3WalletTypes } from '@walletconnect/web3wallet'
 import { buildApprovedNamespaces } from '@walletconnect/utils'
-import { Wallet as HederaWallet, Client, AccountId, FileId, FileContentsQuery, Transaction } from '@hashgraph/sdk'
+import { Wallet as HederaWallet, Client, AccountId, FileId, FileContentsQuery, Transaction, Query } from '@hashgraph/sdk'
 import {
   HederaChainId,
   HederaSessionEvent,
@@ -66,7 +66,7 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
     privateKey: string,
     _provider?: Provider,
   ): HederaWallet {
-    const network = chainId.split(':')[1]
+    const network = chainId.split(':')[1];
     const client = Client.forName(network)
     const provider = _provider ?? new Provider(client)
     return new HederaWallet(accountId, privateKey, provider)
@@ -203,10 +203,14 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
     // Create the query
     // The mainnet address book file ID on mainnet is 0.0.102
     const fileQuery = new FileContentsQuery()
-    .setFileId( FileId.fromString("0.0.102"));
+    .setFileId(FileId.fromString("0.0.102"));
 
     // Sign with the operator private key and submit to a Hedera network
-    const mainnetNodeAdressBook = Buffer.from(await fileQuery.executeWithSigner(signer)).toString('utf-8');
+    const contents = await fileQuery.executeWithSigner(signer);
+    // const nodeAddressBook = NodeAddressBook.fromBytes(contents)
+    // console.log(nodeAddressBook);
+    // console.log(nodeAddressBook.nodeAddresses);
+    const mainnetNodeAdressBook = Buffer.from(contents).toString('utf-8');
 
     return this.respondSessionRequest({
       topic,
@@ -241,9 +245,23 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
   public async hedera_signQueryAndSend(
     id: number,
     topic: string,
-    messages: any,
+    body: any,
     signer: HederaWallet,
   ): Promise<void> {
-    console.log('Not Implemented');
+    const decoded = Buffer.from(body[0], 'base64');
+    const query = Query.fromBytes(decoded);
+    console.log(query);
+    
+    const hederaResponse = await query.executeWithSigner(signer);
+    console.log(hederaResponse);
+
+    const response = Buffer.from(hederaResponse as Uint8Array).toString('base64');
+
+    console.log(response);
+
+    return this.respondSessionRequest({
+      topic,
+      response: { id, result: response, jsonrpc: '2.0' },
+    })
   }
 }
