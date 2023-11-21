@@ -7,6 +7,7 @@ import {
   HederaSessionEvent,
   HederaJsonRpcMethod,
   base64StringToTransaction,
+  transactionToBase64String,
 } from '../shared'
 import Provider from './provider'
 import { type HederaNativeWallet } from './wallet'
@@ -137,6 +138,19 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
   /*
    * JSON RPC Methods
    */
+  public async hedera_sendTransactionOnly(
+    id: number,
+    topic: string,
+    body: Transaction, // must be signedTransaction
+    signer: HederaWallet,
+  ): Promise<void> {
+    const hederaResponse = await signer.call(body)
+    return this.respondSessionRequest({
+      topic,
+      response: { id, result: hederaResponse, jsonrpc: '2.0' },
+    })
+  }
+
   public async hedera_signTransactionAndSend(
     id: number,
     topic: string,
@@ -147,6 +161,19 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
     return this.respondSessionRequest({
       topic,
       response: { id, result: hederaResponse, jsonrpc: '2.0' },
+    })
+  }
+
+  public async hedera_signTransactionBody(
+    id: number,
+    topic: string,
+    body: Transaction,
+    signer: HederaWallet,
+  ): Promise<void> {
+    const result = transactionToBase64String(await signer.signTransaction(body))
+    return this.respondSessionRequest({
+      topic,
+      response: { id, result, jsonrpc: '2.0' },
     })
   }
 }
