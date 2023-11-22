@@ -12,7 +12,8 @@ import {
   Client,
   FileContentsQuery,
   FileId,
-  AccountInfoQuery
+  AccountInfoQuery,
+  AccountId,
 } from '@hashgraph/sdk'
 import {
   HederaChainId,
@@ -301,7 +302,51 @@ async function hedera_signQueryAndSend(event, queryName: string) {
 
   console.log(parsedResponse);
   alert(JSON.stringify(parsedResponse.data));
+
+  return parsedResponse;
 }
 
 document.getElementById('hedera_signQueryAndSend-1').onsubmit = (event) => hedera_signQueryAndSend(event, 'AccountInfoQuery');
 document.getElementById('hedera_signQueryAndSend-2').onsubmit = (event) => hedera_signQueryAndSend(event, 'FileContentsQuery');
+
+// PROOF THAT PRECHECK COSTS NOTHING
+// SET AccountInfoQuery account id before use it!!!
+async function hedera_signTransactionAndSend_precheck_fail(event) {
+  const state = saveState(event);
+
+  const accountInfo1 = await hedera_signQueryAndSend(event, 'AccountInfoQuery');
+  const accountInfo2 = await hedera_signQueryAndSend(event, 'AccountInfoQuery');
+  const accountInfoQueryFee = parseFloat(accountInfo1.data.balance) - parseFloat(accountInfo2.data.balance);
+  console.log(accountInfoQueryFee);
+
+  // Sample transaction
+  const transaction = new TransferTransaction()
+    .setNodeAccountIds([new AccountId(999)])
+    .setTransactionId(TransactionId.generate(state['query-account-id']))
+    .addHbarTransfer(state['query-account-id'], new Hbar(-100))
+    .addHbarTransfer('0.0.450178', new Hbar(+100))
+
+  console.log(transaction);
+
+  // @ts-ignore
+  // transaction._transactionValidDuration = 0;
+
+  const response: TransactionResponseJSON = await signClient.request({
+    topic: activeSession.topic,
+    chainId: HederaChainId.Testnet,
+    request: {
+      method: HederaJsonRpcMethod.SignTransactionAndSend,
+      params: [transactionToBase64String(transaction)],
+    },
+  })
+  console.log(response);
+ 
+  const accountInfo3 = await hedera_signQueryAndSend(event, 'AccountInfoQuery');
+
+  const accountQueryAndPrecheckFee = parseFloat(accountInfo2.data.balance) - parseFloat(accountInfo3.data.balance);
+  console.log(accountQueryAndPrecheckFee);
+  console.log(accountInfo2.data, accountInfo3.data);
+  console.log(`Precheck fee ${accountQueryAndPrecheckFee - accountInfoQueryFee}`)
+}
+
+document.getElementById('hedera_signTransactionAndSend_precheck_fail').onsubmit = hedera_signTransactionAndSend_precheck_fail;
