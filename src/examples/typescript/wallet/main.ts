@@ -1,7 +1,7 @@
 // https://github.com/WalletConnect/walletconnect-monorepo/tree/v2.0/packages/web3wallet
 import type { Web3WalletTypes } from '@walletconnect/web3wallet'
 import { getSdkError } from '@walletconnect/utils'
-import { Wallet, HederaChainId } from '../../../lib'
+import { Wallet, HederaChainId } from '@hashgraph/walletconnect'
 import { loadState, saveState } from '../shared'
 
 // referenced in handlers
@@ -46,7 +46,36 @@ async function init(e: Event) {
   // requests to call a JSON-RPC method
   wallet.on('session_request', async (event: Web3WalletTypes.SessionRequest) => {
     // Client logic: prompt user for approval of transaction
-    const { chainId } = wallet.parseSessionRequest(event)
+    const { chainId, accountId, method, transaction, query, requestParams } = wallet.parseSessionRequest(event)
+
+    if (transaction) {
+      if (
+        !confirm(
+          `Do you want to proceed with this transaction?: ${JSON.stringify({
+            network: chainId.split(':')[1],
+            accountId,
+            method,
+            transaction,
+          })}`,
+        )
+      )
+        throw getSdkError('USER_REJECTED_METHODS')
+    }
+
+    if (query) {
+      if (
+        !confirm(
+          `Do you want to proceed with this query?: ${JSON.stringify({
+            network: chainId.split(':')[1],
+            accountId,
+            method,
+            query,
+          })}`,
+        )
+      )
+        throw getSdkError('USER_REJECTED_METHODS')
+    }
+   
 
     // A custom provider/signer can be used to sign transactions
     // https://docs.hedera.com/hedera/sdks-and-apis/sdks/signature-provider/wallet

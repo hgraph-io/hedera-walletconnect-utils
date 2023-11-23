@@ -19,8 +19,10 @@ import {
   HederaSessionEvent,
   HederaJsonRpcMethod,
   transactionToBase64String,
+  queryToBase64String,
   base64StringToTransaction,
-} from '../../../lib/index'
+} from '@hashgraph/walletconnect'
+
 import { saveState, loadState } from '../shared'
 import {Buffer} from 'buffer';
 
@@ -213,7 +215,7 @@ document.querySelector<HTMLFormElement>('#disconnect').onsubmit = disconnect
 async function hedera_getNodeAddresses(event) {
   event.preventDefault();
 
-  const activeSession = signClient.session
+  activeSession = signClient.session
     .getAll()
     .reverse()
     .find((session: { expiry: number }) => session.expiry > Date.now() / 1000)
@@ -235,18 +237,15 @@ document.getElementById('hedera_getNodeAddresses').onsubmit = hedera_getNodeAddr
 async function hedera_signMessage(event) {
   const state = saveState(event);
 
-  const activeSession = signClient.session
+  activeSession = signClient.session
     .getAll()
     .reverse()
     .find((session: { expiry: number }) => session.expiry > Date.now() / 1000)
 
-  const messages: string[] = [];
-  if (state['message-to-sign-1']) messages.push(state['message-to-sign-1']);
-  if (state['message-to-sign-2']) messages.push(state['message-to-sign-2']);
-
-  if (!messages.length) {
-    throw Error('There is no messages to sign');
-  }
+  const messages = [
+    state['message-to-sign-1'],
+    state['message-to-sign-2']
+  ];
   
   const response: string[] = await signClient.request({
     topic: activeSession.topic,
@@ -267,7 +266,7 @@ document.getElementById('hedera_signMessage').onsubmit = hedera_signMessage;
 async function hedera_signQueryAndSend(event, queryName: string) {
   const state = saveState(event);
 
-  const activeSession = signClient.session
+  activeSession = signClient.session
     .getAll()
     .reverse()
     .find((session: { expiry: number }) => session.expiry > Date.now() / 1000)
@@ -281,15 +280,13 @@ async function hedera_signQueryAndSend(event, queryName: string) {
     query = new FileContentsQuery()
       .setFileId(FileId.fromString(state['query-file-id']));
   }
-
-  const base64Query = Buffer.from(query.toBytes()).toString('base64');
   
   const response: string = await signClient.request({
     topic: activeSession.topic,
     chainId: HederaChainId.Testnet,
     request: {
       method: HederaJsonRpcMethod.SignQueryAndSend,
-      params: [base64Query],
+      params: [queryToBase64String(query)],
     },
   })
 

@@ -1,5 +1,5 @@
 import { Buffer } from 'buffer'
-import { AccountId, Transaction, LedgerId } from '@hashgraph/sdk'
+import { AccountId, Transaction, LedgerId, Query } from '@hashgraph/sdk'
 import { ProposalTypes, SessionTypes } from '@walletconnect/types'
 
 /**
@@ -62,6 +62,36 @@ export function transactionToBase64String<T extends Transaction>(transaction: T)
 export function base64StringToTransaction<T extends Transaction>(transactionBytes: string): T {
   const decoded = Buffer.from(transactionBytes, 'base64')
   return Transaction.fromBytes(decoded) as T
+}
+
+/**
+ * Converts a query to bytes and then encodes as a base64 string. 
+ * @param Query Any instance of a class that extends `Transaction`
+ * @returns a base64 encoded string
+ */
+export function queryToBase64String<T, Q extends Query<T>>(query: Q): string {
+  const queryBytes = query.toBytes();
+  return Buffer.from(queryBytes).toString('base64');
+}
+
+/**
+ * Recreates a `Query` from a base64 encoded string. First decodes the string to a buffer,
+ * then passes to `Query.fromBytes`. For greater flexibility, this function uses the base
+ * `Query` class, but takes an optional type parameter if the type of query is known,
+ * allowing stronger typeing.
+ * @param queryBytes string - a base64 encoded string
+ * @returns `Transaction`
+ * @example
+ * ```js
+ * const txn1 = base64StringToTransaction(bytesString)
+ * const txn2 = base64StringToTransaction<TransferTransaction>(bytesString)
+ * // txn1 type: Transaction
+ * // txn2 type: TransferTransaction
+ * ```
+ */
+export function base64StringToQuery<T, Q extends Query<T>>(queryBytes: string): Q {
+  const decoded = Buffer.from(queryBytes, 'base64');
+  return Query.fromBytes(decoded) as Q;
 }
 
 /**

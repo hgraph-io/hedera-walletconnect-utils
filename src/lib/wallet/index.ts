@@ -8,6 +8,7 @@ import {
   HederaJsonRpcMethod,
   base64StringToTransaction,
   transactionToBase64String,
+  base64StringToQuery,
 } from '../shared'
 import Provider from './provider'
 import type { HederaNativeWallet } from './wallet'
@@ -66,7 +67,7 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
     privateKey: string,
     _provider?: Provider,
   ): HederaWallet {
-    const network = chainId.split(':')[1];
+    const network = chainId.split(':')[1]
     const client = Client.forName(network)
     const provider = _provider ?? new Provider(client)
     return new HederaWallet(accountId, privateKey, provider)
@@ -108,8 +109,10 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
     topic: string
     chainId: HederaChainId
     method: HederaJsonRpcMethod
-    body: any
+    transaction?: Transaction
+    query?: Query<any>
     requestParams: any
+    accountId?: AccountId
   } {
     const { id, topic } = event
     const {
@@ -117,7 +120,8 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
       chainId,
     } = event.params
     
-    let body: any = requestParams;
+
+    let transaction: Transaction | undefined;
 
     const methodsWithoutTransaction = [
       HederaJsonRpcMethod.SendTransactionOnly,
@@ -127,7 +131,15 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
     ];
 
     if (methodsWithoutTransaction.includes(method as HederaJsonRpcMethod)) {
-      body = base64StringToTransaction(requestParams[0]);
+      transaction = base64StringToTransaction(requestParams[0]);
+    }
+
+    const accountId = transaction?.transactionId?.accountId!;
+
+    let query: Query<any> | undefined;
+
+    if (method as HederaJsonRpcMethod === HederaJsonRpcMethod.SignQueryAndSend) {
+      query = base64StringToQuery(requestParams[0]);
     }
 
     return {
@@ -135,7 +147,9 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
       topic,
       chainId: chainId as HederaChainId,
       method: method as HederaJsonRpcMethod,
-      body,
+      transaction,
+      query,
+      accountId,
       requestParams,
     }
   }
@@ -145,7 +159,8 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
     event: Web3WalletTypes.SessionRequest,
     hederaWallet: HederaWallet,
   ): Promise<void> {
-    const { id, topic, method, body } = this.parseSessionRequest(event);
+    const { id, topic, method, transaction, query, requestParams } = this.parseSessionRequest(event);
+    const body = transaction ?? query ?? requestParams;
 
     return this[method](id, topic, body, hederaWallet)
   }
@@ -243,14 +258,10 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
   public async hedera_signQueryAndSend(
     id: number,
     topic: string,
-    body: any,
+    body: Query<any>,
     signer: HederaWallet,
   ): Promise<void> {
-
-    const decoded = Buffer.from(body[0], 'base64');
-    const query = Query.fromBytes(decoded);
-    
-    const hederaResponse = await query.executeWithSigner(signer);
+    const hederaResponse = await body.executeWithSigner(signer);
     let data: any = hederaResponse;
     let isBinaryBase64Data = false;
 
