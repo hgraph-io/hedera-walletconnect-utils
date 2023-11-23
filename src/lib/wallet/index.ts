@@ -172,20 +172,11 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
     body: Transaction, // can be signedTransaction or not signedTransaction
     signer: HederaWallet,
   ): Promise<void> {
-    try {
-      const hederaResponse = await signer.call(await signer.signTransaction(body))
-      return this.respondSessionRequest({
-        topic,
-        response: { id, result: hederaResponse, jsonrpc: '2.0' },
-      })
-    } catch (err) {
-      console.log(err);
-
-      return this.respondSessionRequest({
-        topic,
-        response: { id, result: false, jsonrpc: '2.0' },
-      })
-    }
+    const hederaResponse = await signer.call(await signer.signTransaction(body))
+    return this.respondSessionRequest({
+      topic,
+      response: { id, result: hederaResponse, jsonrpc: '2.0' },
+    })
   }
 
   public async hedera_signTransactionBody(

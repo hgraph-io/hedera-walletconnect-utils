@@ -46,13 +46,19 @@ async function init(e: Event) {
   // requests to call a JSON-RPC method
   wallet.on('session_request', async (event: Web3WalletTypes.SessionRequest) => {
     // Client logic: prompt user for approval of transaction
-    const { chainId } = wallet.parseSessionRequest(event)
+    const { chainId, topic, id } = wallet.parseSessionRequest(event);
 
-    // A custom provider/signer can be used to sign transactions
-    // https://docs.hedera.com/hedera/sdks-and-apis/sdks/signature-provider/wallet
-    const hederaWallet = wallet.getHederaWallet(chainId, state['account-id'], state['private-key'])
-    
-    return await wallet.executeSessionRequest(event, hederaWallet)
+    try {
+      // A custom provider/signer can be used to sign transactions
+      // https://docs.hedera.com/hedera/sdks-and-apis/sdks/signature-provider/wallet
+      const hederaWallet = wallet.getHederaWallet(chainId, state['account-id'], state['private-key']);
+      await wallet.executeSessionRequest(event, hederaWallet);
+    } catch (error) {
+      await wallet.respondSessionRequest({
+        topic,
+        response: { id, error, jsonrpc: '2.0' },
+      })
+    }
   })
 
   wallet.on('session_delete', () => {

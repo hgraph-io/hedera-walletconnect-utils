@@ -90,30 +90,34 @@ async function init(e: Event) {
 document.getElementById('init').onsubmit = init
 
 async function connect(e: Event) {
-  const state = saveState(e)
-  const chains = [HederaChainId.Testnet]
-  const { uri, approval } = await signClient.connect({
-    requiredNamespaces: {
-      hedera: {
-        methods: Object.values(HederaJsonRpcMethod),
-        chains,
-        events: [HederaSessionEvent.ChainChanged, HederaSessionEvent.AccountsChanged],
+  try {
+    const state = saveState(e)
+    const chains = [HederaChainId.Testnet]
+    const { uri, approval } = await signClient.connect({
+      requiredNamespaces: {
+        hedera: {
+          methods: Object.values(HederaJsonRpcMethod),
+          chains,
+          events: [HederaSessionEvent.ChainChanged, HederaSessionEvent.AccountsChanged],
+        },
       },
-    },
-  })
-  const walletConnectModal = new WalletConnectModal({
-    projectId: state['project-id'],
-    chains,
-  })
-
-  walletConnectModal.openModal({ uri })
-  await approval()
-  walletConnectModal.closeModal()
-
-  activeSession = signClient.session
-    .getAll()
-    .reverse()
-    .find((session: { expiry: number }) => session.expiry > Date.now() / 1000)
+    })
+    const walletConnectModal = new WalletConnectModal({
+      projectId: state['project-id'],
+      chains,
+    })
+  
+    walletConnectModal.openModal({ uri })
+    await approval()
+    walletConnectModal.closeModal()
+  
+    activeSession = signClient.session
+      .getAll()
+      .reverse()
+      .find((session: { expiry: number }) => session.expiry > Date.now() / 1000)
+  } catch(err) {
+    console.log(err);
+  }
 }
 document.getElementById('connect').onsubmit = connect
 
@@ -309,44 +313,100 @@ async function hedera_signQueryAndSend(event, queryName: string) {
 document.getElementById('hedera_signQueryAndSend-1').onsubmit = (event) => hedera_signQueryAndSend(event, 'AccountInfoQuery');
 document.getElementById('hedera_signQueryAndSend-2').onsubmit = (event) => hedera_signQueryAndSend(event, 'FileContentsQuery');
 
-// PROOF THAT PRECHECK COSTS NOTHING
-// SET AccountInfoQuery account id before use it!!!
-async function hedera_signTransactionAndSend_precheck_fail(event) {
-  const state = saveState(event);
+async function call_error_gossip_node() {
+  try {
+    console.log('call_error_gossip_node');
 
-  const accountInfo1 = await hedera_signQueryAndSend(event, 'AccountInfoQuery');
-  const accountInfo2 = await hedera_signQueryAndSend(event, 'AccountInfoQuery');
-  const accountInfoQueryFee = parseFloat(accountInfo1.data.balance) - parseFloat(accountInfo2.data.balance);
-  console.log(accountInfoQueryFee);
-
-  // Sample transaction
-  const transaction = new TransferTransaction()
-    .setNodeAccountIds([new AccountId(999)])
-    .setTransactionId(TransactionId.generate(state['query-account-id']))
-    .addHbarTransfer(state['query-account-id'], new Hbar(-100))
-    .addHbarTransfer('0.0.450178', new Hbar(+100))
-
-  console.log(transaction);
-
-  // @ts-ignore
-  // transaction._transactionValidDuration = 0;
-
-  const response: TransactionResponseJSON = await signClient.request({
-    topic: activeSession.topic,
-    chainId: HederaChainId.Testnet,
-    request: {
-      method: HederaJsonRpcMethod.SignTransactionAndSend,
-      params: [transactionToBase64String(transaction)],
-    },
-  })
-  console.log(response);
- 
-  const accountInfo3 = await hedera_signQueryAndSend(event, 'AccountInfoQuery');
-
-  const accountQueryAndPrecheckFee = parseFloat(accountInfo2.data.balance) - parseFloat(accountInfo3.data.balance);
-  console.log(accountQueryAndPrecheckFee);
-  console.log(accountInfo2.data, accountInfo3.data);
-  console.log(`Precheck fee ${accountQueryAndPrecheckFee - accountInfoQueryFee}`)
+    const activeSession = signClient.session
+      .getAll()
+      .reverse()
+      .find((session: { expiry: number }) => session.expiry > Date.now() / 1000);
+  
+    // Sample transaction
+    const transaction = new TransferTransaction()
+      .setNodeAccountIds([new AccountId(999)])
+      .setTransactionId(TransactionId.generate('0.0.5841840'))
+      .addHbarTransfer('0.0.5841840', new Hbar(-100))
+      .addHbarTransfer('0.0.450178', new Hbar(+100));
+   
+    const response: TransactionResponseJSON = await signClient.request({
+      topic: activeSession.topic,
+      chainId: HederaChainId.Testnet,
+      request: {
+        method: HederaJsonRpcMethod.SignTransactionAndSend,
+        params: [transactionToBase64String(transaction)],
+      },
+    })
+  
+    console.log(response);
+  } catch (err) {
+    console.log(err);
+  }
 }
 
-document.getElementById('hedera_signTransactionAndSend_precheck_fail').onsubmit = hedera_signTransactionAndSend_precheck_fail;
+document.getElementById('call_error_gossip_node').onclick = call_error_gossip_node;
+
+async function call_error_transaction_expired() {
+  try {
+    console.log('call_error_transaction_expired');
+    const activeSession = signClient.session
+      .getAll()
+      .reverse()
+      .find((session: { expiry: number }) => session.expiry > Date.now() / 1000);
+
+    // Sample transaction
+    const transaction = new TransferTransaction()
+      .setTransactionId(TransactionId.generate('0.0.5841840'))
+      .addHbarTransfer('0.0.5841840', new Hbar(-100))
+      .addHbarTransfer('0.0.450178', new Hbar(+100));
+
+    // @ts-ignore
+    transaction._transactionValidDuration = 0;
+
+    const response: TransactionResponseJSON = await signClient.request({
+      topic: activeSession.topic,
+      chainId: HederaChainId.Testnet,
+      request: {
+        method: HederaJsonRpcMethod.SignTransactionAndSend,
+        params: [transactionToBase64String(transaction)],
+      },
+    })
+
+    console.log(response);
+  } catch (err) {
+    console.log(err);
+  }
+}
+
+document.getElementById('call_error_transaction_expired').onclick = call_error_transaction_expired;
+
+async function call_error_user_rejected() {
+  try {
+    console.log('call_error_user_rejected');
+    const activeSession = signClient.session
+      .getAll()
+      .reverse()
+      .find((session: { expiry: number }) => session.expiry > Date.now() / 1000);
+
+    // Sample transaction
+    const transaction = new TransferTransaction()
+      .setTransactionId(TransactionId.generate('0.0.5841840'))
+      .addHbarTransfer('0.0.5841840', new Hbar(-10))
+      .addHbarTransfer('0.0.450178', new Hbar(+10));
+
+    const response: TransactionResponseJSON = await signClient.request({
+      topic: activeSession.topic,
+      chainId: HederaChainId.Testnet,
+      request: {
+        method: HederaJsonRpcMethod.SignTransactionAndSend,
+        params: [transactionToBase64String(transaction)],
+      },
+    })
+
+    console.log(response);
+  } catch (err) {
+    console.log(err);
+  }
+}
+
+document.getElementById('call_error_user_rejected').onclick = call_error_user_rejected;
