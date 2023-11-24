@@ -215,11 +215,6 @@ document.querySelector<HTMLFormElement>('#disconnect').onsubmit = disconnect
 async function hedera_getNodeAddresses(event) {
   event.preventDefault();
 
-  activeSession = signClient.session
-    .getAll()
-    .reverse()
-    .find((session: { expiry: number }) => session.expiry > Date.now() / 1000)
-
   const response = await signClient.request({
     topic: activeSession.topic,
     chainId: HederaChainId.Testnet,
@@ -236,11 +231,6 @@ document.getElementById('hedera_getNodeAddresses').onsubmit = hedera_getNodeAddr
 
 async function hedera_signMessage(event) {
   const state = saveState(event);
-
-  activeSession = signClient.session
-    .getAll()
-    .reverse()
-    .find((session: { expiry: number }) => session.expiry > Date.now() / 1000)
 
   const messages = [
     state['message-to-sign-1'],
@@ -265,11 +255,6 @@ document.getElementById('hedera_signMessage').onsubmit = hedera_signMessage;
 
 async function hedera_signQueryAndSend(event, queryName: string) {
   const state = saveState(event);
-
-  activeSession = signClient.session
-    .getAll()
-    .reverse()
-    .find((session: { expiry: number }) => session.expiry > Date.now() / 1000)
 
   let query: any;
 

@@ -113,6 +113,7 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
     query?: Query<any>
     requestParams: any
     accountId?: AccountId
+    body: any
   } {
     const { id, topic } = event
     const {
@@ -123,14 +124,14 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
 
     let transaction: Transaction | undefined;
 
-    const methodsWithoutTransaction = [
+    const methodsWithTransaction = [
       HederaJsonRpcMethod.SendTransactionOnly,
       HederaJsonRpcMethod.SignTransactionAndSend,
       HederaJsonRpcMethod.SignTransactionBody,
       HederaJsonRpcMethod.SignTransactionAndSend,
     ];
 
-    if (methodsWithoutTransaction.includes(method as HederaJsonRpcMethod)) {
+    if (methodsWithTransaction.includes(method as HederaJsonRpcMethod)) {
       transaction = base64StringToTransaction(requestParams[0]);
     }
 
@@ -142,6 +143,8 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
       query = base64StringToQuery(requestParams[0]);
     }
 
+    const body = transaction ?? query ?? requestParams;
+
     return {
       id,
       topic,
@@ -151,6 +154,7 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
       query,
       accountId,
       requestParams,
+      body,
     }
   }
 
@@ -159,8 +163,7 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
     event: Web3WalletTypes.SessionRequest,
     hederaWallet: HederaWallet,
   ): Promise<void> {
-    const { id, topic, method, transaction, query, requestParams } = this.parseSessionRequest(event);
-    const body = transaction ?? query ?? requestParams;
+    const { id, topic, method, body } = this.parseSessionRequest(event);
 
     return this[method](id, topic, body, hederaWallet)
   }
