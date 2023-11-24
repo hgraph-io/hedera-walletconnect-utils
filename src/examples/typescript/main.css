@@ -100,3 +100,12 @@ select {
     border: 1px solid black;
   }
 }
+
+div {
+  line-height: 1.5rem;
+}
+
+hr {
+  background-color: #000;
+  width: 100%;
+}

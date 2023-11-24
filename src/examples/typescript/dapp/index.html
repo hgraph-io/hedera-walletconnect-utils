@@ -157,24 +157,38 @@
           <button type="submit">Submit to wallet</button>
         </form>
       </section>
-
-      <section>
-        <form id="hedera_signTransactionAndSend_precheck_fail">
-          <button type="submit">hedera_signTransactionAndSend (precheck fail)</button>
-        </form>
-      </section>
-
       <section>
         <form class="toggle">
           <fieldset>
             <legend>Error Handling</legend>
-            <button type="button" id="call_error_gossip_node">No Route to Gossip Node</button>
-            <button type="button" id="call_error_transaction_expired">Transaction Expired</button>
-            <button type="button" id="call_error_user_rejected">User rejected request</button>
+            <div>
+              <b>Here you can reproduce some errors.</b>
+            </div>
+            <div>
+              <i><b>Pass any transactions with valid addresses before using this block.</b></i>
+            </div>
+            <hr>
+            <h3>INVALID_NODE_ACCOUNT ERROR</h3>
+            <div>If you will provide Node Account that does't match the node account of the node the transaction was submitted to you will get this error.</div>
+            <div>To reproduce this error press the button.</div>
+            <button type="button" id="call_error_gossip_node">INVALID_NODE_ACCOUNT</button>
+            <hr>
+            <h3>TRANSACTION_EXPIRED ERROR</h3>
+            <div>
+              If you will pass transaction that has <i>TransactionValidStart + transactionValidDuration</i>
+              less than current <i>consensus time</i>, you will get this error.
+            </div>
+            <div>
+              For it's reproduction pass needed information below, press button <b>Send expired Transaction</b> below.
+              <b>Wait for 15 seconds to see the result.</b>
+            </div>
+            <button type="button" id="call_error_transaction_expired">TRANSACTION_EXPIRED</button>
+            <hr>
+            <h3>USER_REJECTED_METHODS ERROR</h3>
+            <div>To reproduce this error just send any transaction or query to the wallet, and decline it at wallet side.</div>
           </fieldset>
         </form>
       </section>
-
       <section>
         <form id="disconnect" class="toggle">
           <button type="submit">Disconnect all sessions and pairings</button>
