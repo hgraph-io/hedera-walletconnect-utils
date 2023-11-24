@@ -69,7 +69,7 @@ export function base64StringToTransaction<T extends Transaction>(transactionByte
  * @param Query Any instance of a class that extends `Transaction`
  * @returns a base64 encoded string
  */
-export function queryToBase64String<T, Q extends Query<T>>(query: Q): string {
+export function queryToBase64String<T, Q extends Query<T> = Query<T>>(query: Q): string {
   const queryBytes = query.toBytes();
   return Buffer.from(queryBytes).toString('base64');
 }
@@ -89,7 +89,7 @@ export function queryToBase64String<T, Q extends Query<T>>(query: Q): string {
  * // txn2 type: TransferTransaction
  * ```
  */
-export function base64StringToQuery<T, Q extends Query<T>>(queryBytes: string): Q {
+export function base64StringToQuery<T, Q extends Query<T> = Query<T>>(queryBytes: string): Q {
   const decoded = Buffer.from(queryBytes, 'base64');
   return Query.fromBytes(decoded) as Q;
 }

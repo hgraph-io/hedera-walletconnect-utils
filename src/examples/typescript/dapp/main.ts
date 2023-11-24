@@ -147,6 +147,39 @@ async function hedera_signTransactionBody(e: Event) {
 }
 document.getElementById('hedera_signTransactionBody').onsubmit = hedera_signTransactionBody
 
+
+async function hedera_signTransactionsBodies(e: Event) {
+  const state = saveState(e)
+
+  // Sample transactions
+  let transactions = new Array(2).fill(0)
+    .map((_, index) => {
+      const transaction = new TransferTransaction()
+        .setTransactionId(TransactionId.generate(state[`sign-from-${index}`]))
+        .addHbarTransfer(state[`sign-from-${index}`], new Hbar(-state[`sign-amount-${index}`]))
+        .addHbarTransfer(state[`sign-to-${index}`], new Hbar(+state[`sign-amount-${index}`]));
+
+      return transactionToBase64String(transaction);
+    })
+
+  const response: string[] = await signClient.request({
+    topic: activeSession.topic,
+    chainId: HederaChainId.Testnet,
+    request: {
+      method: HederaJsonRpcMethod.SignTransactionsBodies,
+      params: transactions,
+    },
+  })
+
+  console.log(response);
+  response.forEach(base64Transaction => {
+    console.log(base64StringToTransaction(base64Transaction))
+  })
+
+  alert(`Transaction bodies signed: ${JSON.stringify(response, null, 2)}!`)
+}
+document.getElementById('hedera_signTransactionsBodies').onsubmit = hedera_signTransactionsBodies
+
 //
 async function hedera_sendTransactionOnly(e: Event) {
   const state = saveState(e)
