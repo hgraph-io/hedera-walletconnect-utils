@@ -12,7 +12,7 @@ import {
   Client,
   FileContentsQuery,
   FileId,
-  AccountInfoQuery
+  AccountInfoQuery,
 } from '@hashgraph/sdk'
 import {
   HederaChainId,
@@ -24,7 +24,7 @@ import {
 } from '@hashgraph/walletconnect'
 
 import { saveState, loadState } from '../shared'
-import {Buffer} from 'buffer';
+import { Buffer } from 'buffer'
 
 // referenced in handlers
 var signClient: SignClient | undefined
@@ -85,7 +85,7 @@ async function init(e: Event) {
     //@ts-ignore
     .forEach((element) => (element.disabled = false))
 
-  console.log('dApp: WalletConnect initialized!');
+  console.log('dApp: WalletConnect initialized!')
 }
 
 document.getElementById('init').onsubmit = init
@@ -212,8 +212,8 @@ async function disconnect(e: Event) {
 }
 document.querySelector<HTMLFormElement>('#disconnect').onsubmit = disconnect
 
-async function hedera_getNodeAddresses(event) {
-  event.preventDefault();
+async function hedera_getNodeAddresses(e: Event) {
+  e.preventDefault()
 
   const response = await signClient.request({
     topic: activeSession.topic,
@@ -224,48 +224,42 @@ async function hedera_getNodeAddresses(event) {
     },
   })
 
-  console.log(response);
+  console.log(response)
 }
 
 document.getElementById('hedera_getNodeAddresses').onsubmit = hedera_getNodeAddresses
 
-async function hedera_signMessage(event) {
-  const state = saveState(event);
+async function hedera_signMessage(e: Event) {
+  const state = saveState(e)
 
-  const messages = [
-    state['message-to-sign-1'],
-    state['message-to-sign-2']
-  ];
-  
-  const response: string[] = await signClient.request({
-    topic: activeSession.topic,
-    chainId: HederaChainId.Testnet,
-    request: {
-      method: HederaJsonRpcMethod.SignMessage,
-      params: messages,
-    },
-  })
-
-  console.log('base64Signatures: ', response);
-  alert(response.join('\n\n'));
+  try {
+    const response = await signClient.request({
+      topic: activeSession.topic,
+      chainId: HederaChainId.Testnet,
+      request: {
+        method: HederaJsonRpcMethod.SignMessage,
+        params: [state['sign-message']],
+      },
+    })
+    console.log(response)
+  } catch (e) {
+    alert(JSON.stringify(e))
+  }
 }
 
-document.getElementById('hedera_signMessage').onsubmit = hedera_signMessage;
-
+document.getElementById('hedera_signMessage').onsubmit = hedera_signMessage
 
 async function hedera_signQueryAndSend(event, queryName: string) {
-  const state = saveState(event);
+  const state = saveState(event)
 
-  let query: any;
+  let query: any
 
   if (queryName === 'AccountInfoQuery') {
-    query = new AccountInfoQuery()
-      .setAccountId(state['query-account-id']);
+    query = new AccountInfoQuery().setAccountId(state['query-account-id'])
   } else if (queryName === 'FileContentsQuery') {
-    query = new FileContentsQuery()
-      .setFileId(FileId.fromString(state['query-file-id']));
+    query = new FileContentsQuery().setFileId(FileId.fromString(state['query-file-id']))
   }
-  
+
   const response: string = await signClient.request({
     topic: activeSession.topic,
     chainId: HederaChainId.Testnet,
@@ -275,15 +269,17 @@ async function hedera_signQueryAndSend(event, queryName: string) {
     },
   })
 
-  let parsedResponse = JSON.parse(atob(response));
+  let parsedResponse = JSON.parse(atob(response))
 
   if (parsedResponse.isBinaryBase64Data) {
-    parsedResponse.data = Buffer.from(parsedResponse.data, 'base64');
+    parsedResponse.data = Buffer.from(parsedResponse.data, 'base64')
   }
 
-  console.log(parsedResponse);
-  alert(JSON.stringify(parsedResponse.data));
+  console.log(parsedResponse)
+  alert(JSON.stringify(parsedResponse.data))
 }
 
-document.getElementById('hedera_signQueryAndSend-1').onsubmit = (event) => hedera_signQueryAndSend(event, 'AccountInfoQuery');
-document.getElementById('hedera_signQueryAndSend-2').onsubmit = (event) => hedera_signQueryAndSend(event, 'FileContentsQuery');
+document.getElementById('hedera_signQueryAndSend-1').onsubmit = (event) =>
+  hedera_signQueryAndSend(event, 'AccountInfoQuery')
+document.getElementById('hedera_signQueryAndSend-2').onsubmit = (event) =>
+  hedera_signQueryAndSend(event, 'FileContentsQuery')
