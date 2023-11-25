@@ -45,43 +45,35 @@ async function init(e: Event) {
 
   // requests to call a JSON-RPC method
   wallet.on('session_request', async (event: Web3WalletTypes.SessionRequest) => {
-    // Client logic: prompt user for approval of transaction
-    const { chainId, accountId, method, transaction, query, requestParams } = wallet.parseSessionRequest(event)
+    try {
+      // Client logic: prompt user for approval of request
+      const { method, chainId, accountId, body } = wallet.parseSessionRequest(event)
 
-    if (transaction) {
       if (
         !confirm(
-          `Do you want to proceed with this transaction?: ${JSON.stringify({
+          `Do you want to proceed with this request?: ${JSON.stringify({
             network: chainId.split(':')[1],
             accountId,
             method,
-            transaction,
+            body,
           })}`,
         )
       )
         throw getSdkError('USER_REJECTED_METHODS')
-    }
 
-    if (query) {
-      if (
-        !confirm(
-          `Do you want to proceed with this query?: ${JSON.stringify({
-            network: chainId.split(':')[1],
-            accountId,
-            method,
-            query,
-          })}`,
-        )
+      // A custom provider/signer can be used to sign transactions
+      // https://docs.hedera.com/hedera/sdks-and-apis/sdks/signature-provider/wallet
+      const hederaWallet = wallet.getHederaWallet(
+        chainId,
+        state['account-id'],
+        state['private-key'],
       )
-        throw getSdkError('USER_REJECTED_METHODS')
-    }
-   
 
-    // A custom provider/signer can be used to sign transactions
-    // https://docs.hedera.com/hedera/sdks-and-apis/sdks/signature-provider/wallet
-    const hederaWallet = wallet.getHederaWallet(chainId, state['account-id'], state['private-key'])
-    
-    return await wallet.executeSessionRequest(event, hederaWallet)
+      return await wallet.executeSessionRequest(event, hederaWallet)
+    } catch (e) {
+      console.error(e)
+      wallet.rejectSessionRequest(event, e)
+    }
   })
 
   wallet.on('session_delete', () => {
@@ -104,8 +96,7 @@ async function init(e: Event) {
     //@ts-ignore
     .forEach((element) => (element.disabled = false))
 
-
-  console.log('Wallet: WalletConnect initialized!');
+  console.log('Wallet: WalletConnect initialized!')
 }
 
 document.querySelector<HTMLFormElement>('#init').onsubmit = init
@@ -114,7 +105,7 @@ document.querySelector<HTMLFormElement>('#init').onsubmit = init
  */
 async function pair(e: Event) {
   const { uri } = saveState(e)
-  wallet.core.pairing.pair({ uri });
+  wallet.core.pairing.pair({ uri })
 }
 
 document.querySelector<HTMLFormElement>('#pair').onsubmit = pair
@@ -123,11 +114,11 @@ document.querySelector<HTMLFormElement>('#pair').onsubmit = pair
  * Handle adding a hedera account
  */
 document.querySelector<HTMLFormElement>('#set-account').onsubmit = function (event) {
-  saveState(event);
+  saveState(event)
 
-  console.log('-'.repeat(10));
-  console.log('Account saved!');
-  console.log('-'.repeat(10));
+  console.log('-'.repeat(10))
+  console.log('Account saved!')
+  console.log('-'.repeat(10))
 }
 
 /*

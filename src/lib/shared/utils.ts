@@ -1,6 +1,7 @@
 import { Buffer } from 'buffer'
 import { AccountId, Transaction, LedgerId, Query } from '@hashgraph/sdk'
 import { ProposalTypes, SessionTypes } from '@walletconnect/types'
+// import { keccak256 } from 'web3-utils'
 
 /**
  * Freezes a transaction if it is not already frozen. Transactions must
@@ -65,13 +66,13 @@ export function base64StringToTransaction<T extends Transaction>(transactionByte
 }
 
 /**
- * Converts a query to bytes and then encodes as a base64 string. 
+ * Converts a query to bytes and then encodes as a base64 string.
  * @param Query Any instance of a class that extends `Transaction`
  * @returns a base64 encoded string
  */
 export function queryToBase64String<T, Q extends Query<T>>(query: Q): string {
-  const queryBytes = query.toBytes();
-  return Buffer.from(queryBytes).toString('base64');
+  const queryBytes = query.toBytes()
+  return Buffer.from(queryBytes).toString('base64')
 }
 
 /**
@@ -80,18 +81,26 @@ export function queryToBase64String<T, Q extends Query<T>>(query: Q): string {
  * `Query` class, but takes an optional type parameter if the type of query is known,
  * allowing stronger typeing.
  * @param queryBytes string - a base64 encoded string
- * @returns `Transaction`
- * @example
- * ```js
- * const txn1 = base64StringToTransaction(bytesString)
- * const txn2 = base64StringToTransaction<TransferTransaction>(bytesString)
- * // txn1 type: Transaction
- * // txn2 type: TransferTransaction
- * ```
+ * @returns `Query<T>`
  */
 export function base64StringToQuery<T, Q extends Query<T>>(queryBytes: string): Q {
-  const decoded = Buffer.from(queryBytes, 'base64');
-  return Query.fromBytes(decoded) as Q;
+  const decoded = Buffer.from(queryBytes, 'base64')
+  return Query.fromBytes(decoded) as Q
+}
+
+/**
+ * Prepares a string message for signing
+ * comment and confirm discussion regarding keccak256
+ * TODO: https://github.com/hashgraph/hedera-improvement-proposal/discussions/819#discussioncomment-7509931
+ */
+export function base64StringToMessage(message: string): Uint8Array[] {
+  const decoded = Buffer.from(message, 'base64').toString('utf-8')
+  // Buffer.from(keccak256('\x19Hedera Signed Message:\n' + decoded.length + decoded)),
+  return [Buffer.from('\x19Hedera Signed Message:\n' + decoded.length + decoded)]
+}
+
+export function messageToBase64String(message: string): string {
+  return Buffer.from(message, 'base64').toString('utf-8')
 }
 
 /**
