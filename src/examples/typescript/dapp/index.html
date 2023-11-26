@@ -50,8 +50,8 @@
             <p>
               <i
                 >WalletConnect saves pairing and session information in localStorage. If you've
-                previously pairing with a wallet and the session has not expired, you do not need
-                to pair again.</i
+                previously pairing with a wallet and the session has not expired, you do not
+                need to pair again.</i
               >
             </p>
             <button type="submit">Open WalletConnect Modal</button>
@@ -93,6 +93,10 @@
             <label
               >Account ID:
               <input name="query-account-id" required />
+            </label>
+            <label
+              >Payment account id:
+              <input name="query-payment-account" required />
             </label>
           </fieldset>
           <button type="submit">hedera_signQueryAndSend</button>

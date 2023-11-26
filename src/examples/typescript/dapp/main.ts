@@ -10,8 +10,6 @@ import {
   Hbar,
   TransactionId,
   Client,
-  FileContentsQuery,
-  FileId,
   AccountInfoQuery,
 } from '@hashgraph/sdk'
 import {
@@ -21,10 +19,10 @@ import {
   transactionToBase64String,
   queryToBase64String,
   base64StringToTransaction,
+  base64StringToQuery,
 } from '@hashgraph/walletconnect'
 
 import { saveState, loadState } from '../shared'
-import { Buffer } from 'buffer'
 
 // referenced in handlers
 var signClient: SignClient | undefined
@@ -253,7 +251,7 @@ document.getElementById('hedera_signMessage').onsubmit = hedera_signMessage
 async function hedera_signQueryAndSend(e: Event) {
   const state = saveState(e)
 
-  const query = new AccountInfoQuery().setAccountId(state['query-account-id'])
+  const query = new AccountInfoQuery().setAccountId(state['query-payment-account'])
 
   const response: string = await signClient.request({
     topic: activeSession.topic,

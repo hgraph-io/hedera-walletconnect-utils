@@ -67,7 +67,7 @@ export function base64StringToTransaction<T extends Transaction>(transactionByte
 
 /**
  * Converts a query to bytes and then encodes as a base64 string.
- * @param Query Any instance of a class that extends `Transaction`
+ * @param Query
  * @returns a base64 encoded string
  */
 export function queryToBase64String<T, Q extends Query<T>>(query: Q): string {

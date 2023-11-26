@@ -48,6 +48,7 @@ async function init(e: Event) {
     try {
       // Client logic: prompt user for approval of request
       const { method, chainId, accountId, body } = wallet.parseSessionRequest(event)
+      if (!accountId) console.warn('accountId is not set, using default account')
 
       if (
         !confirm(
@@ -63,7 +64,11 @@ async function init(e: Event) {
 
       // A custom provider/signer can be used to sign transactions
       // https://docs.hedera.com/hedera/sdks-and-apis/sdks/signature-provider/wallet
-      const hederaWallet = wallet.getHederaWallet(chainId, accountId, state['private-key'])
+      const hederaWallet = wallet.getHederaWallet(
+        chainId,
+        accountId || state['account-id'],
+        state['private-key'],
+      )
 
       return await wallet.executeSessionRequest(event, hederaWallet)
     } catch (e) {
