@@ -243,6 +243,7 @@ async function hedera_signMessage(e: Event) {
     })
     console.log(response)
   } catch (e) {
+    console.error(e)
     alert(JSON.stringify(e))
   }
 }

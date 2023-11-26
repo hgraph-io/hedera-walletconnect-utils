@@ -112,7 +112,11 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
   /*
    *  Session Requests
    */
-  public parseSessionRequest(event: Web3WalletTypes.SessionRequest): {
+  public parseSessionRequest(
+    event: Web3WalletTypes.SessionRequest,
+    // optional arg to throw error if request is invalid, call with shouldThrow = false when calling from rejectSessionRequest as we only need id and top to send reject response
+    shouldThrow = true,
+  ): {
     method: HederaJsonRpcMethod
     chainId: HederaChainId
     id: number // session request id
@@ -128,27 +132,34 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
 
     let body: Transaction | Query<any> | Uint8Array[] | undefined
     let accountId: AccountId | undefined
-
-    switch (method) {
-      case HederaJsonRpcMethod.GetNodeAddresses:
-        break
-      case HederaJsonRpcMethod.SignMessage:
-        body = base64StringToMessage(params[0])
-        accountId = params[1] ? AccountId.fromString(params[1]) : undefined
-        break
-      case HederaJsonRpcMethod.SignQueryAndSend:
-        body = base64StringToQuery(params[0])
-        break
-      case HederaJsonRpcMethod.SendTransactionOnly:
-      case HederaJsonRpcMethod.SignTransactionAndSend:
-      case HederaJsonRpcMethod.SignTransactionBody:
-        body = base64StringToTransaction(params[0])
-        // get account id from optional second param or from transaction id
-        // this allows for the case where the requested signer is not the payer, but defaults to the payer if a second param is not provided
-        accountId = AccountId.fromString(params[1] || body!.transactionId!.accountId)
-        break
-      default:
-        throw new Error('Invalid Hedera WalletConnect method')
+    try {
+      switch (method) {
+        case HederaJsonRpcMethod.GetNodeAddresses:
+          break
+        case HederaJsonRpcMethod.SignMessage:
+          body = base64StringToMessage(params[0])
+          accountId = params[1] ? AccountId.fromString(params[1]) : undefined
+          break
+        case HederaJsonRpcMethod.SignQueryAndSend:
+          body = base64StringToQuery(params[0])
+          break
+        case HederaJsonRpcMethod.SendTransactionOnly:
+        case HederaJsonRpcMethod.SignTransactionAndSend:
+        case HederaJsonRpcMethod.SignTransactionBody:
+          body = base64StringToTransaction(params[0])
+          // get account id from optional second param or from transaction id
+          // this allows for the case where the requested signer is not the payer, but defaults to the payer if a second param is not provided
+          accountId = params[1]
+            ? AccountId.fromString(params[1])
+            : body.transactionId?.accountId || undefined
+          break
+        default:
+          throw new Error('Invalid Hedera WalletConnect method')
+      }
+    } catch (e) {
+      // error parsing request params
+      if (shouldThrow) throw e
+      console.error(e)
     }
 
     return {
@@ -175,8 +186,7 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
     event: Web3WalletTypes.SessionRequest,
     error: { code: number; message: string },
   ): Promise<void> {
-    console.log('rejectSessionRequest')
-    const { id, topic } = this.parseSessionRequest(event)
+    const { id, topic } = this.parseSessionRequest(event, false)
     return this.respondSessionRequest({
       topic,
       response: { id, error, jsonrpc: '2.0' },

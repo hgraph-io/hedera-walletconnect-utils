@@ -63,11 +63,7 @@ async function init(e: Event) {
 
       // A custom provider/signer can be used to sign transactions
       // https://docs.hedera.com/hedera/sdks-and-apis/sdks/signature-provider/wallet
-      const hederaWallet = wallet.getHederaWallet(
-        chainId,
-        state['account-id'],
-        state['private-key'],
-      )
+      const hederaWallet = wallet.getHederaWallet(chainId, accountId, state['private-key'])
 
       return await wallet.executeSessionRequest(event, hederaWallet)
     } catch (e) {
