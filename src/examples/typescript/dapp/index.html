@@ -66,24 +66,17 @@
         </form>
       </section>
       <section>
-        <form id="hedera_signQueryAndSend-1" class="toggle">
+        <form id="hedera_signQueryAndSend" class="toggle">
           <fieldset>
-            <legend>AccountInfoQuery</legend>
+            <label
+              >Query type:
+              <select name="query-type">
+                <option value="account-info">Account Info</option>
+              </select>
+            </label>
             <label
               >Account ID:
               <input name="query-account-id" required />
-            </label>
-          </fieldset>
-          <button type="submit">hedera_signQueryAndSend</button>
-        </form>
-      </section>
-      <section>
-        <form id="hedera_signQueryAndSend-2" class="toggle">
-          <fieldset>
-            <legend>FileContentsQuery</legend>
-            <label
-              >File ID:
-              <input name="query-file-id" required />
             </label>
           </fieldset>
           <button type="submit">hedera_signQueryAndSend</button>
