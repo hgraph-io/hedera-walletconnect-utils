@@ -45,12 +45,27 @@
       </section>
       <section>
         <form id="connect" class="toggle">
-          <button type="submit">Open WalletConnect Modal</button>
+          <fieldset>
+            <legend>Step 2: Connect a wallet</legend>
+            <p>
+              <i
+                >WalletConnect saves pairing and session information in localStorage. If you've
+                previously pairing with a wallet and the session has not expired, you do not need
+                to pair again.</i
+              >
+            </p>
+            <button type="submit">Open WalletConnect Modal</button>
+          </fieldset>
         </form>
       </section>
+      <hr />
+      <h2>Hedera &lt;&gt; WalletConnect methods:</h2>
       <section>
         <form id="hedera_getNodeAddresses" class="toggle">
-          <button type="submit">hedera_getNodeAddresses</button>
+          <fieldset>
+            <legend>hedera_getNodeAddresses</legend>
+            <button type="submit">hedera_getNodeAddresses</button>
+          </fieldset>
         </form>
       </section>
       <section>
@@ -68,6 +83,7 @@
       <section>
         <form id="hedera_signQueryAndSend" class="toggle">
           <fieldset>
+            <legend>hedera_signQueryAndSend</legend>
             <label
               >Query type:
               <select name="query-type">
@@ -146,6 +162,8 @@
           <button type="submit">Submit to wallet</button>
         </form>
       </section>
+      <hr />
+      <h2>Pairing and session management:</h2>
 
       <section>
         <form id="disconnect" class="toggle">

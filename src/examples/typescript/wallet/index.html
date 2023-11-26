@@ -57,10 +57,12 @@
         <section>
           <form id="set-account" class="toggle">
             <fieldset>
-              <legend>Step 2: Hedera account</legend>
+              <legend>Step 2: Set a hedera account</legend>
               <p>
-                For brevity, this demo only supports a single account, though WalletConnect
-                supports multiple accounts.
+                <i>
+                  For brevity, this demo only supports a single account, though WalletConnect
+                  supports multiple accounts.
+                </i>
               </p>
               <label>
                 Hedera Testnet Account Id:
@@ -78,6 +80,13 @@
           <form id="pair" class="toggle">
             <fieldset>
               <legend>Step 3: Connect a dApp</legend>
+              <p>
+                <i
+                  >WalletConnect saves pairing and session information in localStorage. If
+                  you've previously paired with a dApp and the session has not expired, you do
+                  not need to pair again.</i
+                >
+              </p>
               <label>
                 dApp pairing string
                 <input type="text" name="uri" required />
@@ -86,6 +95,8 @@
             <button type="submit">Pair</button>
           </form>
         </section>
+        <hr />
+        <h2>Pairing and session management:</h2>
         <section>
           <form id="disconnect" class="toggle">
             <button type="submit">Disconnect all sessions and pairings</button>
