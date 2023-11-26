@@ -1,13 +1,16 @@
 import { Core } from '@walletconnect/core'
 import { Web3Wallet, Web3WalletTypes } from '@walletconnect/web3wallet'
+import { SessionTypes } from '@walletconnect/types'
 import { buildApprovedNamespaces } from '@walletconnect/utils'
-import { Wallet as HederaWallet, Client, Transaction, AccountId } from '@hashgraph/sdk'
+import { Wallet as HederaWallet, Client, AccountId, Transaction, Query } from '@hashgraph/sdk'
 import {
   HederaChainId,
   HederaSessionEvent,
   HederaJsonRpcMethod,
   base64StringToTransaction,
   transactionToBase64String,
+  base64StringToQuery,
+  base64StringToMessage,
 } from '../shared'
 import Provider from './provider'
 import type { HederaNativeWallet } from './wallet'
@@ -73,16 +76,16 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
   /*
    * Session proposal
    */
-  public buildAndApproveSession(
+  public async buildAndApproveSession(
     accounts: string[],
     { id, params }: Web3WalletTypes.SessionProposal,
-  ) {
-    // just get unique chains
+  ): Promise<SessionTypes.Struct> {
+    // filter to get unique chains
     const chains = accounts
       .map((account) => account.split(':').slice(0, 2).join(':'))
       .filter((x, i, a) => a.indexOf(x) == i)
 
-    this.approveSession({
+    return await this.approveSession({
       id,
       namespaces: buildApprovedNamespaces({
         proposal: params,
@@ -101,13 +104,17 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
   /*
    *  Session Requests
    */
-  parseSessionRequest(event: Web3WalletTypes.SessionRequest): {
-    id: number
-    topic: string
-    chainId: HederaChainId
-    accountId: AccountId
+  public parseSessionRequest(
+    event: Web3WalletTypes.SessionRequest,
+    // optional arg to throw error if request is invalid, call with shouldThrow = false when calling from rejectSessionRequest as we only need id and top to send reject response
+    shouldThrow = true,
+  ): {
     method: HederaJsonRpcMethod
-    body: Transaction
+    chainId: HederaChainId
+    id: number // session request id
+    topic: string // session topic
+    body?: Transaction | Query<any> | Uint8Array[] | undefined
+    accountId?: AccountId
   } {
     const { id, topic } = event
     const {
@@ -115,24 +122,68 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
       chainId,
     } = event.params
 
-    const body = base64StringToTransaction(params[0])
-    const accountId = body!.transactionId!.accountId!
+    let body: Transaction | Query<any> | Uint8Array[] | undefined
+    // get account id from optional second param for transactions and queries or from transaction id
+    // this allows for the case where the requested signer is not the payer, but defaults to the payer if a second param is not provided
+    let accountId: AccountId | undefined
+    try {
+      switch (method) {
+        case HederaJsonRpcMethod.GetNodeAddresses:
+          break
+        case HederaJsonRpcMethod.SignMessage:
+          body = base64StringToMessage(params[0])
+          accountId = params[1] ? AccountId.fromString(params[1]) : undefined
+          break
+        case HederaJsonRpcMethod.SignQueryAndSend:
+          body = base64StringToQuery(params[0])
+          accountId = params[1] ? AccountId.fromString(params[1]) : undefined
+          break
+        case HederaJsonRpcMethod.SendTransactionOnly:
+        case HederaJsonRpcMethod.SignTransactionAndSend:
+        case HederaJsonRpcMethod.SignTransactionBody:
+          body = base64StringToTransaction(params[0])
+          accountId = params[1]
+            ? AccountId.fromString(params[1])
+            : body.transactionId?.accountId || undefined
+          break
+        default:
+          throw new Error('Invalid Hedera WalletConnect method')
+      }
+      // error parsing request params
+    } catch (e) {
+      if (shouldThrow) throw e
+    }
+
     return {
+      method: method as HederaJsonRpcMethod,
+      chainId: chainId as HederaChainId,
       id,
       topic,
-      chainId: chainId as HederaChainId,
-      method: method as HederaJsonRpcMethod,
       body,
       accountId,
     }
   }
 
-  async executeSessionRequest(
+  public async executeSessionRequest(
     event: Web3WalletTypes.SessionRequest,
     hederaWallet: HederaWallet,
   ): Promise<void> {
-    const { id, topic, method, body } = this.parseSessionRequest(event)
-    return this[method](id, topic, body, hederaWallet)
+    const { method, id, topic, body } = this.parseSessionRequest(event)
+
+    return await this[method](id, topic, body, hederaWallet)
+  }
+
+  // https://docs.walletconnect.com/web3wallet/wallet-usage#responding-to-session-requests
+  public async rejectSessionRequest(
+    event: Web3WalletTypes.SessionRequest,
+    error: { code: number; message: string },
+  ): Promise<void> {
+    const { id, topic } = this.parseSessionRequest(event, false)
+
+    return await this.respondSessionRequest({
+      topic,
+      response: { id, error, jsonrpc: '2.0' },
+    })
   }
 
   /*
@@ -144,23 +195,25 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
     body: Transaction, // must be signedTransaction
     signer: HederaWallet,
   ): Promise<void> {
-    const hederaResponse = await signer.call(body)
-    return this.respondSessionRequest({
+    const result = await signer.call(body)
+
+    return await this.respondSessionRequest({
       topic,
-      response: { id, result: hederaResponse, jsonrpc: '2.0' },
+      response: { id, result, jsonrpc: '2.0' },
     })
   }
 
   public async hedera_signTransactionAndSend(
     id: number,
     topic: string,
-    body: Transaction, // can be signedTransaction or not signedTransaction
+    body: Transaction, // can be signed or unsigned
     signer: HederaWallet,
   ): Promise<void> {
-    const hederaResponse = await signer.call(await signer.signTransaction(body))
-    return this.respondSessionRequest({
+    const result = await signer.call(await signer.signTransaction(body))
+
+    return await this.respondSessionRequest({
       topic,
-      response: { id, result: hederaResponse, jsonrpc: '2.0' },
+      response: { id, result, jsonrpc: '2.0' },
     })
   }
 
@@ -171,9 +224,57 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
     signer: HederaWallet,
   ): Promise<void> {
     const result = transactionToBase64String(await signer.signTransaction(body))
-    return this.respondSessionRequest({
+
+    return await this.respondSessionRequest({
       topic,
       response: { id, result, jsonrpc: '2.0' },
+    })
+  }
+
+  public async hedera_getNodeAddresses(
+    id: number,
+    topic: string,
+    _: any, // ignore this param to be consistent call signature with other functions
+    signer: HederaWallet,
+  ): Promise<void> {
+    const result = signer.getNetwork()
+
+    return await this.respondSessionRequest({
+      topic,
+      response: { id, result, jsonrpc: '2.0' },
+    })
+  }
+
+  // TODO: PR/ discussion into HIP for array of messages
+  public async hedera_signMessage(
+    id: number,
+    topic: string,
+    body: Uint8Array[],
+    signer: HederaWallet,
+  ): Promise<void> {
+    const result = await signer.sign(body)
+
+    return await this.respondSessionRequest({
+      topic,
+      response: { id, result, jsonrpc: '2.0' },
+    })
+  }
+
+  public async hedera_signQueryAndSend(
+    id: number,
+    topic: string,
+    body: Query<any>,
+    signer: HederaWallet,
+  ): Promise<void> {
+    const result = await body.executeWithSigner(signer)
+
+    return await this.respondSessionRequest({
+      topic,
+      response: {
+        id,
+        result,
+        jsonrpc: '2.0',
+      },
     })
   }
 }

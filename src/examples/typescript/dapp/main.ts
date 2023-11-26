@@ -10,14 +10,18 @@ import {
   Hbar,
   TransactionId,
   Client,
+  AccountInfoQuery,
 } from '@hashgraph/sdk'
 import {
   HederaChainId,
   HederaSessionEvent,
   HederaJsonRpcMethod,
   transactionToBase64String,
+  queryToBase64String,
   base64StringToTransaction,
+  base64StringToQuery,
 } from '@hashgraph/walletconnect'
+
 import { saveState, loadState } from '../shared'
 
 // referenced in handlers
@@ -59,6 +63,7 @@ async function init(e: Event) {
     alert('Dapp: Session deleted by wallet!')
     //
   })
+
   signClient.core.pairing.events.on('pairing_delete', (pairing) => {
     // Session was deleted
     console.log(pairing)
@@ -77,6 +82,8 @@ async function init(e: Event) {
     .querySelectorAll('.toggle input,.toggle button, .toggle select')
     //@ts-ignore
     .forEach((element) => (element.disabled = false))
+
+  console.log('dApp: WalletConnect initialized!')
 }
 
 document.getElementById('init').onsubmit = init
@@ -174,6 +181,7 @@ async function hedera_signTransactionAndSend(e: Event) {
       params: [transactionToBase64String(transaction)],
     },
   })
+
   const transactionResponse = TransactionResponse.fromJSON(response)
   const client = Client.forName('testnet')
   const receipt = await transactionResponse.getReceipt(client)
@@ -201,3 +209,62 @@ async function disconnect(e: Event) {
   }
 }
 document.querySelector<HTMLFormElement>('#disconnect').onsubmit = disconnect
+
+async function hedera_getNodeAddresses(e: Event) {
+  e.preventDefault()
+
+  const response = await signClient.request({
+    topic: activeSession.topic,
+    chainId: HederaChainId.Testnet,
+    request: {
+      method: HederaJsonRpcMethod.GetNodeAddresses,
+      params: [],
+    },
+  })
+
+  console.log(response)
+}
+
+document.getElementById('hedera_getNodeAddresses').onsubmit = hedera_getNodeAddresses
+
+async function hedera_signMessage(e: Event) {
+  const state = saveState(e)
+
+  try {
+    const response = await signClient.request({
+      topic: activeSession.topic,
+      chainId: HederaChainId.Testnet,
+      request: {
+        method: HederaJsonRpcMethod.SignMessage,
+        params: [state['sign-message']],
+      },
+    })
+    console.log(response)
+  } catch (e) {
+    console.error(e)
+    alert(JSON.stringify(e))
+  }
+}
+
+document.getElementById('hedera_signMessage').onsubmit = hedera_signMessage
+
+async function hedera_signQueryAndSend(e: Event) {
+  const state = saveState(e)
+
+  const query = new AccountInfoQuery().setAccountId(state['query-payment-account'])
+
+  const response: string = await signClient.request({
+    topic: activeSession.topic,
+    chainId: HederaChainId.Testnet,
+    request: {
+      method: HederaJsonRpcMethod.SignQueryAndSend,
+      params: [queryToBase64String(query)],
+    },
+  })
+
+  console.log(response)
+  alert(`Query response received: ${JSON.stringify(response)}!`)
+}
+
+document.getElementById('hedera_signQueryAndSend').onsubmit = (event) =>
+  hedera_signQueryAndSend(event)
