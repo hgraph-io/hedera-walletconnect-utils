@@ -156,10 +156,9 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
         default:
           throw new Error('Invalid Hedera WalletConnect method')
       }
-    } catch (e) {
       // error parsing request params
+    } catch (e) {
       if (shouldThrow) throw e
-      console.error(e)
     }
 
     return {
