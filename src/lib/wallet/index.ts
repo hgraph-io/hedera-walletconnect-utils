@@ -2,15 +2,7 @@ import { Core } from '@walletconnect/core'
 import { Web3Wallet, Web3WalletTypes } from '@walletconnect/web3wallet'
 import { SessionTypes } from '@walletconnect/types'
 import { buildApprovedNamespaces } from '@walletconnect/utils'
-import {
-  Wallet as HederaWallet,
-  Client,
-  AccountId,
-  FileId,
-  FileContentsQuery,
-  Transaction,
-  Query,
-} from '@hashgraph/sdk'
+import { Wallet as HederaWallet, Client, AccountId, Transaction, Query } from '@hashgraph/sdk'
 import {
   HederaChainId,
   HederaSessionEvent,
@@ -93,7 +85,7 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
       .map((account) => account.split(':').slice(0, 2).join(':'))
       .filter((x, i, a) => a.indexOf(x) == i)
 
-    return this.approveSession({
+    return await this.approveSession({
       id,
       namespaces: buildApprovedNamespaces({
         proposal: params,
@@ -177,7 +169,7 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
   ): Promise<void> {
     const { method, id, topic, body } = this.parseSessionRequest(event)
 
-    return this[method](id, topic, body, hederaWallet)
+    return await this[method](id, topic, body, hederaWallet)
   }
 
   // https://docs.walletconnect.com/web3wallet/wallet-usage#responding-to-session-requests
@@ -186,7 +178,8 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
     error: { code: number; message: string },
   ): Promise<void> {
     const { id, topic } = this.parseSessionRequest(event, false)
-    return this.respondSessionRequest({
+
+    return await this.respondSessionRequest({
       topic,
       response: { id, error, jsonrpc: '2.0' },
     })
@@ -203,7 +196,7 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
   ): Promise<void> {
     const result = await signer.call(body)
 
-    return this.respondSessionRequest({
+    return await this.respondSessionRequest({
       topic,
       response: { id, result, jsonrpc: '2.0' },
     })
@@ -217,7 +210,7 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
   ): Promise<void> {
     const result = await signer.call(await signer.signTransaction(body))
 
-    return this.respondSessionRequest({
+    return await this.respondSessionRequest({
       topic,
       response: { id, result, jsonrpc: '2.0' },
     })
@@ -230,7 +223,8 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
     signer: HederaWallet,
   ): Promise<void> {
     const result = transactionToBase64String(await signer.signTransaction(body))
-    return this.respondSessionRequest({
+
+    return await this.respondSessionRequest({
       topic,
       response: { id, result, jsonrpc: '2.0' },
     })
@@ -242,10 +236,9 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
     _: any, // ignore this param to be consistent call signature with other functions
     signer: HederaWallet,
   ): Promise<void> {
-    const fileQuery = new FileContentsQuery().setFileId(FileId.fromString('0.0.102')) // TODO: filequery for other networks
-    const result = await fileQuery.executeWithSigner(signer)
+    const result = signer.getNetwork()
 
-    return this.respondSessionRequest({
+    return await this.respondSessionRequest({
       topic,
       response: { id, result, jsonrpc: '2.0' },
     })
@@ -260,13 +253,12 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
   ): Promise<void> {
     const result = await signer.sign(body)
 
-    return this.respondSessionRequest({
+    return await this.respondSessionRequest({
       topic,
       response: { id, result, jsonrpc: '2.0' },
     })
   }
 
-  // Unified flex version
   public async hedera_signQueryAndSend(
     id: number,
     topic: string,
@@ -275,7 +267,7 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
   ): Promise<void> {
     const result = await body.executeWithSigner(signer)
 
-    return this.respondSessionRequest({
+    return await this.respondSessionRequest({
       topic,
       response: {
         id,
