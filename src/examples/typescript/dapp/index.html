@@ -167,8 +167,39 @@
         </form>
       </section>
       <hr />
+      <h2>Error Handling preview:</h2>
+      <section>
+        <form class="toggle">
+          <fieldset>
+            <legend>Error Handling</legend>
+            <div>
+              <b>Here you can reproduce some errors.</b>
+            </div>
+            <div>
+              <i><b>Pass any transactions with valid addresses before using this block.</b></i>
+            </div>
+            <hr>
+            <h3>INVALID_NODE_ACCOUNT ERROR</h3>
+            <div>Error context: Node Account doesn't match the node account transaction was submitted to.</div>
+            <button type="button" id="call_error_gossip_node">INVALID_NODE_ACCOUNT</button>
+            <hr>
+            <h3>TRANSACTION_EXPIRED ERROR</h3>
+            <div>
+              Error context: transaction has <i>TransactionValidStart + transactionValidDuration</i>
+              less than current <i>consensus time</i>.
+            </div>
+            <div>
+              Press the button and wait for 15 seconds.
+            </div>
+            <button type="button" id="call_error_transaction_expired">TRANSACTION_EXPIRED</button>
+            <hr>
+            <h3>USER_REJECTED_METHODS ERROR</h3>
+            <div>Send any transaction or query to the wallet, and decline it at a wallet side.</div>
+          </fieldset>
+        </form>
+      </section>
+      <hr />
       <h2>Pairing and session management:</h2>
-
       <section>
         <form id="disconnect" class="toggle">
           <button type="submit">Disconnect all sessions and pairings</button>
