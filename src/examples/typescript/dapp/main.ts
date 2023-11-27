@@ -127,9 +127,6 @@ document.getElementById('connect').onsubmit = connect
  */
 async function hedera_signTransactionBody(e: Event) {
   const state = saveState(e)
-  console.log(state)
-  console.log(activeSession)
-  console.log(signClient)
   // Sample transaction
   const transaction = new TransferTransaction()
     .setTransactionId(TransactionId.generate(state['sign-from']))
