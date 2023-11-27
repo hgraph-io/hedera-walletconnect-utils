@@ -70,9 +70,9 @@ export function base64StringToTransaction<T extends Transaction>(transactionByte
  * @param Query
  * @returns a base64 encoded string
  */
-export function queryToBase64String<T, Q extends Query<T>>(query: Q): string {
-  const queryBytes = query.toBytes()
-  return Buffer.from(queryBytes).toString('base64')
+export function queryToBase64String<T, Q extends Query<T> = Query<T>>(query: Q): string {
+  const queryBytes = query.toBytes();
+  return Buffer.from(queryBytes).toString('base64');
 }
 
 /**
@@ -83,9 +83,9 @@ export function queryToBase64String<T, Q extends Query<T>>(query: Q): string {
  * @param queryBytes string - a base64 encoded string
  * @returns `Query<T>`
  */
-export function base64StringToQuery<T, Q extends Query<T>>(queryBytes: string): Q {
-  const decoded = Buffer.from(queryBytes, 'base64')
-  return Query.fromBytes(decoded) as Q
+export function base64StringToQuery<T, Q extends Query<T> = Query<T>>(queryBytes: string): Q {
+  const decoded = Buffer.from(queryBytes, 'base64');
+  return Query.fromBytes(decoded) as Q;
 }
 
 /**
@@ -102,7 +102,6 @@ export function base64StringToMessage(message: string): Uint8Array[] {
 export function messageToBase64String(message: string): string {
   return Buffer.from(message, 'base64').toString('utf-8')
 }
-
 /**
  * A mapping of `LedgerId` to EIP chain id and CAIP-2 network name.
  * @link https://namespaces.chainagnostic.org/hedera/README

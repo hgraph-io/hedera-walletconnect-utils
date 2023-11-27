@@ -190,6 +190,35 @@ async function hedera_signTransactionAndSend(e: Event) {
 document.getElementById('hedera_signTransactionAndSend').onsubmit =
   hedera_signTransactionAndSend
 
+async function hedera_signTransactionsAndSend(e: Event) {
+  const state = saveState(e)
+
+  // Sample transactions
+  let transactions = new Array(2).fill(0)
+    .map((_, index) => {
+      const transaction = new TransferTransaction()
+        .setTransactionId(TransactionId.generate(state[`sign-from-${index}`]))
+        .addHbarTransfer(state[`sign-from-${index}`], new Hbar(-state[`sign-amount-${index}`]))
+        .addHbarTransfer(state[`sign-to-${index}`], new Hbar(+state[`sign-amount-${index}`]));
+
+      return transactionToBase64String(transaction);
+    })
+
+  const response: string[] = await signClient.request({
+    topic: activeSession.topic,
+    chainId: HederaChainId.Testnet,
+    request: {
+      method: HederaJsonRpcMethod.SignTransactionsAndSend,
+      params: [transactions],
+    },
+  })
+
+  console.log(response);
+
+  alert(`Response: ${JSON.stringify(response, null, 2)}`)
+}
+document.getElementById('hedera_signTransactionsAndSend').onsubmit = hedera_signTransactionsAndSend
+
 async function disconnect(e: Event) {
   e.preventDefault()
   for (const session of signClient.session.getAll()) {

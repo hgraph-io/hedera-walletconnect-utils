@@ -166,6 +166,50 @@
           <button type="submit">Submit to wallet</button>
         </form>
       </section>
+      <section>
+        <form id="hedera_signTransactionsAndSend" class="toggle">
+          <fieldset>
+            <legend>hedera_signTransactionsAndSend</legend>
+            <fieldset>
+              <legend>Transaction 1</legend>
+              <label
+              >Transaction type:
+                <select name="sign-transaction-type">
+                  <option value="hbar-transfer">Hbar Transfer</option>
+                </select>
+              </label>
+              <label
+                >Send to address:
+                <input name="sign-to-0" required />
+              </label>
+              <label
+                >Send from address:
+                <input name="sign-from-0" required />
+              </label>
+              <label
+                >Amount in Hbar:
+                <input name="sign-amount-0" required />
+              </label>
+            </fieldset>
+            <fieldset>
+              <legend>Transaction 2</legend>
+              <label
+              >Send to address:
+                <input name="sign-to-1" required />
+              </label>
+              <label
+                >Send from address:
+                <input name="sign-from-1" required />
+              </label>
+              <label
+                >Amount in Hbar:
+                <input name="sign-amount-1" required />
+              </label>
+            </fieldset>
+          </fieldset>
+          <button type="submit">Submit to wallet</button>
+        </form>
+      </section>
       <hr />
       <h2>Pairing and session management:</h2>
 
