@@ -17,7 +17,8 @@ section {
   background-color: white;
   margin: 3rem 0;
   padding: 1rem;
-  background: linear-gradient(white, white) padding-box,
+  background:
+    linear-gradient(white, white) padding-box,
     linear-gradient(to right, #5281e7, #765aea) border-box;
   border: 6px solid transparent;
   /* border-radius: 0 10rem 10rem; */
@@ -104,4 +105,3 @@ select {
 hr {
   width: 100%;
 }
-
