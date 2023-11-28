@@ -3,7 +3,13 @@ import { SessionTypes, SignClientTypes } from '@walletconnect/types'
 import QRCodeModal from '@walletconnect/qrcode-modal'
 import Client, { SignClient } from '@walletconnect/sign-client'
 import { getSdkError } from '@walletconnect/utils'
-import { HederaJsonRpcMethod, accountAndLedgerFromSession, networkNamespaces } from '../shared'
+import {
+  HederaJsonRpcMethod,
+  RequestsParams,
+  RequestsResponses,
+  accountAndLedgerFromSession,
+  networkNamespaces,
+} from '../shared'
 import { DAppSigner } from './DAppSigner'
 
 export * from './helpers'
@@ -51,6 +57,40 @@ export class DAppConnector {
       existingSession.forEach(async (session) => {
         await this.onSessionConnected(session)
       })
+
+      this.walletConnectClient.on('session_event', (event) => {
+        // Handle session events, such as "chainChanged", "accountsChanged", etc.
+        alert('There has been a session event!')
+        console.log(event)
+      })
+
+      this.walletConnectClient.on('session_update', ({ topic, params }) => {
+        // Handle session update
+        alert('There has been a update to the session!')
+        const { namespaces } = params
+        const _session = this.walletConnectClient!.session.get(topic)
+        // Overwrite the `namespaces` of the existing session with the incoming one.
+        const updatedSession = { ..._session, namespaces }
+        // Integrate the updated session state into your dapp state.
+        console.log(updatedSession)
+      })
+
+      this.walletConnectClient.on('session_delete', (pairing) => {
+        console.log(pairing)
+        this.signers = this.signers.filter((signer) => signer.topic !== pairing.topic)
+        this.disconnect(pairing.topic)
+        // Session was deleted -> reset the dapp state, clean up from user session, etc.
+        alert('Dapp: Session deleted by wallet!')
+      })
+
+      this.walletConnectClient.core.pairing.events.on('pairing_delete', (pairing) => {
+        // Session was deleted
+        console.log(pairing)
+        this.signers = this.signers.filter((signer) => signer.topic !== pairing.topic)
+        this.disconnect(pairing.topic)
+        alert(`Dapp: Pairing deleted by wallet!`)
+        // clean up after the pairing for `topic` was deleted.
+      })
     } finally {
       this.isInitializing = false
     }
@@ -64,7 +104,6 @@ export class DAppConnector {
         QRCodeModal.open(uri, () => {
           throw new Error('User rejected pairing')
         })
-
         await this.onSessionConnected(await approval())
       } finally {
         QRCodeModal.close()
@@ -100,17 +139,42 @@ export class DAppConnector {
   }
 
   public async disconnect(topic: string): Promise<void> {
+    await this.walletConnectClient!.disconnect({
+      topic: topic,
+      reason: getSdkError('USER_DISCONNECTED'),
+    })
+  }
+
+  public async disconnectAll(): Promise<void> {
     if (!this.walletConnectClient) {
       throw new Error('WalletConnect is not initialized')
     }
-    if (!topic) {
-      throw new Error('No topic provided')
+
+    const sessions = this.walletConnectClient.session.getAll()
+    const pairings = this.walletConnectClient.core.pairing.getPairings()
+    if (!sessions?.length && !pairings?.length) {
+      throw new Error('There is no active session/pairing. Connect to the wallet at first.')
     }
 
-    await this.walletConnectClient.disconnect({
-      topic,
-      reason: getSdkError('USER_DISCONNECTED'),
-    })
+    const disconnectionPromises: Promise<void>[] = []
+
+    // disconnect sessions
+    for (const session of this.walletConnectClient.session.getAll()) {
+      console.log(`Disconnecting from session: ${session}`)
+      const promise = this.disconnect(session.topic)
+      disconnectionPromises.push(promise)
+    }
+
+    // disconnect pairings
+    //https://docs.walletconnect.com/api/core/pairing
+    for (const pairing of pairings) {
+      const promise = this.disconnect(pairing.topic)
+      disconnectionPromises.push(promise)
+    }
+
+    await Promise.all(disconnectionPromises)
+
+    this.signers = []
   }
 
   private createSigners(session: SessionTypes.Struct): DAppSigner[] {
@@ -200,6 +264,72 @@ export class DAppConnector {
         this.supportedMethods,
         this.supportedEvents,
       ),
+    })
+  }
+
+  private async request<T extends HederaJsonRpcMethod>({
+    method,
+    params,
+  }: {
+    method: T
+    params: RequestsParams[T]
+  }): Promise<RequestsResponses[T]> {
+    const signer = this.signers[this.signers.length - 1]
+    if (!signer) {
+      throw new Error('There is no active session. Connect to the wallet at first.')
+    }
+
+    return await signer.request({
+      method,
+      params,
+    })
+  }
+
+  public async getNodeAddresses() {
+    return await this.request<HederaJsonRpcMethod.GetNodeAddresses>({
+      method: HederaJsonRpcMethod.GetNodeAddresses,
+      params: [] as RequestsParams[HederaJsonRpcMethod.GetNodeAddresses],
+    })
+  }
+
+  public async sendTransactionOnly(
+    params: RequestsParams[HederaJsonRpcMethod.SendTransactionOnly],
+  ) {
+    return await this.request<HederaJsonRpcMethod.SendTransactionOnly>({
+      method: HederaJsonRpcMethod.SendTransactionOnly,
+      params,
+    })
+  }
+
+  public async signMessage(params: RequestsParams[HederaJsonRpcMethod.SignMessage]) {
+    return await this.request<HederaJsonRpcMethod.SignMessage>({
+      method: HederaJsonRpcMethod.SignMessage,
+      params,
+    })
+  }
+
+  public async signQueryAndSend(params: RequestsParams[HederaJsonRpcMethod.SignQueryAndSend]) {
+    return await this.request<HederaJsonRpcMethod.SignQueryAndSend>({
+      method: HederaJsonRpcMethod.SignQueryAndSend,
+      params,
+    })
+  }
+
+  public async signTransactionAndSend(
+    params: RequestsParams[HederaJsonRpcMethod.SignTransactionAndSend],
+  ) {
+    return await this.request<HederaJsonRpcMethod.SignTransactionAndSend>({
+      method: HederaJsonRpcMethod.SignTransactionAndSend,
+      params,
+    })
+  }
+
+  public async signTransactionBody(
+    params: RequestsParams[HederaJsonRpcMethod.SignTransactionBody],
+  ) {
+    return await this.request<HederaJsonRpcMethod.SignTransactionBody>({
+      method: HederaJsonRpcMethod.SignTransactionBody,
+      params,
     })
   }
 }

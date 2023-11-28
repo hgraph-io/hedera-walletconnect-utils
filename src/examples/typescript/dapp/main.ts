@@ -1,8 +1,5 @@
 // https://docs.walletconnect.com/2.0/api/sign/dapp-usage
-import SignClient from '@walletconnect/sign-client'
-import { SessionTypes, SignClientTypes } from '@walletconnect/types'
-import { WalletConnectModal } from '@walletconnect/modal'
-import { getSdkError } from '@walletconnect/utils'
+import { SignClientTypes } from '@walletconnect/types'
 import {
   TransactionResponseJSON,
   TransactionResponse,
@@ -13,21 +10,21 @@ import {
   AccountInfoQuery,
   AccountId,
   Timestamp,
+  LedgerId,
 } from '@hashgraph/sdk'
 import {
-  HederaChainId,
   HederaSessionEvent,
   HederaJsonRpcMethod,
   transactionToBase64String,
   queryToBase64String,
   base64StringToTransaction,
+  DAppConnector,
 } from '@hashgraph/walletconnect'
 
 import { saveState, loadState, getState } from '../shared'
 
 // referenced in handlers
-var signClient: SignClient | undefined
-var activeSession: SessionTypes.Struct | undefined
+var dAppConnector: DAppConnector | undefined
 loadState() // load previous state if it exists
 
 async function init(e: Event) {
@@ -40,42 +37,16 @@ async function init(e: Event) {
     url: state['url'],
     icons: [state['icons']],
   }
-  signClient = await SignClient.init({ projectId, metadata })
 
-  signClient.on('session_event', (event) => {
-    // Handle session events, such as "chainChanged", "accountsChanged", etc.
-    alert('There has been a session event!')
-    console.log(event)
-  })
+  dAppConnector = new DAppConnector(
+    metadata,
+    LedgerId.TESTNET,
+    projectId,
+    Object.values(HederaJsonRpcMethod),
+    [HederaSessionEvent.ChainChanged, HederaSessionEvent.AccountsChanged],
+  )
 
-  signClient.on('session_update', ({ topic, params }) => {
-    // Handle session update
-    alert('There has been a update to the session!')
-    const { namespaces } = params
-    const _session = signClient.session.get(topic)
-    // Overwrite the `namespaces` of the existing session with the incoming one.
-    const updatedSession = { ..._session, namespaces }
-    // Integrate the updated session state into your dapp state.
-    console.log(updatedSession)
-  })
-
-  signClient.on('session_delete', () => {
-    // Session was deleted -> reset the dapp state, clean up from user session, etc.
-    alert('Dapp: Session deleted by wallet!')
-    //
-  })
-
-  signClient.core.pairing.events.on('pairing_delete', (pairing) => {
-    // Session was deleted
-    console.log(pairing)
-    alert(`Dapp: Pairing deleted by wallet!`)
-    // clean up after the pairing for `topic` was deleted.
-  })
-
-  activeSession = signClient.session
-    .getAll()
-    .reverse()
-    .find((session: { expiry: number }) => session.expiry > Date.now() / 1000)
+  await dAppConnector.init({ logger: 'error' })
 
   //@ts-ignore
   e.target.querySelectorAll('input,button').forEach((input) => (input.disabled = true))
@@ -91,33 +62,13 @@ document.getElementById('init').onsubmit = init
 
 async function connect(e: Event) {
   try {
-    const state = saveState(e)
-    const chains = [HederaChainId.Testnet]
-    const { uri, approval } = await signClient.connect({
-      requiredNamespaces: {
-        hedera: {
-          methods: Object.values(HederaJsonRpcMethod),
-          chains,
-          events: [HederaSessionEvent.ChainChanged, HederaSessionEvent.AccountsChanged],
-        },
-      },
-    })
-    const walletConnectModal = new WalletConnectModal({
-      projectId: state['project-id'],
-      chains,
-    })
+    saveState(e)
 
-    walletConnectModal.openModal({ uri })
-    await approval()
-    walletConnectModal.closeModal()
-
-    activeSession = signClient.session
-      .getAll()
-      .reverse()
-      .find((session: { expiry: number }) => session.expiry > Date.now() / 1000)
+    await dAppConnector!.connectQR()
+    console.log('Connected to wallet!')
+    alert('Connected to wallet!')
   } catch (e) {
     console.log(e)
-    alert(JSON.stringify(e))
   }
 }
 document.getElementById('connect').onsubmit = connect
@@ -133,14 +84,9 @@ async function hedera_signTransactionBody(e: Event) {
     .addHbarTransfer(state['sign-from'], new Hbar(-state['sign-amount']))
     .addHbarTransfer(state['sign-to'], new Hbar(+state['sign-amount']))
 
-  const response: string = await signClient.request({
-    topic: activeSession.topic,
-    chainId: HederaChainId.Testnet,
-    request: {
-      method: HederaJsonRpcMethod.SignTransactionBody,
-      params: [transactionToBase64String(transaction)],
-    },
-  })
+  const response = await dAppConnector!.signTransactionBody([
+    transactionToBase64String(transaction),
+  ])
 
   console.log(response)
   console.log(base64StringToTransaction(response))
@@ -152,14 +98,7 @@ document.getElementById('hedera_signTransactionBody').onsubmit = hedera_signTran
 async function hedera_sendTransactionOnly(e: Event) {
   const state = saveState(e)
 
-  const response: TransactionResponseJSON = await signClient.request({
-    topic: activeSession.topic,
-    chainId: HederaChainId.Testnet,
-    request: {
-      method: HederaJsonRpcMethod.SendTransactionOnly,
-      params: [state['send-transaction']],
-    },
-  })
+  const response = await dAppConnector!.sendTransactionOnly([state['send-transaction']])
   const transactionResponse = TransactionResponse.fromJSON(response)
   const client = Client.forName('testnet')
   const receipt = await transactionResponse.getReceipt(client)
@@ -177,14 +116,9 @@ async function hedera_signTransactionAndSend(e: Event) {
     .addHbarTransfer(state['sign-send-from'], new Hbar(-state['sign-send-amount']))
     .addHbarTransfer(state['sign-send-to'], new Hbar(+state['sign-send-amount']))
 
-  const response: TransactionResponseJSON = await signClient.request({
-    topic: activeSession.topic,
-    chainId: HederaChainId.Testnet,
-    request: {
-      method: HederaJsonRpcMethod.SignTransactionAndSend,
-      params: [transactionToBase64String(transaction)],
-    },
-  })
+  const response: TransactionResponseJSON = await dAppConnector!.signTransactionAndSend([
+    transactionToBase64String(transaction),
+  ])
 
   const transactionResponse = TransactionResponse.fromJSON(response)
   const client = Client.forName('testnet')
@@ -196,35 +130,14 @@ document.getElementById('hedera_signTransactionAndSend').onsubmit =
 
 async function disconnect(e: Event) {
   e.preventDefault()
-  for (const session of signClient.session.getAll()) {
-    console.log(`Disconnecting from session: ${session}`)
-    await signClient.disconnect({
-      topic: session.topic,
-      reason: getSdkError('USER_DISCONNECTED'),
-    })
-  }
-  //https://docs.walletconnect.com/api/core/pairing
-  for (const pairing of signClient.core.pairing.getPairings()) {
-    console.log(`Disconnecting from pairing: ${pairing}`)
-    await signClient.disconnect({
-      topic: pairing.topic,
-      reason: getSdkError('USER_DISCONNECTED'),
-    })
-  }
+  dAppConnector?.disconnectAll()
 }
 document.querySelector<HTMLFormElement>('#disconnect').onsubmit = disconnect
 
 async function hedera_getNodeAddresses(e: Event) {
   e.preventDefault()
 
-  const response = await signClient.request({
-    topic: activeSession.topic,
-    chainId: HederaChainId.Testnet,
-    request: {
-      method: HederaJsonRpcMethod.GetNodeAddresses,
-      params: [],
-    },
-  })
+  const response = await dAppConnector!.getNodeAddresses()
 
   console.log(response)
 }
@@ -235,14 +148,7 @@ async function hedera_signMessage(e: Event) {
   const state = saveState(e)
 
   try {
-    const response = await signClient.request({
-      topic: activeSession.topic,
-      chainId: HederaChainId.Testnet,
-      request: {
-        method: HederaJsonRpcMethod.SignMessage,
-        params: [state['sign-message']],
-      },
-    })
+    const response = await dAppConnector?.signMessage([state['sign-message']])
     console.log(response)
   } catch (e) {
     console.error(e)
@@ -256,15 +162,7 @@ async function hedera_signQueryAndSend(e: Event) {
   const state = saveState(e)
 
   const query = new AccountInfoQuery().setAccountId(state['query-payment-account'])
-
-  const response: string = await signClient.request({
-    topic: activeSession.topic,
-    chainId: HederaChainId.Testnet,
-    request: {
-      method: HederaJsonRpcMethod.SignQueryAndSend,
-      params: [queryToBase64String(query)],
-    },
-  })
+  const response: string = await dAppConnector!.signQueryAndSend([queryToBase64String(query)])
 
   console.log(response)
   alert(`Query response received: ${JSON.stringify(response)}!`)
@@ -287,14 +185,9 @@ async function simulateGossipNodeError(e: Event) {
       .addHbarTransfer(sender, new Hbar(-5))
       .addHbarTransfer(recepient, new Hbar(+5))
 
-    const response: TransactionResponseJSON = await signClient.request({
-      topic: activeSession.topic,
-      chainId: HederaChainId.Testnet,
-      request: {
-        method: HederaJsonRpcMethod.SignTransactionAndSend,
-        params: [transactionToBase64String(transaction)],
-      },
-    })
+    const response = await dAppConnector!.signTransactionAndSend([
+      transactionToBase64String(transaction),
+    ])
 
     console.log(response)
   } catch (e) {
@@ -324,15 +217,9 @@ async function simulateTransactionExpiredError(e: Event) {
       .addHbarTransfer(sender, new Hbar(-5))
       .addHbarTransfer(recepient, new Hbar(+5))
 
-    const response: TransactionResponseJSON = await signClient.request({
-      topic: activeSession.topic,
-      chainId: HederaChainId.Testnet,
-      request: {
-        method: HederaJsonRpcMethod.SignTransactionAndSend,
-        params: [transactionToBase64String(transaction)],
-      },
-    })
-
+    const response = await dAppConnector?.signTransactionAndSend([
+      transactionToBase64String(transaction),
+    ])
     console.log(response)
   } catch (e) {
     console.log(e)
