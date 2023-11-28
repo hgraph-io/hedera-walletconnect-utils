@@ -167,6 +167,56 @@
         </form>
       </section>
       <hr />
+      <h2>Batch calls:</h2>
+      <section>
+        <form id="hedera_signTransactionAndSendBatch" class="toggle">
+          <fieldset>
+            <legend>hedera_signTransactionAndSend (two same transactions)</legend>
+            <label
+              >Transaction type:
+              <select name="batch-sign-send-transaction-type">
+                <option value="hbar-transfer">Hbar Transfer</option>
+              </select>
+            </label>
+            <label
+              >Send to address:
+              <input name="batch-sign-send-to" required />
+            </label>
+            <label
+              >Send from address:
+              <input name="batch-sign-send-from" required />
+            </label>
+            <label
+              >Amount in Hbar:
+              <input name="batch-sign-send-amount" required />
+            </label>
+          </fieldset>
+          <button type="submit">Submit to wallet</button>
+        </form>
+      </section>
+      <section>
+        <form id="hedera_signQueryAndSendBatch" class="toggle">
+          <fieldset>
+            <legend>hedera_signQueryAndSend (two same queries)</legend>
+            <label
+              >Query type:
+              <select name="batch-query-type">
+                <option value="account-info">Account Info</option>
+              </select>
+            </label>
+            <label
+              >Account ID:
+              <input name="batch-query-account-id" required />
+            </label>
+            <label
+              >Payment account id:
+              <input name="batch-query-payment-account" required />
+            </label>
+          </fieldset>
+          <button type="submit">hedera_signQueryAndSend</button>
+        </form>
+      </section>
+      <hr />
       <h2>Error handling:</h2>
       <section class="toggle">
         <fieldset>

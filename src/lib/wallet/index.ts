@@ -2,7 +2,7 @@ import { Core } from '@walletconnect/core'
 import { Web3Wallet, Web3WalletTypes } from '@walletconnect/web3wallet'
 import { SessionTypes } from '@walletconnect/types'
 import { buildApprovedNamespaces } from '@walletconnect/utils'
-import { Wallet as HederaWallet, Client, AccountId, Transaction, Query } from '@hashgraph/sdk'
+import { Wallet as HederaWallet, Client, AccountId, Transaction, Query, SignerSignature } from '@hashgraph/sdk'
 import {
   HederaChainId,
   HederaSessionEvent,
@@ -11,6 +11,7 @@ import {
   transactionToBase64String,
   base64StringToQuery,
   base64StringToMessage,
+  isArray,
 } from '../shared'
 import Provider from './provider'
 import type { HederaNativeWallet } from './types'
@@ -113,7 +114,8 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
     chainId: HederaChainId
     id: number // session request id
     topic: string // session topic
-    body?: Transaction | Query<any> | Uint8Array[] | undefined
+    body?: Transaction | Transaction[] | Query<any> | Query<any>[]
+      | Uint8Array[] | Uint8Array[][] | undefined
     accountId?: AccountId
   } {
     const { id, topic } = event
@@ -122,7 +124,8 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
       chainId,
     } = event.params
 
-    let body: Transaction | Query<any> | Uint8Array[] | undefined
+    let body: Transaction | Transaction[] | Query<any> | Query<any>[]
+      | Uint8Array[] | Uint8Array[][] | undefined
     // get account id from optional second param for transactions and queries or from transaction id
     // this allows for the case where the requested signer is not the payer, but defaults to the payer if a second param is not provided
     let accountId: AccountId | undefined
@@ -131,20 +134,30 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
         case HederaJsonRpcMethod.GetNodeAddresses:
           break
         case HederaJsonRpcMethod.SignMessage:
-          body = base64StringToMessage(params[0])
+          if (isArray<string>(params[0])) {
+            body = params[0].map(base64String => base64StringToMessage(base64String))
+          } else {
+            body = base64StringToMessage(params[0])
+          }
           accountId = params[1] ? AccountId.fromString(params[1]) : undefined
           break
         case HederaJsonRpcMethod.SignQueryAndSend:
-          body = base64StringToQuery(params[0])
+          if (isArray<string>(params[0])) {
+            body = params[0].map(base64String => base64StringToQuery(base64String))
+          } else {
+            body = base64StringToQuery(params[0])
+          }
           accountId = params[1] ? AccountId.fromString(params[1]) : undefined
           break
         case HederaJsonRpcMethod.SendTransactionOnly:
         case HederaJsonRpcMethod.SignTransactionAndSend:
         case HederaJsonRpcMethod.SignTransactionBody:
-          body = base64StringToTransaction(params[0])
-          accountId = params[1]
-            ? AccountId.fromString(params[1])
-            : body.transactionId?.accountId || undefined
+          if (isArray<string>(params[0])) {
+            body = params[0].map(base64String => base64StringToTransaction(base64String));
+          } else {
+            body = base64StringToTransaction(params[0])
+          }
+          accountId = params[1] ? AccountId.fromString(params[1]) : undefined
           break
         default:
           throw new Error('Invalid Hedera WalletConnect method')
@@ -186,16 +199,29 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
     })
   }
 
+  async executeBatchMethod<T, R>(body: T | T[], callMethod: (body: T) => R) {
+    let result: R | R[]
+
+    if (isArray<T>(body)) {
+      const resultPromises = body.map(item => callMethod(item));
+      result = await Promise.all(resultPromises);
+    } else {
+      result = await callMethod(body)
+    }
+
+    return result
+  }
+
   /*
    * JSON RPC Methods
    */
   public async hedera_sendTransactionOnly(
     id: number,
     topic: string,
-    body: Transaction, // must be signedTransaction
+    body: Transaction | Transaction[], // must be signedTransaction
     signer: HederaWallet,
   ): Promise<void> {
-    const result = await signer.call(body)
+    const result = await this.executeBatchMethod(body, async (body) => await signer.call(body))
 
     return await this.respondSessionRequest({
       topic,
@@ -206,10 +232,10 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
   public async hedera_signTransactionAndSend(
     id: number,
     topic: string,
-    body: Transaction, // can be signed or unsigned
+    body: Transaction | Transaction[], // can be signed or unsigned
     signer: HederaWallet,
   ): Promise<void> {
-    const result = await signer.call(await signer.signTransaction(body))
+    const result = await this.executeBatchMethod(body, async(body) => await signer.call(await signer.signTransaction(body)));
 
     return await this.respondSessionRequest({
       topic,
@@ -220,10 +246,10 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
   public async hedera_signTransactionBody(
     id: number,
     topic: string,
-    body: Transaction,
+    body: Transaction | Transaction[],
     signer: HederaWallet,
   ): Promise<void> {
-    const result = transactionToBase64String(await signer.signTransaction(body))
+    const result = await this.executeBatchMethod(body, async (body) => transactionToBase64String(await signer.signTransaction(body)))
 
     return await this.respondSessionRequest({
       topic,
@@ -249,10 +275,10 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
   public async hedera_signMessage(
     id: number,
     topic: string,
-    body: Uint8Array[],
+    body: Uint8Array[] | Uint8Array[][],
     signer: HederaWallet,
   ): Promise<void> {
-    const result = await signer.sign(body)
+    const result = await this.executeBatchMethod<Uint8Array[], Promise<SignerSignature[]>>(body, async (body) => await signer.sign(body));
 
     return await this.respondSessionRequest({
       topic,
@@ -263,10 +289,10 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
   public async hedera_signQueryAndSend(
     id: number,
     topic: string,
-    body: Query<any>,
+    body: Query<any> | Query<any>[],
     signer: HederaWallet,
   ): Promise<void> {
-    const result = await body.executeWithSigner(signer)
+    const result = await this.executeBatchMethod(body, async (body) => await body.executeWithSigner(signer));
 
     return await this.respondSessionRequest({
       topic,

@@ -194,6 +194,37 @@ async function hedera_signTransactionAndSend(e: Event) {
 document.getElementById('hedera_signTransactionAndSend').onsubmit =
   hedera_signTransactionAndSend
 
+
+async function hedera_signTransactionAndSendBatch(e: Event) {
+  const state = saveState(e)
+  // Sample transaction
+  const transaction1 = new TransferTransaction()
+    .setTransactionId(TransactionId.generate(state['batch-sign-send-from']))
+    .addHbarTransfer(state['batch-sign-send-from'], new Hbar(-state['batch-sign-send-amount']))
+    .addHbarTransfer(state['batch-sign-send-to'], new Hbar(+state['batch-sign-send-amount']))
+  const transaction2 = new TransferTransaction()
+    .setTransactionId(TransactionId.generate(state['batch-sign-send-from']))
+    .addHbarTransfer(state['batch-sign-send-from'], new Hbar(-state['batch-sign-send-amount']))
+    .addHbarTransfer(state['batch-sign-send-to'], new Hbar(+state['batch-sign-send-amount']))
+
+  const response: TransactionResponseJSON[] = await signClient.request({
+    topic: activeSession.topic,
+    chainId: HederaChainId.Testnet,
+    request: {
+      method: HederaJsonRpcMethod.SignTransactionAndSend,
+      params: [[
+        transactionToBase64String(transaction1),
+        transactionToBase64String(transaction2),
+      ]],
+    },
+  })
+
+  alert(JSON.stringify(response, null, 2));
+  console.log(response);
+}
+document.getElementById('hedera_signTransactionAndSendBatch').onsubmit =
+hedera_signTransactionAndSendBatch
+
 async function disconnect(e: Event) {
   e.preventDefault()
   for (const session of signClient.session.getAll()) {
@@ -271,6 +302,30 @@ async function hedera_signQueryAndSend(e: Event) {
 }
 
 document.getElementById('hedera_signQueryAndSend').onsubmit = hedera_signQueryAndSend
+
+async function hedera_signQueryAndSendBatch(e: Event) {
+  const state = saveState(e)
+
+  const query1 = new AccountInfoQuery().setAccountId(state['query-payment-account']);
+  const query2 = new AccountInfoQuery().setAccountId(state['query-payment-account']);
+
+  const response: string = await signClient.request({
+    topic: activeSession.topic,
+    chainId: HederaChainId.Testnet,
+    request: {
+      method: HederaJsonRpcMethod.SignQueryAndSend,
+      params: [[
+        queryToBase64String(query1),
+        queryToBase64String(query2),
+      ]],
+    },
+  })
+
+  console.log(response)
+  alert(`Query response received: ${JSON.stringify(response)}!`)
+}
+
+document.getElementById('hedera_signQueryAndSendBatch').onsubmit = hedera_signQueryAndSendBatch
 
 /*
  * Error handling simulation

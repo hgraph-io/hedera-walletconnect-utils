@@ -242,3 +242,12 @@ export const accountAndLedgerFromSession = (
     }
   })
 }
+
+/**
+ * Type guard for array detection.
+ * @param body any
+ * @returns boolean
+ */
+export function isArray<T, K = T[]>(body: T | K): body is K {
+  return Array.isArray(body);
+}

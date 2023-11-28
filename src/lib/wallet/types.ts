@@ -21,7 +21,8 @@ export interface HederaNativeWallet {
     chainId: HederaChainId
     id: number // session request id
     topic: string // session topic
-    body?: Transaction | Query<any> | Uint8Array[] | undefined
+    body?: Transaction | Transaction[] | Query<any> | Query<any>[]
+      | Uint8Array[] | Uint8Array[][] | undefined
     accountId?: AccountId
   }
 
