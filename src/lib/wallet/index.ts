@@ -3,6 +3,7 @@ import { Web3Wallet, Web3WalletTypes } from '@walletconnect/web3wallet'
 import { SessionTypes } from '@walletconnect/types'
 import { buildApprovedNamespaces } from '@walletconnect/utils'
 import { Wallet as HederaWallet, Client, AccountId, Transaction, Query } from '@hashgraph/sdk'
+import type { HederaTransactionRequest, HederaTransactionResponse } from '../shared'
 import {
   HederaChainId,
   HederaSessionEvent,
@@ -206,7 +207,7 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
   public async hedera_signTransactionAndSend(
     id: number,
     topic: string,
-    body: Transaction, // can be signed or unsigned
+    body: Transaction,
     signer: HederaWallet,
   ): Promise<void> {
     const result = await signer.call(await signer.signTransaction(body))
@@ -238,6 +239,7 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
     signer: HederaWallet,
   ): Promise<void> {
     const result = signer.getNetwork()
+    // const mirror = signer.getMirrorNetwork()
 
     return await this.respondSessionRequest({
       topic,
