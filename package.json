@@ -51,6 +51,8 @@
     "dev": "rm -Rf dist && npm run build && concurrently --raw \"npm run watch\" \"node scripts/examples/dev.mjs\"",
     "test": "jest",
     "test:connect": "jest --testMatch '**/DAppConnector.test.ts' --verbose",
-    "prepublishOnly": "rm -Rf dist && npm run build"
+    "prepublishOnly": "rm -Rf dist && npm run build",
+    "prettier:check": "npx prettier --check ./src/",
+    "prettier:fix": "npx prettier --write ./src/"
   }
 }
