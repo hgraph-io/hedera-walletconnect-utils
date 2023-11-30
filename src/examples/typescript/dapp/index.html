@@ -166,6 +166,86 @@
           <button type="submit">Submit to wallet</button>
         </form>
       </section>
+
+      <hr />
+      <h2>Ethereum proxy methods:</h2>
+      <section>
+        <form id="eth_sign" class="toggle">
+          <fieldset>
+            <legend>eth_sign</legend>
+            <label
+              >Message:
+              <input name="eth-sign-message" required />
+            </label>
+          </fieldset>
+          <button type="submit">Submit to wallet</button>
+        </form>
+      </section>
+      <section>
+        <form id="eth_sendRawTransaction" class="toggle">
+          <fieldset>
+            <legend>eth_sendRawTransaction</legend>
+            <label
+              >Signed transaction bytes:
+              <input name="eth-send-transaction" required />
+            </label>
+          </fieldset>
+          <button type="submit">Submit to wallet</button>
+        </form>
+      </section>
+      <section>
+        <form id="eth_sendTransaction" class="toggle">
+          <fieldset>
+            <legend>eth_sendTransaction</legend>
+            <label
+              >Transaction type:
+              <select name="eth-sign-send-transaction-type">
+                <option value="hbar-transfer">Hbar Transfer</option>
+              </select>
+            </label>
+            <label
+              >Send to address:
+              <input name="eth-sign-send-to" required />
+            </label>
+            <label
+              >Send from address:
+              <input name="eth-sign-send-from" required />
+            </label>
+            <label
+              >Amount in Hbar:
+              <input name="eth-sign-send-amount" required />
+            </label>
+          </fieldset>
+          <button type="submit">Submit to wallet</button>
+        </form>
+      </section>
+      <section>
+        <form id="eth_signTransaction" class="toggle">
+          <fieldset>
+            <legend>eth_signTransaction</legend>
+            <label
+              >Transaction type:
+              <select name="eth-sign-transaction-type">
+                <option value="eth-hbar-transfer">Hbar Transfer</option>
+              </select>
+            </label>
+            <label
+              >Send to address:
+              <input name="eth-sign-to" required />
+            </label>
+            <label
+              >Send from address:
+              <input name="eth-sign-from" required />
+            </label>
+            <label
+              >Amount in Hbar:
+              <input name="eth-sign-amount" required />
+            </label>
+          </fieldset>
+          <button type="submit">Submit to wallet</button>
+        </form>
+      </section>
+
       <hr />
       <h2>Error handling:</h2>
       <section class="toggle">

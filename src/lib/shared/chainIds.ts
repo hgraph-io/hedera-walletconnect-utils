@@ -6,3 +6,8 @@ export enum HederaChainId {
   Previewnet = 'hedera:previewnet',
   Devnet = 'hedera:devnet',
 }
+
+export enum EthereumChainId {
+  Mainnet = 'eip155:1',
+  Testnet = 'eip155:5',
+}

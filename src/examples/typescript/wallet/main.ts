@@ -1,7 +1,7 @@
 // https://github.com/WalletConnect/walletconnect-monorepo/tree/v2.0/packages/web3wallet
 import type { Web3WalletTypes } from '@walletconnect/web3wallet'
 import { getSdkError } from '@walletconnect/utils'
-import { Wallet, HederaChainId } from '@hashgraph/walletconnect'
+import { Wallet, HederaChainId, EthereumChainId } from '@hashgraph/walletconnect'
 import { loadState, saveState } from '../shared'
 
 // referenced in handlers
@@ -22,7 +22,10 @@ async function init(e: Event) {
     icons: [state['icons']],
   }
 
-  wallet = await Wallet.create(projectId, metadata)
+  wallet = await Wallet.create(
+    projectId,
+    metadata,
+  )
 
   /*
    * Add listeners
@@ -31,8 +34,13 @@ async function init(e: Event) {
   wallet.on('session_proposal', async (proposal: Web3WalletTypes.SessionProposal) => {
     // Client logic: prompt for approval of accounts
     const accountId = state['account-id']
-    const chainId = HederaChainId.Testnet
-    const accounts: string[] = [`${chainId}:${accountId}`]
+    const hederaChainIds = [HederaChainId.Testnet]
+    const ethChainIds = [EthereumChainId.Testnet]
+
+    const accounts = {
+      hedera: hederaChainIds.map(chainId => `${chainId}:${accountId}`),
+      eip155: ethChainIds.map(chainId => `${chainId}:${accountId}`),
+    }
 
     if (confirm(`Do you want to connect to this session?: ${JSON.stringify(proposal)}`))
       wallet.buildAndApproveSession(accounts, proposal)

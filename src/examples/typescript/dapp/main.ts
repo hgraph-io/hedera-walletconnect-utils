@@ -21,6 +21,9 @@ import {
   transactionToBase64String,
   queryToBase64String,
   base64StringToTransaction,
+  EthereumJsonRpcMethod,
+  EthereumSessionEvent,
+  EthereumChainId,
 } from '@hashgraph/walletconnect'
 
 import { saveState, loadState, getState } from '../shared'
@@ -92,19 +95,29 @@ document.getElementById('init').onsubmit = init
 async function connect(e: Event) {
   try {
     const state = saveState(e)
-    const chains = [HederaChainId.Testnet]
+    const hederaChains = [HederaChainId.Testnet];
+    const ethereumChains = [EthereumChainId.Testnet];
+
     const { uri, approval } = await signClient.connect({
       requiredNamespaces: {
         hedera: {
           methods: Object.values(HederaJsonRpcMethod),
-          chains,
+          chains: hederaChains,
           events: [HederaSessionEvent.ChainChanged, HederaSessionEvent.AccountsChanged],
         },
+        eip155: {
+          methods: Object.values(EthereumJsonRpcMethod),
+          chains: ethereumChains,
+          events: [EthereumSessionEvent.ChainChanged, EthereumSessionEvent.AccountsChanged],
+        }
       },
     })
     const walletConnectModal = new WalletConnectModal({
       projectId: state['project-id'],
-      chains,
+      chains: [
+        ...hederaChains,
+        ...ethereumChains,
+      ],
     })
 
     walletConnectModal.openModal({ uri })
@@ -148,6 +161,29 @@ async function hedera_signTransactionBody(e: Event) {
 }
 document.getElementById('hedera_signTransactionBody').onsubmit = hedera_signTransactionBody
 
+async function eth_signTransaction(e: Event) {
+  const state = saveState(e)
+  // Sample transaction
+  const transaction = new TransferTransaction()
+    .setTransactionId(TransactionId.generate(state['eth-sign-from']))
+    .addHbarTransfer(state['eth-sign-from'], new Hbar(-state['eth-sign-amount']))
+    .addHbarTransfer(state['eth-sign-to'], new Hbar(+state['eth-sign-amount']))
+
+  const response: string = await signClient.request({
+    topic: activeSession.topic,
+    chainId: EthereumChainId.Testnet,
+    request: {
+      method: EthereumJsonRpcMethod.SignTransaction,
+      params: [transactionToBase64String(transaction)],
+    },
+  })
+
+  console.log(response)
+  console.log(base64StringToTransaction(response))
+  alert(`Transaction body signed: ${response}!`)
+}
+document.getElementById('eth_signTransaction').onsubmit = eth_signTransaction
+
 //
 async function hedera_sendTransactionOnly(e: Event) {
   const state = saveState(e)
@@ -168,6 +204,25 @@ async function hedera_sendTransactionOnly(e: Event) {
 
 document.getElementById('hedera_sendTransactionOnly').onsubmit = hedera_sendTransactionOnly
 
+async function eth_sendRawTransaction(e: Event) {
+  const state = saveState(e)
+
+  const response: TransactionResponseJSON = await signClient.request({
+    topic: activeSession.topic,
+    chainId: EthereumChainId.Testnet,
+    request: {
+      method: EthereumJsonRpcMethod.SendRawTransaction,
+      params: [state['eth-send-transaction']],
+    },
+  })
+  const transactionResponse = TransactionResponse.fromJSON(response)
+  const client = Client.forName('testnet')
+  const receipt = await transactionResponse.getReceipt(client)
+  alert(`${transactionResponse.transactionId}:${receipt.status.toString()}!`)
+}
+
+document.getElementById('eth_sendRawTransaction').onsubmit = eth_sendRawTransaction
+
 //
 async function hedera_signTransactionAndSend(e: Event) {
   const state = saveState(e)
@@ -185,7 +240,7 @@ async function hedera_signTransactionAndSend(e: Event) {
       params: [transactionToBase64String(transaction)],
     },
   })
-
+  console.log(response)
   const transactionResponse = TransactionResponse.fromJSON(response)
   const client = Client.forName('testnet')
   const receipt = await transactionResponse.getReceipt(client)
@@ -193,6 +248,32 @@ async function hedera_signTransactionAndSend(e: Event) {
 }
 document.getElementById('hedera_signTransactionAndSend').onsubmit =
   hedera_signTransactionAndSend
+
+async function eth_sendTransaction(e: Event) {
+  const state = saveState(e)
+  // Sample transaction
+  const transaction = new TransferTransaction()
+    .setTransactionId(TransactionId.generate(state['eth-sign-send-from']))
+    .addHbarTransfer(state['eth-sign-send-from'], new Hbar(-state['eth-sign-send-amount']))
+    .addHbarTransfer(state['eth-sign-send-to'], new Hbar(+state['eth-sign-send-amount']))
+
+  const response: TransactionResponseJSON = await signClient.request({
+    topic: activeSession.topic,
+    chainId: EthereumChainId.Testnet,
+    request: {
+      method: EthereumJsonRpcMethod.SendTransaction,
+      params: [transactionToBase64String(transaction)],
+    },
+  })
+  console.log(response)
+  const transactionResponse = TransactionResponse.fromJSON(response)
+  const client = Client.forName('testnet')
+  const receipt = await transactionResponse.getReceipt(client)
+  alert(`${transactionResponse.transactionId}:${receipt.status.toString()}!`)
+}
+
+document.getElementById('eth_sendTransaction').onsubmit =
+eth_sendTransaction
 
 async function disconnect(e: Event) {
   e.preventDefault()
@@ -251,6 +332,27 @@ async function hedera_signMessage(e: Event) {
 }
 
 document.getElementById('hedera_signMessage').onsubmit = hedera_signMessage
+
+async function eth_sign(e: Event) {
+  const state = saveState(e)
+
+  try {
+    const response = await signClient.request({
+      topic: activeSession.topic,
+      chainId: EthereumChainId.Testnet,
+      request: {
+        method: EthereumJsonRpcMethod.Sign,
+        params: [state['eth-sign-message']],
+      },
+    })
+    console.log(response)
+  } catch (e) {
+    console.error(e)
+    alert(JSON.stringify(e))
+  }
+}
+
+document.getElementById('eth_sign').onsubmit = eth_sign
 
 async function hedera_signQueryAndSend(e: Event) {
   const state = saveState(e)
