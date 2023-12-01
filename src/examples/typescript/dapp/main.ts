@@ -13,6 +13,7 @@ import {
   AccountInfoQuery,
   AccountId,
   Timestamp,
+  AccountInfo,
 } from '@hashgraph/sdk'
 import {
   HederaChainId,
@@ -21,6 +22,8 @@ import {
   transactionToBase64String,
   queryToBase64String,
   base64StringToTransaction,
+  base64StringToUint8Array,
+  base64StringToSignatureMap,
 } from '@hashgraph/walletconnect'
 
 import { saveState, loadState, getState } from '../shared'
@@ -133,17 +136,22 @@ async function hedera_signTransactionBody(e: Event) {
     .addHbarTransfer(state['sign-from'], new Hbar(-state['sign-amount']))
     .addHbarTransfer(state['sign-to'], new Hbar(+state['sign-amount']))
 
-  const response: string = await signClient.request({
+  const response: {
+    signatureMap: string
+  } = await signClient.request({
     topic: activeSession.topic,
     chainId: HederaChainId.Testnet,
     request: {
       method: HederaJsonRpcMethod.SignTransactionBody,
-      params: [transactionToBase64String(transaction)],
+      params: {
+        signerAccountId: state['sign-from'],
+        transactionBody: transactionToBase64String(transaction),
+      },
     },
   })
 
   console.log(response)
-  console.log(base64StringToTransaction(response))
+  console.log(base64StringToSignatureMap(response.signatureMap))
   alert(`Transaction body signed: ${response}!`)
 }
 document.getElementById('hedera_signTransactionBody').onsubmit = hedera_signTransactionBody
@@ -152,15 +160,23 @@ document.getElementById('hedera_signTransactionBody').onsubmit = hedera_signTran
 async function hedera_sendTransactionOnly(e: Event) {
   const state = saveState(e)
 
-  const response: TransactionResponseJSON = await signClient.request({
-    topic: activeSession.topic,
-    chainId: HederaChainId.Testnet,
-    request: {
-      method: HederaJsonRpcMethod.SendTransactionOnly,
-      params: [state['send-transaction']],
+  const response: TransactionResponseJSON & { precheckCode: number } = await signClient.request(
+    {
+      topic: activeSession.topic,
+      chainId: HederaChainId.Testnet,
+      request: {
+        method: HederaJsonRpcMethod.SendTransactionOnly,
+        params: {
+          signedTransaction: state['send-transaction'],
+        },
+      },
     },
-  })
+  )
+
   const transactionResponse = TransactionResponse.fromJSON(response)
+  if (response.precheckCode !== 0) {
+    alert(`${transactionResponse.transactionId}:${response.precheckCode}:FAIL!`)
+  }
   const client = Client.forName('testnet')
   const receipt = await transactionResponse.getReceipt(client)
   alert(`${transactionResponse.transactionId}:${receipt.status.toString()}!`)
@@ -177,16 +193,26 @@ async function hedera_signTransactionAndSend(e: Event) {
     .addHbarTransfer(state['sign-send-from'], new Hbar(-state['sign-send-amount']))
     .addHbarTransfer(state['sign-send-to'], new Hbar(+state['sign-send-amount']))
 
-  const response: TransactionResponseJSON = await signClient.request({
-    topic: activeSession.topic,
-    chainId: HederaChainId.Testnet,
-    request: {
-      method: HederaJsonRpcMethod.SignTransactionAndSend,
-      params: [transactionToBase64String(transaction)],
+  const response: TransactionResponseJSON & { precheckCode: number } = await signClient.request(
+    {
+      topic: activeSession.topic,
+      chainId: HederaChainId.Testnet,
+      request: {
+        method: HederaJsonRpcMethod.SignTransactionAndSend,
+        params: {
+          signedTransaction: transactionToBase64String(transaction),
+          signerAccountId: state['sign-send-from'],
+        },
+      },
     },
-  })
+  )
+
+  console.log(response)
 
   const transactionResponse = TransactionResponse.fromJSON(response)
+  if (response.precheckCode !== 0) {
+    alert(`${transactionResponse.transactionId}:${response.precheckCode}:FAIL!`)
+  }
   const client = Client.forName('testnet')
   const receipt = await transactionResponse.getReceipt(client)
   alert(`${transactionResponse.transactionId}:${receipt.status.toString()}!`)
@@ -222,7 +248,7 @@ async function hedera_getNodeAddresses(e: Event) {
     chainId: HederaChainId.Testnet,
     request: {
       method: HederaJsonRpcMethod.GetNodeAddresses,
-      params: [],
+      params: {},
     },
   })
 
@@ -235,15 +261,21 @@ async function hedera_signMessage(e: Event) {
   const state = saveState(e)
 
   try {
-    const response = await signClient.request({
+    const response: {
+      signatureMap: string
+    } = await signClient.request({
       topic: activeSession.topic,
       chainId: HederaChainId.Testnet,
       request: {
         method: HederaJsonRpcMethod.SignMessage,
-        params: [state['sign-message']],
+        params: {
+          message: state['sign-message'],
+        },
       },
     })
+
     console.log(response)
+    console.log(base64StringToUint8Array(response.signatureMap))
   } catch (e) {
     console.error(e)
     alert(JSON.stringify(e))
@@ -257,16 +289,25 @@ async function hedera_signQueryAndSend(e: Event) {
 
   const query = new AccountInfoQuery().setAccountId(state['query-payment-account'])
 
-  const response: string = await signClient.request({
+  const {
+    response,
+  }: {
+    response: string
+  } = await signClient.request({
     topic: activeSession.topic,
     chainId: HederaChainId.Testnet,
     request: {
       method: HederaJsonRpcMethod.SignQueryAndSend,
-      params: [queryToBase64String(query)],
+      params: {
+        query: queryToBase64String(query),
+      },
     },
   })
 
   console.log(response)
+  const accountInfo = AccountInfo.fromBytes(base64StringToUint8Array(response))
+  console.log(accountInfo)
+
   alert(`Query response received: ${JSON.stringify(response)}!`)
 }
 
@@ -292,7 +333,10 @@ async function simulateGossipNodeError(e: Event) {
       chainId: HederaChainId.Testnet,
       request: {
         method: HederaJsonRpcMethod.SignTransactionAndSend,
-        params: [transactionToBase64String(transaction)],
+        params: {
+          signedTransaction: transactionToBase64String(transaction),
+          signerAccountId: getState('sign-send-from'),
+        },
       },
     })
 
@@ -329,7 +373,10 @@ async function simulateTransactionExpiredError(e: Event) {
       chainId: HederaChainId.Testnet,
       request: {
         method: HederaJsonRpcMethod.SignTransactionAndSend,
-        params: [transactionToBase64String(transaction)],
+        params: {
+          signedTransaction: transactionToBase64String(transaction),
+          signerAccountId: sender,
+        },
       },
     })
 
