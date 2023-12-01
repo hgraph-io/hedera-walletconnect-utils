@@ -52,7 +52,7 @@ async function init(e: Event) {
     // Handle session update
     alert('There has been a update to the session!')
     const { namespaces } = params
-    const _session = signClient.session.get(topic)
+    const _session = signClient!.session.get(topic)
     // Overwrite the `namespaces` of the existing session with the incoming one.
     const updatedSession = { ..._session, namespaces }
     // Integrate the updated session state into your dapp state.
@@ -77,23 +77,29 @@ async function init(e: Event) {
     .reverse()
     .find((session: { expiry: number }) => session.expiry > Date.now() / 1000)
 
-  //@ts-ignore
-  e.target.querySelectorAll('input,button').forEach((input) => (input.disabled = true))
+  const eventTarget = e.target as HTMLElement
+
+  eventTarget.querySelectorAll('input,button').forEach((element) => {
+    const typedElement = element as HTMLInputElement | HTMLButtonElement
+    typedElement.disabled = true
+  })
   document
     .querySelectorAll('.toggle input,.toggle button, .toggle select')
-    //@ts-ignore
-    .forEach((element) => (element.disabled = false))
+    .forEach((element) => {
+      const typedElement = element as HTMLInputElement | HTMLButtonElement | HTMLSelectElement
+      typedElement.disabled = false
+    })
 
   console.log('dApp: WalletConnect initialized!')
 }
 
-document.getElementById('init').onsubmit = init
+document.getElementById('init')!.onsubmit = init
 
 async function connect(e: Event) {
   try {
     const state = saveState(e)
     const chains = [HederaChainId.Testnet]
-    const { uri, approval } = await signClient.connect({
+    const { uri, approval } = await signClient!.connect({
       requiredNamespaces: {
         hedera: {
           methods: Object.values(HederaJsonRpcMethod),
@@ -111,7 +117,7 @@ async function connect(e: Event) {
     await approval()
     walletConnectModal.closeModal()
 
-    activeSession = signClient.session
+    activeSession = signClient!.session
       .getAll()
       .reverse()
       .find((session: { expiry: number }) => session.expiry > Date.now() / 1000)
@@ -120,7 +126,7 @@ async function connect(e: Event) {
     alert(JSON.stringify(e))
   }
 }
-document.getElementById('connect').onsubmit = connect
+document.getElementById('connect')!.onsubmit = connect
 
 /*
  * JSON RPC Methods
@@ -133,8 +139,8 @@ async function hedera_signTransactionBody(e: Event) {
     .addHbarTransfer(state['sign-from'], new Hbar(-state['sign-amount']))
     .addHbarTransfer(state['sign-to'], new Hbar(+state['sign-amount']))
 
-  const response: string = await signClient.request({
-    topic: activeSession.topic,
+  const response: string = await signClient!.request({
+    topic: activeSession!.topic,
     chainId: HederaChainId.Testnet,
     request: {
       method: HederaJsonRpcMethod.SignTransactionBody,
@@ -146,14 +152,14 @@ async function hedera_signTransactionBody(e: Event) {
   console.log(base64StringToTransaction(response))
   alert(`Transaction body signed: ${response}!`)
 }
-document.getElementById('hedera_signTransactionBody').onsubmit = hedera_signTransactionBody
+document.getElementById('hedera_signTransactionBody')!.onsubmit = hedera_signTransactionBody
 
 //
 async function hedera_sendTransactionOnly(e: Event) {
   const state = saveState(e)
 
-  const response: TransactionResponseJSON = await signClient.request({
-    topic: activeSession.topic,
+  const response: TransactionResponseJSON = await signClient!.request({
+    topic: activeSession!.topic,
     chainId: HederaChainId.Testnet,
     request: {
       method: HederaJsonRpcMethod.SendTransactionOnly,
@@ -166,7 +172,7 @@ async function hedera_sendTransactionOnly(e: Event) {
   alert(`${transactionResponse.transactionId}:${receipt.status.toString()}!`)
 }
 
-document.getElementById('hedera_sendTransactionOnly').onsubmit = hedera_sendTransactionOnly
+document.getElementById('hedera_sendTransactionOnly')!.onsubmit = hedera_sendTransactionOnly
 
 //
 async function hedera_signTransactionAndSend(e: Event) {
@@ -177,8 +183,8 @@ async function hedera_signTransactionAndSend(e: Event) {
     .addHbarTransfer(state['sign-send-from'], new Hbar(-state['sign-send-amount']))
     .addHbarTransfer(state['sign-send-to'], new Hbar(+state['sign-send-amount']))
 
-  const response: TransactionResponseJSON = await signClient.request({
-    topic: activeSession.topic,
+  const response: TransactionResponseJSON = await signClient!.request({
+    topic: activeSession!.topic,
     chainId: HederaChainId.Testnet,
     request: {
       method: HederaJsonRpcMethod.SignTransactionAndSend,
@@ -191,34 +197,34 @@ async function hedera_signTransactionAndSend(e: Event) {
   const receipt = await transactionResponse.getReceipt(client)
   alert(`${transactionResponse.transactionId}:${receipt.status.toString()}!`)
 }
-document.getElementById('hedera_signTransactionAndSend').onsubmit =
+document.getElementById('hedera_signTransactionAndSend')!.onsubmit =
   hedera_signTransactionAndSend
 
 async function disconnect(e: Event) {
   e.preventDefault()
-  for (const session of signClient.session.getAll()) {
+  for (const session of signClient!.session.getAll()) {
     console.log(`Disconnecting from session: ${session}`)
-    await signClient.disconnect({
+    await signClient!.disconnect({
       topic: session.topic,
       reason: getSdkError('USER_DISCONNECTED'),
     })
   }
   //https://docs.walletconnect.com/api/core/pairing
-  for (const pairing of signClient.core.pairing.getPairings()) {
+  for (const pairing of signClient!.core.pairing.getPairings()) {
     console.log(`Disconnecting from pairing: ${pairing}`)
-    await signClient.disconnect({
+    await signClient!.disconnect({
       topic: pairing.topic,
       reason: getSdkError('USER_DISCONNECTED'),
     })
   }
 }
-document.querySelector<HTMLFormElement>('#disconnect').onsubmit = disconnect
+document.querySelector<HTMLFormElement>('#disconnect')!.onsubmit = disconnect
 
 async function hedera_getNodeAddresses(e: Event) {
   e.preventDefault()
 
-  const response = await signClient.request({
-    topic: activeSession.topic,
+  const response = await signClient!.request({
+    topic: activeSession!.topic,
     chainId: HederaChainId.Testnet,
     request: {
       method: HederaJsonRpcMethod.GetNodeAddresses,
@@ -229,14 +235,14 @@ async function hedera_getNodeAddresses(e: Event) {
   console.log(response)
 }
 
-document.getElementById('hedera_getNodeAddresses').onsubmit = hedera_getNodeAddresses
+document.getElementById('hedera_getNodeAddresses')!.onsubmit = hedera_getNodeAddresses
 
 async function hedera_signMessage(e: Event) {
   const state = saveState(e)
 
   try {
-    const response = await signClient.request({
-      topic: activeSession.topic,
+    const response = await signClient!.request({
+      topic: activeSession!.topic,
       chainId: HederaChainId.Testnet,
       request: {
         method: HederaJsonRpcMethod.SignMessage,
@@ -250,15 +256,15 @@ async function hedera_signMessage(e: Event) {
   }
 }
 
-document.getElementById('hedera_signMessage').onsubmit = hedera_signMessage
+document.getElementById('hedera_signMessage')!.onsubmit = hedera_signMessage
 
 async function hedera_signQueryAndSend(e: Event) {
   const state = saveState(e)
 
   const query = new AccountInfoQuery().setAccountId(state['query-payment-account'])
 
-  const response: string = await signClient.request({
-    topic: activeSession.topic,
+  const response: string = await signClient!.request({
+    topic: activeSession!.topic,
     chainId: HederaChainId.Testnet,
     request: {
       method: HederaJsonRpcMethod.SignQueryAndSend,
@@ -270,7 +276,7 @@ async function hedera_signQueryAndSend(e: Event) {
   alert(`Query response received: ${JSON.stringify(response)}!`)
 }
 
-document.getElementById('hedera_signQueryAndSend').onsubmit = hedera_signQueryAndSend
+document.getElementById('hedera_signQueryAndSend')!.onsubmit = hedera_signQueryAndSend
 
 /*
  * Error handling simulation
@@ -287,8 +293,8 @@ async function simulateGossipNodeError(e: Event) {
       .addHbarTransfer(sender, new Hbar(-5))
       .addHbarTransfer(recepient, new Hbar(+5))
 
-    const response: TransactionResponseJSON = await signClient.request({
-      topic: activeSession.topic,
+    const response: TransactionResponseJSON = await signClient!.request({
+      topic: activeSession!.topic,
       chainId: HederaChainId.Testnet,
       request: {
         method: HederaJsonRpcMethod.SignTransactionAndSend,
@@ -303,7 +309,7 @@ async function simulateGossipNodeError(e: Event) {
   }
 }
 
-document.getElementById('error-gossip-node').onsubmit = simulateGossipNodeError
+document.getElementById('error-gossip-node')!.onsubmit = simulateGossipNodeError
 
 async function simulateTransactionExpiredError(e: Event) {
   e.preventDefault()
@@ -324,8 +330,8 @@ async function simulateTransactionExpiredError(e: Event) {
       .addHbarTransfer(sender, new Hbar(-5))
       .addHbarTransfer(recepient, new Hbar(+5))
 
-    const response: TransactionResponseJSON = await signClient.request({
-      topic: activeSession.topic,
+    const response: TransactionResponseJSON = await signClient!.request({
+      topic: activeSession!.topic,
       chainId: HederaChainId.Testnet,
       request: {
         method: HederaJsonRpcMethod.SignTransactionAndSend,
@@ -340,4 +346,4 @@ async function simulateTransactionExpiredError(e: Event) {
   }
 }
 
-document.getElementById('error-transaction-expired').onclick = simulateTransactionExpiredError
+document.getElementById('error-transaction-expired')!.onclick = simulateTransactionExpiredError
