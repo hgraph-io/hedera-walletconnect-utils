@@ -1,49 +1,57 @@
-import type {
-  TransactionResponse,
-  TransactionReceipt,
-  TransactionRecord,
-  AccountId,
-} from '@hashgraph/sdk'
+import type { TransactionResponseJSON } from '@hashgraph/sdk'
 
 /*
- * Transactions
- */
-export type HederaTransactionRequest = {
-  signerAccountId: string // format of <shard>.<realm>.<account>, i.e. 0.0.12345
-  transaction: {
-    bytes: string // should be a base64 encoded Uint8Array
-  }
-  getReceipt?: boolean // defaults to true
-  getRecord?: boolean // defaults to false
-}
-
-export type HederaTransactionResponse = {
-  response: TransactionResponse
-  receipt?: TransactionReceipt
-  record?: TransactionRecord
-}
-
-/*
- * Queries
+ * Request params
+ *
  */
 
-/*
- * Messages
- */
-
-export type HederaSignMessageRequest = {
+export type SignTransactionAndSendParams = {
   signerAccountId: string
-  messages: string[] // base64 encoded string Uint8Array
+  signedTransaction: string
 }
 
-export type HederaSignMessageResponse = {
+export type SendTransactionOnlyParams = {
+  signedTransaction: string
+}
+
+export type SignTransactionBodyParams = {
+  signerAccountId: string
+  transactionBody: string
+}
+
+export type GetNodeAddressesParams = undefined
+
+export type SignMessageParams = {
+  message: string
+}
+
+export type QueryParams = {
+  query: string
+}
+
+/*
+ * Responses
+ * {
+ *  "precheckCode": "<an integer representing the [ResponseCodeEnum] value returned from the Hedera Node, which may indicate success or failure.>",
+ *  "transactionId": "<a string encoded transaction identifier of the signed message that was sent to the Hedera node, in <shard>.<realm>.<number>@<seconds>.<nanos> format.>",
+ *  "nodeId": "<a string encoded transaction identifier of the Hedera Gossip Node’s Account that the transaction was submitted to, in <shard>.<realm>.<number> format>",
+ *  "transactionHash": "<base64 encoding of the SHA384 digest of the signedTransactionBytes of the Transaction message that was submitted to the Hedera Network.>"
+ * }
+ */
+
+export type SignTransactionAndSendResponse = TransactionResponseJSON & { precheckCode: number }
+
+export type SendTransactionOnlyResponse = TransactionResponseJSON & { precheckCode: number }
+
+export type SignTransactionBodyResponse = {
+  signatureMap: string //a base64 encoded string of the protobuf encoded Hedera API TransactionBody message
+}
+
+export type GetNodeAddressesResponse = { nodes: string[] }
+
+export type SignMessageResponse = {
   signedMessages: string[]
 }
-
-/*
- * Get node addresses
- */
-export type HederaGetNodeAddressesResponse = {
-  consensus: { [key: string]: string | AccountId } // {hostname:port: AccountId}
-  mirror: string[] // string['hostname:port']
+export type QueryResponse = {
+  response: string
 }
