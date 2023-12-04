@@ -20,6 +20,7 @@ import {
   Uint8ArrayToBase64String,
   signatureMapToBase64,
   getHederaError,
+  GetNodeAddresesResponse,
 } from '../shared'
 import Provider from './provider'
 import type { HederaNativeWallet } from './types'
@@ -223,7 +224,6 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
    * JSON RPC Methods
    */
   // 1. hedera_getNodeAddresses
-  // TODO: HIP-820 suggested change
   public async hedera_getNodeAddresses(
     id: number,
     topic: string,
@@ -235,7 +235,7 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
       nodeAccountId.toString(),
     )
 
-    return await this.respondSessionRequest({
+    const response: GetNodeAddresesResponse = {
       topic,
       response: {
         jsonrpc: '2.0',
@@ -244,7 +244,9 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
           nodes,
         },
       },
-    })
+    }
+
+    return await this.respondSessionRequest(response)
   }
 
   // 2. hedera_sendTransactionOnly

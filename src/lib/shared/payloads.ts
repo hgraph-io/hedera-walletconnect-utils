@@ -1,4 +1,4 @@
-import { JsonRpcResult } from '@walletconnect/jsonrpc-types'
+import { JsonRpcResult, JsonRpcResponse, JsonRpcError } from '@walletconnect/jsonrpc-types'
 import { EngineTypes } from '@walletconnect/types'
 import type { TransactionResponseJSON } from '@hashgraph/sdk'
 // import type { PrecheckStatusErrorJSON } from '@hashgraph/sdk/lib/PrecheckStatusError'
@@ -19,7 +19,10 @@ export interface GetNodeAddressesRequest extends EngineTypes.RequestParams {
 // result
 export interface GetNodeAddressesResult extends JsonRpcResult<{ nodes: string[] }> {}
 // response
-// export type GetnodeAddresesResponse = JsonRpcResponse<GetNodeAddressesResult> | JsonRpcError
+// export type GetNodeAddresesResponse = JsonRpcResponse<GetNodeAddressesResult> | JsonRpcError
+export interface GetNodeAddresesResponse extends EngineTypes.RespondParams {
+  response: GetNodeAddressesResult
+}
 
 /*
  * 2. hedera_sendTransactionOnly
