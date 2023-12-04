@@ -1,57 +1,137 @@
+import { JsonRpcResult } from '@walletconnect/jsonrpc-types'
+import { EngineTypes } from '@walletconnect/types'
 import type { TransactionResponseJSON } from '@hashgraph/sdk'
+// import type { PrecheckStatusErrorJSON } from '@hashgraph/sdk/lib/PrecheckStatusError'
+import { HederaJsonRpcMethod } from './methods'
 
 /*
- * Request params
- *
+ * 1. hedera_getNodeAddresses
  */
+// params
+export type GetNodeAddressesParams = undefined
+// request
+export interface GetNodeAddressesRequest extends EngineTypes.RequestParams {
+  request: {
+    method: HederaJsonRpcMethod.GetNodeAddresses
+    params: GetNodeAddressesParams
+  }
+}
+// result
+export interface GetNodeAddressesResult extends JsonRpcResult<{ nodes: string[] }> {}
+// response
+export interface GetNodeAddresesResponse extends EngineTypes.RespondParams {
+  response: GetNodeAddressesResult
+}
 
-export type SignTransactionAndSendParams = {
+/*
+ * 2. hedera_sendTransactionOnly
+ */
+// params
+export interface SendTransactionOnlyParams {
+  signedTransaction: string
+}
+// request
+export interface SendTransactionOnlyRequest extends EngineTypes.RequestParams {
+  request: {
+    method: HederaJsonRpcMethod.SendTransactionOnly
+    params: SendTransactionOnlyParams
+  }
+}
+// result
+export interface SendTransactionOnlyResult
+  extends JsonRpcResult<TransactionResponseJSON & { precheckCode: number }> {}
+// response
+export interface SendTransactionOnlyResponse extends EngineTypes.RespondParams {
+  response: SendTransactionOnlyResult
+}
+
+/*
+ * 3. hedera_signMessage
+ */
+// params
+export interface SignMessageParams {
+  signerAccountId: string
+  message: string
+}
+// request
+export interface SignMessageRequest extends EngineTypes.RequestParams {
+  request: {
+    method: HederaJsonRpcMethod.SignMessage
+    params: SignMessageParams
+  }
+}
+// result
+export interface SignMessageResult extends JsonRpcResult<{ signatureMap: string }> {}
+// response
+export interface SignMessageResponse extends EngineTypes.RespondParams {
+  response: SignMessageResult
+}
+
+/*
+ * 4. hedera_signQueryAndSend
+ */
+// request
+export interface SignQueryAndSendRequest extends EngineTypes.RequestParams {
+  request: {
+    method: HederaJsonRpcMethod.SignQueryAndSend
+    params: {
+      signerAccountId: string
+      query: string
+    }
+  }
+}
+// result
+export interface SignQueryAndSendResult extends JsonRpcResult<{ response: string }> {}
+// response
+export interface SignQueryAndSendResponse extends EngineTypes.RespondParams {
+  response: SignQueryAndSendResult
+}
+
+/*
+ * 5. hedera_signTransactionAndSend
+ */
+// params
+export interface SignTransactionAndSendParams {
   signerAccountId: string
   signedTransaction: string
 }
-
-export type SendTransactionOnlyParams = {
-  signedTransaction: string
+// request
+export interface SignTransactionAndSendRequest extends EngineTypes.RequestParams {
+  request: {
+    method: HederaJsonRpcMethod.SignTransactionAndSend
+    params: SignTransactionAndSendParams
+  }
 }
 
-export type SignTransactionBodyParams = {
+// result
+export interface SignTransactionAndSendResult
+  extends JsonRpcResult<TransactionResponseJSON & { precheckCode: number }> {}
+
+// response
+export interface SignTransactionAndSendResponse extends EngineTypes.RespondParams {
+  response: SignTransactionAndSendResult
+}
+/*
+ * 6. hedera_signTransactionBody
+ */
+// params
+export interface SignTransactionBodyParams {
   signerAccountId: string
   transactionBody: string
 }
 
-export type GetNodeAddressesParams = undefined
-
-export type SignMessageParams = {
-  message: string
+//request
+export interface SignTransactionBodyRequest extends EngineTypes.RequestParams {
+  request: {
+    method: HederaJsonRpcMethod.SignTransactionBody
+    params: SignTransactionBodyParams
+  }
 }
 
-export type QueryParams = {
-  query: string
-}
+// result
+export interface SignTransactionBodyResult extends JsonRpcResult<{ signatureMap: string }> {}
 
-/*
- * Responses
- * {
- *  "precheckCode": "<an integer representing the [ResponseCodeEnum] value returned from the Hedera Node, which may indicate success or failure.>",
- *  "transactionId": "<a string encoded transaction identifier of the signed message that was sent to the Hedera node, in <shard>.<realm>.<number>@<seconds>.<nanos> format.>",
- *  "nodeId": "<a string encoded transaction identifier of the Hedera Gossip Node’s Account that the transaction was submitted to, in <shard>.<realm>.<number> format>",
- *  "transactionHash": "<base64 encoding of the SHA384 digest of the signedTransactionBytes of the Transaction message that was submitted to the Hedera Network.>"
- * }
- */
-
-export type SignTransactionAndSendResponse = TransactionResponseJSON & { precheckCode: number }
-
-export type SendTransactionOnlyResponse = TransactionResponseJSON & { precheckCode: number }
-
-export type SignTransactionBodyResponse = {
-  signatureMap: string //a base64 encoded string of the protobuf encoded Hedera API TransactionBody message
-}
-
-export type GetNodeAddressesResponse = { nodes: string[] }
-
-export type SignMessageResponse = {
-  signedMessages: string[]
-}
-export type QueryResponse = {
-  response: string
+// response
+export interface SignTransactionBodyResponse extends EngineTypes.RespondParams {
+  response: SignTransactionBodyResult
 }
