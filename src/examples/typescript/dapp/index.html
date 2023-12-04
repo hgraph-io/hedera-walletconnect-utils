@@ -1,4 +1,4 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -63,15 +63,27 @@
       <section>
         <form id="hedera_getNodeAddresses" class="toggle">
           <fieldset>
-            <legend>hedera_getNodeAddresses</legend>
+            <legend>1. hedera_getNodeAddresses</legend>
             <button type="submit">hedera_getNodeAddresses</button>
           </fieldset>
         </form>
       </section>
       <section>
+        <form id="hedera_sendTransactionOnly" class="toggle">
+          <fieldset>
+            <legend>2. hedera_sendTransactionOnly</legend>
+            <label
+              >Signed transaction bytes:
+              <input name="send-transaction" required />
+            </label>
+          </fieldset>
+          <button type="submit">Submit to wallet</button>
+        </form>
+      </section>
+      <section>
         <form id="hedera_signMessage" class="toggle">
           <fieldset>
-            <legend>hedera_signMessage</legend>
+            <legend>3. hedera_signMessage</legend>
             <label
               >Message:
               <input name="sign-message" required />
@@ -83,7 +95,7 @@
       <section>
         <form id="hedera_signQueryAndSend" class="toggle">
           <fieldset>
-            <legend>hedera_signQueryAndSend</legend>
+            <legend>4. hedera_signQueryAndSend</legend>
             <label
               >Query type:
               <select name="query-type">
@@ -103,47 +115,9 @@
         </form>
       </section>
       <section>
-        <form id="hedera_signTransactionBody" class="toggle">
-          <fieldset>
-            <legend>hedera_signTransactionBody</legend>
-            <label
-              >Transaction type:
-              <select name="sign-transaction-type">
-                <option value="hbar-transfer">Hbar Transfer</option>
-              </select>
-            </label>
-            <label
-              >Send to address:
-              <input name="sign-to" required />
-            </label>
-            <label
-              >Send from address:
-              <input name="sign-from" required />
-            </label>
-            <label
-              >Amount in Hbar:
-              <input name="sign-amount" required />
-            </label>
-          </fieldset>
-          <button type="submit">Submit to wallet</button>
-        </form>
-      </section>
-      <section>
-        <form id="hedera_sendTransactionOnly" class="toggle">
-          <fieldset>
-            <legend>hedera_sendTransactionOnly</legend>
-            <label
-              >Signed transaction bytes:
-              <input name="send-transaction" required />
-            </label>
-          </fieldset>
-          <button type="submit">Submit to wallet</button>
-        </form>
-      </section>
-      <section>
         <form id="hedera_signTransactionAndSend" class="toggle">
           <fieldset>
-            <legend>hedera_signTransactionAndSend</legend>
+            <legend>5. hedera_signTransactionAndSend</legend>
             <label
               >Transaction type:
               <select name="sign-send-transaction-type">
@@ -166,6 +140,33 @@
           <button type="submit">Submit to wallet</button>
         </form>
       </section>
+      <section>
+        <form id="hedera_signTransactionBody" class="toggle">
+          <fieldset>
+            <legend>6. hedera_signTransactionBody</legend>
+            <label
+              >Transaction type:
+              <select name="sign-transaction-type">
+                <option value="hbar-transfer">Hbar Transfer</option>
+              </select>
+            </label>
+            <label
+              >Send to address:
+              <input name="sign-to" required />
+            </label>
+            <label
+              >Send from address:
+              <input name="sign-from" required />
+            </label>
+            <label
+              >Amount in Hbar:
+              <input name="sign-amount" required />
+            </label>
+          </fieldset>
+          <button type="submit">Submit to wallet</button>
+        </form>
+      </section>
+
       <hr />
       <h2>Error handling:</h2>
       <section class="toggle">
