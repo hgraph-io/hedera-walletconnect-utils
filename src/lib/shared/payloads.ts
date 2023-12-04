@@ -19,7 +19,6 @@ export interface GetNodeAddressesRequest extends EngineTypes.RequestParams {
 // result
 export interface GetNodeAddressesResult extends JsonRpcResult<{ nodes: string[] }> {}
 // response
-// export type GetNodeAddresesResponse = JsonRpcResponse<GetNodeAddressesResult> | JsonRpcError
 export interface GetNodeAddresesResponse extends EngineTypes.RespondParams {
   response: GetNodeAddressesResult
 }
@@ -40,12 +39,11 @@ export interface SendTransactionOnlyRequest extends EngineTypes.RequestParams {
 }
 // result
 export interface SendTransactionOnlyResult
-  extends JsonRpcResult<TransactionResponseJSON & { precheckCode: 0 }> {}
+  extends JsonRpcResult<TransactionResponseJSON & { precheckCode: number }> {}
 // response
-// export type SendTransactionOnlyReponse =
-//   | JsonRpcResponse<SendTransactionOnlyResult>
-//   | HederaErrorResponse<PrecheckStatusErrorJSON>
-//   | JsonRpcError
+export interface SendTransactionOnlyResponse extends EngineTypes.RespondParams {
+  response: SendTransactionOnlyResult
+}
 
 /*
  * 3. hedera_signMessage

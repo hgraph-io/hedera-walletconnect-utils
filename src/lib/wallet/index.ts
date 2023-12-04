@@ -21,6 +21,7 @@ import {
   signatureMapToBase64,
   getHederaError,
   GetNodeAddresesResponse,
+  SendTransactionOnlyResponse,
 } from '../shared'
 import Provider from './provider'
 import type { HederaNativeWallet } from './types'
@@ -257,22 +258,22 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
     body: Transaction, // must be signedTransaction
     signer: HederaWallet,
   ): Promise<void> {
-    const transactionId = body.transactionId?.toString()
-    const nodeId = body.nodeAccountIds?.[0].toString()
+    const transactionId = body.transactionId!.toString()
+    const nodeId = body.nodeAccountIds![0].toString() // is this the actual nodeId this was sent to?
     const transactionHash = Uint8ArrayToBase64String(await body.getTransactionHash())
     let precheckCode = 0
 
     try {
       await signer.call(body)
     } catch (err: unknown) {
-      console.log(err)
+      console.error(err)
 
       if (err instanceof PrecheckStatusError) {
         precheckCode = err.status._code
       }
     }
 
-    return await this.respondSessionRequest({
+    const response: SendTransactionOnlyResponse = {
       topic,
       response: {
         id,
@@ -284,7 +285,9 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
         },
         jsonrpc: '2.0',
       },
-    })
+    }
+
+    return await this.respondSessionRequest(response)
   }
   // 3. hedera_signMessage
   // TODO: PR/ discussion into HIP for array of messages
