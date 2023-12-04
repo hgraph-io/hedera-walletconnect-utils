@@ -238,7 +238,6 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
     signer: HederaWallet,
   ): Promise<void> {
     const result = signer.getNetwork()
-    // const mirror = signer.getMirrorNetwork()
 
     return await this.respondSessionRequest({
       topic,
