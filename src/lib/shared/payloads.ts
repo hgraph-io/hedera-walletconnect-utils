@@ -83,7 +83,9 @@ export interface SignQueryAndSendRequest extends EngineTypes.RequestParams {
 // result
 export interface SignQueryAndSendResult extends JsonRpcResult<{ response: string }> {}
 // response
-// export type SignQueryAndSendResponse = JsonRpcResponse<SignQueryAndSendResult> | JsonRpcError
+export interface SignQueryAndSendResponse extends EngineTypes.RespondParams {
+  response: SignQueryAndSendResult
+}
 
 /*
  * 5. hedera_signTransactionAndSend
@@ -103,14 +105,12 @@ export interface SignTransactionAndSendRequest extends EngineTypes.RequestParams
 
 // result
 export interface SignTransactionAndSendResult
-  extends JsonRpcResult<TransactionResponseJSON & { precheckCode: 0 }> {}
+  extends JsonRpcResult<TransactionResponseJSON & { precheckCode: number }> {}
 
 // response
-// export type SignTransactionAndSendResponse =
-//   | JsonRpcResponse<SignTransactionAndSendResult>
-//   | JsonRpcError
-// | HederaErrorResponse<PrecheckStatusErrorJSON>
-
+export interface SignTransactionAndSendResponse extends EngineTypes.RespondParams {
+  response: SignTransactionAndSendResult
+}
 /*
  * 6. hedera_signTransactionBody
  */
