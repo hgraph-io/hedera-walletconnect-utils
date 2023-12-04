@@ -22,6 +22,8 @@ import {
   getHederaError,
   GetNodeAddresesResponse,
   SendTransactionOnlyResponse,
+  SignMessageResponse,
+  SignQueryAndSendResponse,
 } from '../shared'
 import Provider from './provider'
 import type { HederaNativeWallet } from './types'
@@ -302,7 +304,7 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
     console.log(signerSignatures)
     const signatureMap = Uint8ArrayToBase64String(signerSignatures[0].signature)
 
-    return await this.respondSessionRequest({
+    const response: SignMessageResponse = {
       topic,
       response: {
         jsonrpc: '2.0',
@@ -311,7 +313,8 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
           signatureMap,
         },
       },
-    })
+    }
+    return await this.respondSessionRequest(response)
   }
 
   // 4. hedera_signQueryAndSend
@@ -322,16 +325,18 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
     signer: HederaWallet,
   ): Promise<void> {
     const queryResult = await body.executeWithSigner(signer)
-    const response = Uint8ArrayToBase64String(queryResult.toBytes())
+    const queryResponse = Uint8ArrayToBase64String(queryResult.toBytes())
 
-    return await this.respondSessionRequest({
+    const response: SignQueryAndSendResponse = {
       topic,
       response: {
         jsonrpc: '2.0',
         id,
-        result: { response },
+        result: { response: queryResponse },
       },
-    })
+    }
+
+    return await this.respondSessionRequest(response)
   }
 
   // 5. hedera_signTransactionAndSend

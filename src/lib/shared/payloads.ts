@@ -63,7 +63,9 @@ export interface SignMessageRequest extends EngineTypes.RequestParams {
 // result
 export interface SignMessageResult extends JsonRpcResult<{ signatureMap: string }> {}
 // response
-// export type SignMessageResponse = JsonRpcResponse<SignMessageResult> | JsonRpcError
+export interface SignMessageResponse extends EngineTypes.RespondParams {
+  response: SignMessageResult
+}
 
 /*
  * 4. hedera_signQueryAndSend
