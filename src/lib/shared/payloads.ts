@@ -129,9 +129,9 @@ export interface SignTransactionBodyRequest extends EngineTypes.RequestParams {
 }
 
 // result
-export interface SignTransactionBodyResult
-  extends JsonRpcResult<{ signedTransaction: string }> {}
+export interface SignTransactionBodyResult extends JsonRpcResult<{ signatureMap: string }> {}
 
 // response
-// export type SignTransactionBodyResponse = JsonRpcResponse<SignTransactionBodyResult>
-// | JsonRpcError
+export interface SignTransactionBodyResponse extends EngineTypes.RespondParams {
+  response: SignTransactionBodyResult
+}

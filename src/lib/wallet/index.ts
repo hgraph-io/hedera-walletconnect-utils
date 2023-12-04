@@ -25,6 +25,7 @@ import {
   SignMessageResponse,
   SignQueryAndSendResponse,
   SignTransactionAndSendResponse,
+  SignTransactionBodyResponse,
 } from '../shared'
 import Provider from './provider'
 import type { HederaNativeWallet } from './types'
@@ -385,6 +386,7 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
   }
 
   // 6. hedera_signTransactionBody
+  // TODO: HIP-820 suggested change
   public async hedera_signTransactionBody(
     id: number,
     topic: string,
@@ -392,16 +394,18 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
     signer: HederaWallet,
   ): Promise<void> {
     const transaction = await signer.signTransaction(body)
-    const signatureMap = transaction._signedTransactions.current.sigMap as SignatureMap
+    const signatureMap = transaction.getSignatures()
     const base64SignatureMap = signatureMapToBase64(signatureMap)
 
-    return await this.respondSessionRequest({
+    const response: SignTransactionBodyResponse = {
       topic,
       response: {
         jsonrpc: '2.0',
         id,
         result: { signatureMap: base64SignatureMap },
       },
-    })
+    }
+
+    return await this.respondSessionRequest(response)
   }
 }
