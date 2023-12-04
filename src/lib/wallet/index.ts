@@ -3,7 +3,6 @@ import { Web3Wallet, Web3WalletTypes } from '@walletconnect/web3wallet'
 import { SessionTypes } from '@walletconnect/types'
 import { buildApprovedNamespaces } from '@walletconnect/utils'
 import { Wallet as HederaWallet, Client, AccountId, Transaction, Query } from '@hashgraph/sdk'
-// import type { HederaTransactionRequest, HederaTransactionResponse } from '../shared'
 import {
   HederaChainId,
   HederaSessionEvent,
