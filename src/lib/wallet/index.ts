@@ -29,7 +29,6 @@ import {
 } from '../shared'
 import Provider from './provider'
 import type { HederaNativeWallet } from './types'
-import SignatureMap from '@hashgraph/sdk/lib/transaction/SignatureMap'
 
 // https://github.com/WalletConnect/walletconnect-monorepo/blob/v2.0/packages/web3wallet/src/client.ts
 export default class Wallet extends Web3Wallet implements HederaNativeWallet {
@@ -390,7 +389,7 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
   public async hedera_signTransactionBody(
     id: number,
     topic: string,
-    body: Transaction,
+    body: Transaction, // The HIP calls for this to be a TransactionBody not a transaction
     signer: HederaWallet,
   ): Promise<void> {
     const transaction = await signer.signTransaction(body)

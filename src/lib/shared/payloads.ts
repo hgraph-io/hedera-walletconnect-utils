@@ -1,4 +1,4 @@
-import { JsonRpcResult, JsonRpcResponse, JsonRpcError } from '@walletconnect/jsonrpc-types'
+import { JsonRpcResult } from '@walletconnect/jsonrpc-types'
 import { EngineTypes } from '@walletconnect/types'
 import type { TransactionResponseJSON } from '@hashgraph/sdk'
 // import type { PrecheckStatusErrorJSON } from '@hashgraph/sdk/lib/PrecheckStatusError'
