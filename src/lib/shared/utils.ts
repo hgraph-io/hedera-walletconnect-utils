@@ -1,6 +1,7 @@
 import { Buffer } from 'buffer'
 import { AccountId, Transaction, LedgerId, Query } from '@hashgraph/sdk'
 import { ProposalTypes, SessionTypes } from '@walletconnect/types'
+import hashgraphNamespace from '@hashgraph/proto'
 // import { keccak256 } from 'web3-utils'
 
 /**
@@ -63,6 +64,48 @@ export function transactionToBase64String<T extends Transaction>(transaction: T)
 export function base64StringToTransaction<T extends Transaction>(transactionBytes: string): T {
   const decoded = Buffer.from(transactionBytes, 'base64')
   return Transaction.fromBytes(decoded) as T
+}
+
+/**
+ * Converts a SignatureMap to a base64 string.
+ * @param signatureMap hashgraphNamespace.proto.ISignatureMap
+ * @returns a base64 encoded string
+ */
+export function signatureMapToBase64(
+  signatureMap: hashgraphNamespace.proto.ISignatureMap,
+): string {
+  return Buffer.from(JSON.stringify(signatureMap)).toString('base64')
+}
+
+/**
+ * Converts a base64 encoded string to a hashgraphNamespace.proto.ISignatureMap.
+ * @param base64string string - a base64 encoded string
+ * @returns `hashgraph.proto.ISignatureMap`
+ */
+export function base64StringToSignatureMap(
+  base64string: string,
+): hashgraphNamespace.proto.ISignatureMap {
+  const decoded = Buffer.from(base64string, 'base64').toString('utf-8')
+  return JSON.parse(decoded) as hashgraphNamespace.proto.ISignatureMap
+}
+
+/**
+ * Converts a Uint8Array to a base64 string.
+ * @param binary Uint8Array
+ * @returns a base64 encoded string
+ */
+export function Uint8ArrayToBase64String(binary: Uint8Array): string {
+  return Buffer.from(binary).toString('base64')
+}
+
+/**
+ * Converts a base64 encoded string to a Uint8Array.
+ * @param base64string string - a base64 encoded string
+ * @returns `Uint8Array`
+ */
+export function base64StringToUint8Array(base64string: string): Uint8Array {
+  const decoded = Buffer.from(base64string, 'base64')
+  return new Uint8Array(decoded)
 }
 
 /**
