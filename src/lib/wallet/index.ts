@@ -207,16 +207,10 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
   public async hedera_signTransactionAndSend(
     id: number,
     topic: string,
-    body: Transaction,
+    body: Transaction, // can be signed or unsigned
     signer: HederaWallet,
   ): Promise<void> {
-    let result
-    try {
-      const result = await signer.call(await signer.signTransaction(body))
-      console.log('result: ', result)
-    } catch (e) {
-      console.error(e)
-    }
+    const result = await signer.call(await signer.signTransaction(body))
 
     return await this.respondSessionRequest({
       topic,
