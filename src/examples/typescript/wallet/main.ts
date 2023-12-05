@@ -47,19 +47,9 @@ async function init(e: Event) {
   wallet.on('session_request', async (event: Web3WalletTypes.SessionRequest) => {
     try {
       // Client logic: prompt user for approval of request
-      const { method, chainId, accountId, body } = wallet.parseSessionRequest(event)
-      if (!accountId) console.warn('accountId is not set, using default account')
+      const { chainId, accountId } = wallet.parseSessionRequest(event)
 
-      if (
-        !confirm(
-          `Do you want to proceed with this request?: ${JSON.stringify({
-            network: chainId.split(':')[1],
-            accountId,
-            method,
-            body,
-          })}`,
-        )
-      )
+      if (!confirm(`Do you want to proceed with this request?: ${JSON.stringify(event)}`))
         throw getSdkError('USER_REJECTED_METHODS')
 
       // A custom provider/signer can be used to sign transactions
