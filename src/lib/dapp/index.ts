@@ -309,10 +309,10 @@ export class DAppConnector {
     })
   }
 
-  private async request<
-    Req extends EngineTypes.RequestParams['request'],
-    Res extends JsonRpcResult,
-  >({ method, params }: Req): Promise<Res> {
+  private async request<Req extends EngineTypes.RequestParams, Res extends JsonRpcResult>({
+    method,
+    params,
+  }: Req['request']): Promise<Res> {
     const signer = this.signers[this.signers.length - 1]
     if (!signer) {
       throw new Error('There is no active session. Connect to the wallet at first.')
@@ -325,51 +325,44 @@ export class DAppConnector {
   }
 
   public async getNodeAddresses() {
-    return await this.request<GetNodeAddressesRequest['request'], GetNodeAddressesResult>({
+    return await this.request<GetNodeAddressesRequest, GetNodeAddressesResult>({
       method: HederaJsonRpcMethod.GetNodeAddresses,
       params: undefined,
     })
   }
 
   public async sendTransactionOnly(params: SendTransactionOnlyParams) {
-    return await this.request<SendTransactionOnlyRequest['request'], SendTransactionOnlyResult>(
-      {
-        method: HederaJsonRpcMethod.SendTransactionOnly,
-        params,
-      },
-    )
+    return await this.request<SendTransactionOnlyRequest, SendTransactionOnlyResult>({
+      method: HederaJsonRpcMethod.SendTransactionOnly,
+      params,
+    })
   }
 
   public async signMessage(params: SignMessageParams) {
-    return await this.request<SignMessageRequest['request'], SignMessageResult>({
+    return await this.request<SignMessageRequest, SignMessageResult>({
       method: HederaJsonRpcMethod.SignMessage,
       params,
     })
   }
 
   public async signQueryAndSend(params: SignQueryAndSendParams) {
-    return await this.request<SignQueryAndSendRequest['request'], SignQueryAndSendResult>({
+    return await this.request<SignQueryAndSendRequest, SignQueryAndSendResult>({
       method: HederaJsonRpcMethod.SignQueryAndSend,
       params,
     })
   }
 
   public async signTransactionAndSend(params: SignTransactionAndSendParams) {
-    return await this.request<
-      SignTransactionAndSendRequest['request'],
-      SignTransactionAndSendResult
-    >({
+    return await this.request<SignTransactionAndSendRequest, SignTransactionAndSendResult>({
       method: HederaJsonRpcMethod.SignTransactionAndSend,
       params,
     })
   }
 
   public async signTransactionBody(params: SignTransactionBodyParams) {
-    return await this.request<SignTransactionBodyRequest['request'], SignTransactionBodyResult>(
-      {
-        method: HederaJsonRpcMethod.SignTransactionBody,
-        params,
-      },
-    )
+    return await this.request<SignTransactionBodyRequest, SignTransactionBodyResult>({
+      method: HederaJsonRpcMethod.SignTransactionBody,
+      params,
+    })
   }
 }
