@@ -31,7 +31,7 @@ var dAppConnector: DAppConnector | undefined
 /*
  * Simple handler to show errors or success to user
  */
-async function showErrorOrSuccess(method: (e: SubmitEvent) => Promise<any>, e: SubmitEvent) {
+async function showErrorOrSuccess<R>(method: (e: SubmitEvent) => Promise<R>, e: SubmitEvent) {
   try {
     e.preventDefault()
     saveState(e)
@@ -73,12 +73,13 @@ async function init(e: Event) {
 
   await dAppConnector.init({ logger: 'error' })
 
-  //@ts-ignore
-  e.target.querySelectorAll('input,button').forEach((input) => (input.disabled = true))
+  const eventTarget = e.target as HTMLElement
+  eventTarget
+    .querySelectorAll('input,button')
+    .forEach((input) => ((input as HTMLInputElement).disabled = true))
   document
     .querySelectorAll('.toggle input,.toggle button, .toggle select')
-    //@ts-ignore
-    .forEach((element) => (element.disabled = false))
+    .forEach((element) => ((element as HTMLInputElement).disabled = false))
 
   return 'dApp: WalletConnect initialized!'
 }

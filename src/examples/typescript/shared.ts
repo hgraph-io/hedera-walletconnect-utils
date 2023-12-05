@@ -10,8 +10,7 @@ export function loadState() {
   // disable form inputs until wc is initialized
   document
     .querySelectorAll('.toggle input,.toggle button, .toggle select')
-    //@ts-ignore
-    .forEach((element) => (element.disabled = true))
+    .forEach((element) => ((element as HTMLInputElement).disabled = true))
 }
 
 export function saveState(e: Event): { [key: string]: string } {

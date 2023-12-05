@@ -35,9 +35,9 @@ async function init(e: Event) {
     const accounts: string[] = [`${chainId}:${accountId}`]
 
     if (confirm(`Do you want to connect to this session?: ${JSON.stringify(proposal)}`))
-      wallet.buildAndApproveSession(accounts, proposal)
+      wallet!.buildAndApproveSession(accounts, proposal)
     else
-      await wallet.rejectSession({
+      await wallet!.rejectSession({
         id: proposal.id,
         reason: getSdkError('USER_REJECTED_METHODS'),
       })
@@ -47,23 +47,23 @@ async function init(e: Event) {
   wallet.on('session_request', async (event: Web3WalletTypes.SessionRequest) => {
     try {
       // Client logic: prompt user for approval of request
-      const { chainId, accountId } = wallet.parseSessionRequest(event)
+      const { chainId, accountId } = wallet!.parseSessionRequest(event)
 
       if (!confirm(`Do you want to proceed with this request?: ${JSON.stringify(event)}`))
         throw getSdkError('USER_REJECTED_METHODS')
 
       // A custom provider/signer can be used to sign transactions
       // https://docs.hedera.com/hedera/sdks-and-apis/sdks/signature-provider/wallet
-      const hederaWallet = wallet.getHederaWallet(
+      const hederaWallet = wallet!.getHederaWallet(
         chainId,
         accountId || state['account-id'],
         state['private-key'],
       )
 
-      return await wallet.executeSessionRequest(event, hederaWallet)
+      return await wallet!.executeSessionRequest(event, hederaWallet)
     } catch (e) {
       console.error(e)
-      wallet.rejectSessionRequest(event, e)
+      wallet!.rejectSessionRequest(event, e)
     }
   })
 
@@ -80,31 +80,32 @@ async function init(e: Event) {
     // clean up after the pairing for `topic` was deleted.
   })
 
-  //@ts-ignore
-  e.target.querySelectorAll('input,button').forEach((input) => (input.disabled = true))
+  const eventTarget = e.target as HTMLElement
+  eventTarget
+    .querySelectorAll('input,button')
+    .forEach((input) => ((input as HTMLInputElement).disabled = true))
   document
     .querySelectorAll('.toggle input,.toggle button, .toggle select')
-    //@ts-ignore
-    .forEach((element) => (element.disabled = false))
+    .forEach((element) => ((element as HTMLInputElement).disabled = false))
 
   console.log('Wallet: WalletConnect initialized!')
 }
 
-document.querySelector<HTMLFormElement>('#init').onsubmit = init
+document.querySelector<HTMLFormElement>('#init')!.onsubmit = init
 /*
  * Handle pairing event on initialized wallet
  */
 async function pair(e: Event) {
   const { uri } = saveState(e)
-  wallet.core.pairing.pair({ uri })
+  wallet!.core.pairing.pair({ uri })
 }
 
-document.querySelector<HTMLFormElement>('#pair').onsubmit = pair
+document.querySelector<HTMLFormElement>('#pair')!.onsubmit = pair
 
 /*
  * Handle adding a hedera account
  */
-document.querySelector<HTMLFormElement>('#set-account').onsubmit = function (event) {
+document.querySelector<HTMLFormElement>('#set-account')!.onsubmit = function (event) {
   saveState(event)
 
   console.log('-'.repeat(10))
@@ -118,20 +119,20 @@ document.querySelector<HTMLFormElement>('#set-account').onsubmit = function (eve
 async function disconnect(e: Event) {
   e.preventDefault()
   //https://docs.walletconnect.com/web3wallet/wallet-usage#session-disconnect
-  for (const session of Object.values(wallet.getActiveSessions())) {
+  for (const session of Object.values(wallet!.getActiveSessions())) {
     console.log(`Disconnecting from session: ${session}`)
-    await wallet.disconnectSession({
+    await wallet!.disconnectSession({
       topic: session.topic,
       reason: getSdkError('USER_DISCONNECTED'),
     })
   }
-  for (const pairing of wallet.core.pairing.getPairings()) {
+  for (const pairing of wallet!.core.pairing.getPairings()) {
     console.log(`Disconnecting from pairing: ${pairing}`)
-    await wallet.disconnectSession({
+    await wallet!.disconnectSession({
       topic: pairing.topic,
       reason: getSdkError('USER_DISCONNECTED'),
     })
   }
 }
-document.querySelector<HTMLFormElement>('#disconnect').onsubmit = disconnect
+document.querySelector<HTMLFormElement>('#disconnect')!.onsubmit = disconnect
 // await web3wallet.updateSession({ topic, namespaces: newNs });
