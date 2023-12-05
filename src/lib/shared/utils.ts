@@ -1,7 +1,7 @@
 import { Buffer } from 'buffer'
 import { AccountId, Transaction, LedgerId, Query } from '@hashgraph/sdk'
 import { ProposalTypes, SessionTypes } from '@walletconnect/types'
-import SignatureMap from '@hashgraph/sdk/lib/transaction/SignatureMap'
+// import SignatureMap from '@hashgraph/sdk/lib/transaction/SignatureMap'
 import hashgraphNamespace from '@hashgraph/proto'
 // import { keccak256 } from 'web3-utils'
 
