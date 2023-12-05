@@ -69,14 +69,14 @@ async function init(e: Event) {
 
   wallet.on('session_delete', () => {
     // Session was deleted
-    alert('Wallet: Session deleted by dapp!')
+    console.log('Wallet: Session deleted by dapp!')
     //
   })
   //https://docs.walletconnect.com/api/core/pairing
   wallet.core.pairing.events.on('pairing_delete', (pairing) => {
     // Session was deleted
     console.log(pairing)
-    alert(`Wallet: Pairing deleted by dapp!`)
+    console.log(`Wallet: Pairing deleted by dapp!`)
     // clean up after the pairing for `topic` was deleted.
   })
 

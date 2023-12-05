@@ -101,7 +101,7 @@ export class DAppConnector {
         this.signers = this.signers.filter((signer) => signer.topic !== pairing.topic)
         this.disconnect(pairing.topic)
         // Session was deleted -> reset the dapp state, clean up from user session, etc.
-        alert('Dapp: Session deleted by wallet!')
+        console.log('Dapp: Session deleted by wallet!')
       })
 
       this.walletConnectClient.core.pairing.events.on('pairing_delete', (pairing) => {
@@ -109,7 +109,7 @@ export class DAppConnector {
         console.log(pairing)
         this.signers = this.signers.filter((signer) => signer.topic !== pairing.topic)
         this.disconnect(pairing.topic)
-        alert(`Dapp: Pairing deleted by wallet!`)
+        console.log(`Dapp: Pairing deleted by wallet!`)
         // clean up after the pairing for `topic` was deleted.
       })
     } finally {
@@ -146,17 +146,19 @@ export class DAppConnector {
   }
 
   private abortableConnect = async <T>(callback: () => Promise<T>): Promise<T> => {
-    const pairTimeoutMs = 480_000
-    const timeout = setTimeout(() => {
-      QRCodeModal.close()
-      throw new Error(`Connect timed out after ${pairTimeoutMs}(ms)`)
-    }, pairTimeoutMs)
+    return new Promise(async (resolve, reject) => {
+      const pairTimeoutMs = 480_000
+      const timeout = setTimeout(() => {
+        QRCodeModal.close()
+        reject(new Error(`Connect timed out after ${pairTimeoutMs}(ms)`))
+      }, pairTimeoutMs)
 
-    try {
-      return await callback()
-    } finally {
-      clearTimeout(timeout)
-    }
+      try {
+        return resolve(await callback())
+      } finally {
+        clearTimeout(timeout)
+      }
+    })
   }
 
   public async disconnect(topic: string): Promise<void> {
@@ -210,9 +212,28 @@ export class DAppConnector {
     this.signers.push(...this.createSigners(session))
   }
 
+  private pingWithTimeout = async (
+    { topic }: EngineTypes.PingParams,
+    pingTimeoutMs: number = 1_000,
+  ) => {
+    return new Promise<void>(async (resolve, reject) => {
+      const timeout = setTimeout(() => {
+        reject(new Error(`Ping to ${topic} timed out after ${pingTimeoutMs}(ms)`))
+      }, pingTimeoutMs)
+
+      try {
+        resolve(await this.walletConnectClient?.ping({ topic }))
+      } catch (err) {
+        reject(err)
+      } finally {
+        clearTimeout(timeout)
+      }
+    })
+  }
+
   private async pingWithRetry(topic: string, retries = 3): Promise<void> {
     try {
-      await this.walletConnectClient!.ping({ topic })
+      await this.pingWithTimeout({ topic })
     } catch (error) {
       if (retries > 0) {
         console.log(`Ping failed, ${retries} retries left. Retrying in 1 seconds...`)
@@ -240,11 +261,11 @@ export class DAppConnector {
                 resolve(session)
               } catch (error) {
                 try {
-                  console.log('Ping failed, disconnecting from session. Topic: ', session.topic)
                   await this.walletConnectClient!.disconnect({
                     topic: session.topic,
                     reason: getSdkError('SESSION_SETTLEMENT_FAILED'),
                   })
+                  reject(`Ping failed, disconnecting from session. Topic: ${session.topic}`)
                 } catch (e) {
                   console.log('Non existing session with topic:', session.topic)
                   reject('Non existing session')
