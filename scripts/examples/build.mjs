@@ -8,6 +8,7 @@ export const config = {
   // format: 'esm',
   alias: {
     '@hashgraph/sdk': './node_modules/@hashgraph/sdk/src/index.js',
+    '@hashgraph/proto': './node_modules/@hashgraph/proto',
   },
   plugins: [
     copy({

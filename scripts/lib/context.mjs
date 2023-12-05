@@ -13,6 +13,7 @@ export const common = {
   // https://github.com/evanw/esbuild/issues/1275
   alias: {
     '@hashgraph/sdk': './node_modules/@hashgraph/sdk/src/index.js',
+    '@hashgraph/proto': './node_modules/@hashgraph/proto',
   },
   // external: ['./node_modules/@hashgraph/sdk/src/index.js'],
 }
