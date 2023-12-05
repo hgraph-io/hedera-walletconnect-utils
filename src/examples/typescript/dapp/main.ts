@@ -10,6 +10,7 @@ import {
   AccountInfoQuery,
   AccountId,
   Timestamp,
+  AccountInfo,
 } from '@hashgraph/sdk'
 import {
   HederaChainId,
@@ -32,6 +33,9 @@ import type {
   SignTransactionAndSendResult, // 5
   SignTransactionBodyRequest, // 6
   SignTransactionBodyResult, // 6
+  base64StringToTransaction,
+  base64StringToUint8Array,
+  base64StringToSignatureMap,
 } from '@hashgraph/walletconnect'
 
 import { saveState, loadState, getState } from '../shared'
@@ -196,7 +200,7 @@ document.getElementById('hedera_getNodeAddresses').onsubmit = (e: SubmitEvent) =
   showErrorOrSuccess(hedera_getNodeAddresses, e)
 
 // 2. hedera_sendTransactionOnly
-async function hedera_sendTransactionOnly(e: Event) {
+async function hedera_sendTransactionOnly(_: Event) {
   const request: SendTransactionOnlyRequest = {
     topic: activeSession.topic,
     chainId: HederaChainId.Testnet,
@@ -210,17 +214,7 @@ async function hedera_sendTransactionOnly(e: Event) {
 
   const result = await signClient.request<SendTransactionOnlyResult>(request)
   return result
-
-  //   const { precheckCode, ...json } = response
-
-  //   if (precheckCode !== 0) throw new Error(`PrecheckStatusError: ${precheckCode}:FAIL!`)
-
-  //   const transactionResponse = TransactionResponse.fromJSON(json)
-  //   const client = Client.forName('testnet')
-  //   const receipt = await transactionResponse.getReceipt(client)
-  //   alert(`${transactionResponse.transactionId}:${receipt.status.toString()}!`)
 }
-
 document.getElementById('hedera_sendTransactionOnly').onsubmit = (e: SubmitEvent) =>
   showErrorOrSuccess(hedera_sendTransactionOnly, e)
 
@@ -285,14 +279,6 @@ async function hedera_signTransactionAndSend(_: Event) {
   }
 
   return await signClient.request<SignTransactionAndSendResult>(body)
-
-  // if (response.precheckCode !== 0) {
-  //   alert(`${transactionResponse.transactionId}:${response.precheckCode}:FAIL!`)
-  // const transactionResponse = TransactionResponse.fromJSON(response)
-  // }
-  // const client = Client.forName('testnet')
-  // const receipt = await transactionResponse.getReceipt(client)
-  // alert(`${transactionResponse.transactionId}:${receipt.status.toString()}!`)
 }
 document.getElementById('hedera_signTransactionAndSend').onsubmit = (e: SubmitEvent) =>
   showErrorOrSuccess(hedera_signTransactionAndSend, e)
@@ -317,10 +303,6 @@ async function hedera_signTransactionBody(_: Event) {
   }
 
   return await signClient.request<SignTransactionBodyResult>(body)
-
-  // console.log(response)
-  // console.log(base64StringToSignatureMap(response.signatureMap))
-  // alert(`Transaction body signed: ${response}!`)
 }
 document.getElementById('hedera_signTransactionBody').onsubmit = (e: SubmitEvent) =>
   showErrorOrSuccess(hedera_signTransactionBody, e)

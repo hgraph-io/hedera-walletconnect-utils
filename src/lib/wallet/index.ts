@@ -304,6 +304,20 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
     const signerSignatures = await signer.sign(body)
     console.log(signerSignatures)
     const signatureMap = Uint8ArrayToBase64String(signerSignatures[0].signature)
+    // =======
+    //     const ECDSASecp256k1 = signerSignatures[0].signature
+    //     const pubKeyPrefix = signerSignatures[0].publicKey.toBytes().slice(0, 33)
+
+    //     const signatureMap: hashgraphNamespace.proto.ISignatureMap = {
+    //       sigPair: [
+    //         {
+    //           ECDSASecp256k1,
+    //           pubKeyPrefix,
+    //         },
+    //       ],
+    //     }
+    //     const base64SignatureMap = signatureMapToBase64(signatureMap)
+    // >>>>>>> origin/feature/hip820-methods
 
     const response: SignMessageResponse = {
       topic,
@@ -316,6 +330,12 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
       },
     }
     return await this.respondSessionRequest(response)
+    // =======
+    //           signatureMap: base64SignatureMap,
+    //         },
+    //       },
+    //     })
+    // >>>>>>> origin/feature/hip820-methods
   }
 
   // 4. hedera_signQueryAndSend
@@ -394,6 +414,7 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
   ): Promise<void> {
     const transaction = await signer.signTransaction(body)
     const signatureMap = transaction.getSignatures()
+    //@ts-ignore TODO:this can be a Typescript SignatureMap?
     const base64SignatureMap = signatureMapToBase64(signatureMap)
 
     const response: SignTransactionBodyResponse = {

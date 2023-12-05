@@ -2,6 +2,7 @@ import { Buffer } from 'buffer'
 import { AccountId, Transaction, LedgerId, Query } from '@hashgraph/sdk'
 import { ProposalTypes, SessionTypes } from '@walletconnect/types'
 import SignatureMap from '@hashgraph/sdk/lib/transaction/SignatureMap'
+import hashgraphNamespace from '@hashgraph/proto'
 // import { keccak256 } from 'web3-utils'
 
 /**
@@ -68,21 +69,25 @@ export function base64StringToTransaction<T extends Transaction>(transactionByte
 
 /**
  * Converts a SignatureMap to a base64 string.
- * @param signatureMap SignatureMap
+ * @param signatureMap hashgraphNamespace.proto.ISignatureMap
  * @returns a base64 encoded string
  */
-export function signatureMapToBase64(signatureMap: SignatureMap): string {
+export function signatureMapToBase64(
+  signatureMap: hashgraphNamespace.proto.ISignatureMap,
+): string {
   return Buffer.from(JSON.stringify(signatureMap)).toString('base64')
 }
 
 /**
- * Converts a base64 encoded string to a SignatureMap.
+ * Converts a base64 encoded string to a hashgraphNamespace.proto.ISignatureMap.
  * @param base64string string - a base64 encoded string
- * @returns `SignatureMap`
+ * @returns `hashgraph.proto.ISignatureMap`
  */
-export function base64StringToSignatureMap(base64string: string): SignatureMap {
+export function base64StringToSignatureMap(
+  base64string: string,
+): hashgraphNamespace.proto.ISignatureMap {
   const decoded = Buffer.from(base64string, 'base64').toString('utf-8')
-  return JSON.parse(decoded) as SignatureMap
+  return JSON.parse(decoded) as hashgraphNamespace.proto.ISignatureMap
 }
 
 /**
