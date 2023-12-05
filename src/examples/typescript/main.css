@@ -100,3 +100,7 @@ select {
     border: 1px solid black;
   }
 }
+
+hr {
+  width: 100%;
+}

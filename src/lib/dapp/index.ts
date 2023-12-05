@@ -6,6 +6,8 @@ import { getSdkError } from '@walletconnect/utils'
 import { HederaJsonRpcMethod, accountAndLedgerFromSession, networkNamespaces } from '../shared'
 import { DAppSigner } from './DAppSigner'
 
+export * from './helpers'
+
 type BaseLogger = 'error' | 'warn' | 'info' | 'debug' | 'trace' | 'fatal'
 
 export class DAppConnector {

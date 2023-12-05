@@ -10,9 +10,9 @@ import {
   Hbar,
   TransactionId,
   Client,
-  FileContentsQuery,
-  FileId,
-  AccountInfoQuery
+  AccountInfoQuery,
+  AccountId,
+  Timestamp,
 } from '@hashgraph/sdk'
 import {
   HederaChainId,
@@ -23,8 +23,7 @@ import {
   base64StringToTransaction,
 } from '@hashgraph/walletconnect'
 
-import { saveState, loadState } from '../shared'
-import {Buffer} from 'buffer';
+import { saveState, loadState, getState } from '../shared'
 
 // referenced in handlers
 var signClient: SignClient | undefined
@@ -85,36 +84,41 @@ async function init(e: Event) {
     //@ts-ignore
     .forEach((element) => (element.disabled = false))
 
-  console.log('dApp: WalletConnect initialized!');
+  console.log('dApp: WalletConnect initialized!')
 }
 
 document.getElementById('init').onsubmit = init
 
 async function connect(e: Event) {
-  const state = saveState(e)
-  const chains = [HederaChainId.Testnet]
-  const { uri, approval } = await signClient.connect({
-    requiredNamespaces: {
-      hedera: {
-        methods: Object.values(HederaJsonRpcMethod),
-        chains,
-        events: [HederaSessionEvent.ChainChanged, HederaSessionEvent.AccountsChanged],
+  try {
+    const state = saveState(e)
+    const chains = [HederaChainId.Testnet]
+    const { uri, approval } = await signClient.connect({
+      requiredNamespaces: {
+        hedera: {
+          methods: Object.values(HederaJsonRpcMethod),
+          chains,
+          events: [HederaSessionEvent.ChainChanged, HederaSessionEvent.AccountsChanged],
+        },
       },
-    },
-  })
-  const walletConnectModal = new WalletConnectModal({
-    projectId: state['project-id'],
-    chains,
-  })
+    })
+    const walletConnectModal = new WalletConnectModal({
+      projectId: state['project-id'],
+      chains,
+    })
 
-  walletConnectModal.openModal({ uri })
-  await approval()
-  walletConnectModal.closeModal()
+    walletConnectModal.openModal({ uri })
+    await approval()
+    walletConnectModal.closeModal()
 
-  activeSession = signClient.session
-    .getAll()
-    .reverse()
-    .find((session: { expiry: number }) => session.expiry > Date.now() / 1000)
+    activeSession = signClient.session
+      .getAll()
+      .reverse()
+      .find((session: { expiry: number }) => session.expiry > Date.now() / 1000)
+  } catch (e) {
+    console.log(e)
+    alert(JSON.stringify(e))
+  }
 }
 document.getElementById('connect').onsubmit = connect
 
@@ -123,9 +127,6 @@ document.getElementById('connect').onsubmit = connect
  */
 async function hedera_signTransactionBody(e: Event) {
   const state = saveState(e)
-  console.log(state)
-  console.log(activeSession)
-  console.log(signClient)
   // Sample transaction
   const transaction = new TransferTransaction()
     .setTransactionId(TransactionId.generate(state['sign-from']))
@@ -164,6 +165,7 @@ async function hedera_sendTransactionOnly(e: Event) {
   const receipt = await transactionResponse.getReceipt(client)
   alert(`${transactionResponse.transactionId}:${receipt.status.toString()}!`)
 }
+
 document.getElementById('hedera_sendTransactionOnly').onsubmit = hedera_sendTransactionOnly
 
 //
@@ -212,13 +214,8 @@ async function disconnect(e: Event) {
 }
 document.querySelector<HTMLFormElement>('#disconnect').onsubmit = disconnect
 
-async function hedera_getNodeAddresses(event) {
-  event.preventDefault();
-
-  activeSession = signClient.session
-    .getAll()
-    .reverse()
-    .find((session: { expiry: number }) => session.expiry > Date.now() / 1000)
+async function hedera_getNodeAddresses(e: Event) {
+  e.preventDefault()
 
   const response = await signClient.request({
     topic: activeSession.topic,
@@ -229,58 +226,37 @@ async function hedera_getNodeAddresses(event) {
     },
   })
 
-  console.log(response);
+  console.log(response)
 }
 
 document.getElementById('hedera_getNodeAddresses').onsubmit = hedera_getNodeAddresses
 
-async function hedera_signMessage(event) {
-  const state = saveState(event);
+async function hedera_signMessage(e: Event) {
+  const state = saveState(e)
 
-  activeSession = signClient.session
-    .getAll()
-    .reverse()
-    .find((session: { expiry: number }) => session.expiry > Date.now() / 1000)
-
-  const messages = [
-    state['message-to-sign-1'],
-    state['message-to-sign-2']
-  ];
-  
-  const response: string[] = await signClient.request({
-    topic: activeSession.topic,
-    chainId: HederaChainId.Testnet,
-    request: {
-      method: HederaJsonRpcMethod.SignMessage,
-      params: messages,
-    },
-  })
-
-  console.log('base64Signatures: ', response);
-  alert(response.join('\n\n'));
+  try {
+    const response = await signClient.request({
+      topic: activeSession.topic,
+      chainId: HederaChainId.Testnet,
+      request: {
+        method: HederaJsonRpcMethod.SignMessage,
+        params: [state['sign-message']],
+      },
+    })
+    console.log(response)
+  } catch (e) {
+    console.error(e)
+    alert(JSON.stringify(e))
+  }
 }
 
-document.getElementById('hedera_signMessage').onsubmit = hedera_signMessage;
+document.getElementById('hedera_signMessage').onsubmit = hedera_signMessage
 
+async function hedera_signQueryAndSend(e: Event) {
+  const state = saveState(e)
 
-async function hedera_signQueryAndSend(event, queryName: string) {
-  const state = saveState(event);
+  const query = new AccountInfoQuery().setAccountId(state['query-payment-account'])
 
-  activeSession = signClient.session
-    .getAll()
-    .reverse()
-    .find((session: { expiry: number }) => session.expiry > Date.now() / 1000)
-
-  let query: any;
-
-  if (queryName === 'AccountInfoQuery') {
-    query = new AccountInfoQuery()
-      .setAccountId(state['query-account-id']);
-  } else if (queryName === 'FileContentsQuery') {
-    query = new FileContentsQuery()
-      .setFileId(FileId.fromString(state['query-file-id']));
-  }
-  
   const response: string = await signClient.request({
     topic: activeSession.topic,
     chainId: HederaChainId.Testnet,
@@ -290,15 +266,78 @@ async function hedera_signQueryAndSend(event, queryName: string) {
     },
   })
 
-  let parsedResponse = JSON.parse(atob(response));
-
-  if (parsedResponse.isBinaryBase64Data) {
-    parsedResponse.data = Buffer.from(parsedResponse.data, 'base64');
-  }
-
-  console.log(parsedResponse);
-  alert(JSON.stringify(parsedResponse.data));
+  console.log(response)
+  alert(`Query response received: ${JSON.stringify(response)}!`)
 }
 
-document.getElementById('hedera_signQueryAndSend-1').onsubmit = (event) => hedera_signQueryAndSend(event, 'AccountInfoQuery');
-document.getElementById('hedera_signQueryAndSend-2').onsubmit = (event) => hedera_signQueryAndSend(event, 'FileContentsQuery');
+document.getElementById('hedera_signQueryAndSend').onsubmit = hedera_signQueryAndSend
+
+/*
+ * Error handling simulation
+ */
+async function simulateGossipNodeError(e: Event) {
+  e.preventDefault()
+  try {
+    const sender = getState('sign-send-from') || getState('send-from')
+    const recepient = getState('sign-send-to') || getState('send-to')
+
+    const transaction = new TransferTransaction()
+      .setNodeAccountIds([new AccountId(999)]) // this is invalid node id
+      .setTransactionId(TransactionId.generate(sender))
+      .addHbarTransfer(sender, new Hbar(-5))
+      .addHbarTransfer(recepient, new Hbar(+5))
+
+    const response: TransactionResponseJSON = await signClient.request({
+      topic: activeSession.topic,
+      chainId: HederaChainId.Testnet,
+      request: {
+        method: HederaJsonRpcMethod.SignTransactionAndSend,
+        params: [transactionToBase64String(transaction)],
+      },
+    })
+
+    console.log(response)
+  } catch (e) {
+    console.error(e)
+    alert(JSON.stringify(e))
+  }
+}
+
+document.getElementById('error-gossip-node').onsubmit = simulateGossipNodeError
+
+async function simulateTransactionExpiredError(e: Event) {
+  e.preventDefault()
+  try {
+    const sender = getState('sign-send-from') || getState('send-from')
+    const recepient = getState('sign-send-to') || getState('send-to')
+
+    const transaction = new TransferTransaction()
+      // set valid start to 15 seconds ago
+      .setTransactionId(
+        TransactionId.withValidStart(
+          AccountId.fromString(sender),
+          Timestamp.fromDate(Date.now() - 15000),
+        ),
+      )
+      // 15 seconds is a minimum valid duration otherwise there's an INVALID_TRANSACTION_DURATION error
+      .setTransactionValidDuration(15)
+      .addHbarTransfer(sender, new Hbar(-5))
+      .addHbarTransfer(recepient, new Hbar(+5))
+
+    const response: TransactionResponseJSON = await signClient.request({
+      topic: activeSession.topic,
+      chainId: HederaChainId.Testnet,
+      request: {
+        method: HederaJsonRpcMethod.SignTransactionAndSend,
+        params: [transactionToBase64String(transaction)],
+      },
+    })
+
+    console.log(response)
+  } catch (e) {
+    console.log(e)
+    alert(JSON.stringify(e))
+  }
+}
+
+document.getElementById('error-transaction-expired').onclick = simulateTransactionExpiredError
