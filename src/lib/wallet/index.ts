@@ -414,7 +414,6 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
   ): Promise<void> {
     const transaction = await signer.signTransaction(body)
     const signatureMap = transaction.getSignatures()
-    //@ts-ignore TODO:this can be a Typescript SignatureMap?
     const base64SignatureMap = signatureMapToBase64(signatureMap)
 
     const response: SignTransactionBodyResponse = {
