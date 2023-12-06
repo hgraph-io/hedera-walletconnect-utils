@@ -114,26 +114,27 @@ export interface SignTransactionAndSendResponse extends EngineTypes.RespondParam
   response: SignTransactionAndSendResult
 }
 /*
- * 6. hedera_signTransactionBody
+ * 6. hedera_signTransaction
  */
+
 // params
-export interface SignTransactionBodyParams {
+export interface SignTransactionParams {
   signerAccountId: string
-  transactionBody: string
+  transaction: string[]
 }
 
 //request
-export interface SignTransactionBodyRequest extends EngineTypes.RequestParams {
+export interface SignTransactionRequest extends EngineTypes.RequestParams {
   request: {
-    method: HederaJsonRpcMethod.SignTransactionBody
-    params: SignTransactionBodyParams
+    method: HederaJsonRpcMethod.SignTransaction
+    params: SignTransactionParams
   }
 }
 
 // result
-export interface SignTransactionBodyResult extends JsonRpcResult<{ signatureMap: string }> {}
+export interface SignTransactionResult extends JsonRpcResult<string[]> {}
 
 // response
-export interface SignTransactionBodyResponse extends EngineTypes.RespondParams {
-  response: SignTransactionBodyResult
+export interface SignTransactionResponse extends EngineTypes.RespondParams {
+  response: SignTransactionResult
 }

@@ -19,7 +19,7 @@ import {
   SignMessageParams,
   SignQueryAndSendParams,
   SignTransactionAndSendParams,
-  SignTransactionBodyParams,
+  SignTransactionParams,
 } from '@hashgraph/walletconnect'
 
 import { DAppConnector } from '@hashgraph/walletconnect'
@@ -173,22 +173,22 @@ async function hedera_signTransactionAndSend(_: Event) {
 document.getElementById('hedera_signTransactionAndSend')!.onsubmit = (e: SubmitEvent) =>
   showErrorOrSuccess(hedera_signTransactionAndSend, e)
 
-// 6. hedera_signTransactionBody
-async function hedera_signTransactionBody(_: Event) {
+// 6. hedera_signTransaction
+async function hedera_signTransaction(_: Event) {
   const transaction = new TransferTransaction()
     .setTransactionId(TransactionId.generate(getState('sign-from')))
     .addHbarTransfer(getState('sign-from'), new Hbar(-getState('sign-amount')))
     .addHbarTransfer(getState('sign-to'), new Hbar(+getState('sign-amount')))
 
-  const params: SignTransactionBodyParams = {
+  const params: SignTransactionParams = {
     signerAccountId: getState('sign-from'),
-    transactionBody: transactionToBase64String(transaction),
+    transaction: [transactionToBase64String(transaction)],
   }
 
-  return await dAppConnector!.signTransactionBody(params)
+  return await dAppConnector!.signTransaction(params)
 }
-document.getElementById('hedera_signTransactionBody')!.onsubmit = (e: SubmitEvent) =>
-  showErrorOrSuccess(hedera_signTransactionBody, e)
+document.getElementById('hedera_signTransaction')!.onsubmit = (e: SubmitEvent) =>
+  showErrorOrSuccess(hedera_signTransaction, e)
 
 /*
  * Error handling simulation

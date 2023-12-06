@@ -5,5 +5,5 @@ export enum HederaJsonRpcMethod {
   SignMessage = 'hedera_signMessage', // 3
   SignQueryAndSend = 'hedera_signQueryAndSend', // 4
   SignTransactionAndSend = 'hedera_signTransactionAndSend', // 5
-  SignTransactionBody = 'hedera_signTransactionBody', // 6
+  SignTransaction = 'hedera_signTransaction', // 6
 }

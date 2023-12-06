@@ -25,7 +25,12 @@ import {
   SignMessageResponse,
   SignQueryAndSendResponse,
   SignTransactionAndSendResponse,
-  SignTransactionBodyResponse,
+  SignTransactionResponse,
+  SendTransactionOnlyParams,
+  SignMessageParams,
+  SignQueryAndSendParams,
+  SignTransactionAndSendParams,
+  SignTransactionParams,
 } from '../shared'
 import Provider from './provider'
 import type { HederaNativeWallet } from './types'
@@ -120,11 +125,13 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
    *  Session Requests
    */
   public validateParam(name: string, value: any, expectedType: string) {
-    if (typeof value !== expectedType)
-      throw getHederaError<string>(
-        'INVALID_PARAMS',
-        `Invalid paramameter value for ${name}, expected ${expectedType} but got ${typeof value}`,
-      )
+    if (expectedType === 'array' && Array.isArray(value)) return
+    if (typeof value === expectedType) return
+
+    throw getHederaError<string>(
+      'INVALID_PARAMS',
+      `Invalid paramameter value for ${name}, expected ${expectedType} but got ${typeof value}`,
+    )
   }
 
   public parseSessionRequest(
@@ -136,7 +143,7 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
     chainId: HederaChainId
     id: number // session request id
     topic: string // session topic
-    body?: Transaction | Query<any> | Uint8Array[] | undefined
+    body?: Transaction | Transaction[] | Query<any> | Uint8Array[] | undefined
     accountId?: AccountId
   } {
     const { id, topic } = event
@@ -145,7 +152,7 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
       chainId,
     } = event.params
 
-    let body: Transaction | Query<any> | Uint8Array[] | undefined
+    let body: Transaction | Transaction[] | Query<any> | Uint8Array[] | undefined
     // get account id from optional second param for transactions and queries or from transaction id
     // this allows for the case where the requested signer is not the payer, but defaults to the payer if a second param is not provided
     let signerAccountId: AccountId | undefined
@@ -153,37 +160,60 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
     // then convert params to a body that the respective function expects
     try {
       switch (method) {
-        case HederaJsonRpcMethod.GetNodeAddresses: // 1
+        case HederaJsonRpcMethod.GetNodeAddresses: {
+          // 1
           if (params) throw getHederaError('INVALID_PARAMS')
           break
-        case HederaJsonRpcMethod.SendTransactionOnly: // 2
-          this.validateParam('signedTransaction', params?.signedTransaction, 'string')
-          body = base64StringToTransaction(params.signedTransaction)
+        }
+        case HederaJsonRpcMethod.SendTransactionOnly: {
+          // 2
+          const _params = params as SendTransactionOnlyParams
+          this.validateParam('signedTransaction', _params?.signedTransaction, 'string')
+          body = base64StringToTransaction(_params.signedTransaction)
           break
-        case HederaJsonRpcMethod.SignMessage: // 3
-          this.validateParam('signerAccountId', params?.signerAccountId, 'string')
-          this.validateParam('message', params?.message, 'string')
-          signerAccountId = AccountId.fromString(params.signerAccountId)
-          body = base64StringToMessage(params.message)
+        }
+        case HederaJsonRpcMethod.SignMessage: {
+          // 3
+          const _params = params as SignMessageParams
+          this.validateParam('signerAccountId', _params?.signerAccountId, 'string')
+          this.validateParam('message', _params?.message, 'string')
+          signerAccountId = AccountId.fromString(_params.signerAccountId)
+          body = base64StringToMessage(_params.message)
           break
-        case HederaJsonRpcMethod.SignQueryAndSend: // 4
-          this.validateParam('signerAccountId', params?.signerAccountId, 'string')
-          this.validateParam('query', params?.query, 'string')
-          signerAccountId = AccountId.fromString(params.signerAccountId)
-          body = base64StringToQuery(params.query)
+        }
+        case HederaJsonRpcMethod.SignQueryAndSend: {
+          // 4
+          const _params = params as SignQueryAndSendParams
+          this.validateParam('signerAccountId', _params?.signerAccountId, 'string')
+          this.validateParam('query', _params?.query, 'string')
+          signerAccountId = AccountId.fromString(_params.signerAccountId)
+          body = base64StringToQuery(_params.query)
           break
-        case HederaJsonRpcMethod.SignTransactionAndSend: // 5
-          this.validateParam('signerAccountId', params?.signerAccountId, 'string')
-          this.validateParam('signedTransaction', params?.signedTransaction, 'string')
-          body = base64StringToTransaction(params.signedTransaction)
-          signerAccountId = AccountId.fromString(params.signerAccountId)
+        }
+        case HederaJsonRpcMethod.SignTransactionAndSend: {
+          // 5
+          const _params = params as SignTransactionAndSendParams
+          this.validateParam('signerAccountId', _params?.signerAccountId, 'string')
+          this.validateParam('signedTransaction', _params?.signedTransaction, 'string')
+          body = base64StringToTransaction(_params.signedTransaction)
+          signerAccountId = AccountId.fromString(_params.signerAccountId)
           break
-        case HederaJsonRpcMethod.SignTransactionBody: // 6
-          this.validateParam('signerAccountId', params?.signerAccountId, 'string')
-          this.validateParam('transactionBody', params?.transactionBody, 'string')
-          signerAccountId = AccountId.fromString(params.signerAccountId)
-          body = base64StringToTransaction(params.transactionBody)
+        }
+        case HederaJsonRpcMethod.SignTransaction: {
+          // 6
+          const _params = params as SignTransactionParams
+          this.validateParam('signerAccountId', _params?.signerAccountId, 'string')
+          this.validateParam('transaction', _params?.transaction, 'array')
+          _params.transaction.forEach((base64StringTransaction) =>
+            this.validateParam('signerAccountId', base64StringTransaction, 'string'),
+          )
+
+          signerAccountId = AccountId.fromString(_params.signerAccountId)
+          body = _params.transaction.map((base64StringTransaction) =>
+            base64StringToTransaction(base64StringTransaction),
+          )
           break
+        }
         default:
           throw getSdkError('INVALID_METHOD')
       }
@@ -404,24 +434,29 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
     return await this.respondSessionRequest(response)
   }
 
-  // 6. hedera_signTransactionBody
+  // 6. hedera_signTransaction
   // TODO: HIP-820 suggested change
-  public async hedera_signTransactionBody(
+  public async hedera_signTransaction(
     id: number,
     topic: string,
-    body: Transaction, // The HIP calls for this to be a TransactionBody not a transaction
+    body: Transaction[], // The HIP calls for this to be a TransactionBody not a transaction
     signer: HederaWallet,
   ): Promise<void> {
-    const transaction = await signer.signTransaction(body)
-    const signatureMap = transaction.getSignatures()
-    const base64SignatureMap = signatureMapToBase64(signatureMap)
+    const transactionsPromises = body.map((transaction) => signer.signTransaction(transaction))
+    const transactions = await Promise.all(transactionsPromises)
+    const result = transactions.map((transaction) => {
+      const signatureMap = transaction.getSignatures()
+      const base64SignatureMap = signatureMapToBase64(signatureMap)
 
-    const response: SignTransactionBodyResponse = {
+      return base64SignatureMap
+    })
+
+    const response: SignTransactionResponse = {
       topic,
       response: {
         jsonrpc: '2.0',
         id,
-        result: { signatureMap: base64SignatureMap },
+        result,
       },
     }
 

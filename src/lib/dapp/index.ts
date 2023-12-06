@@ -21,9 +21,9 @@ import {
   SignTransactionAndSendParams,
   SignTransactionAndSendRequest,
   SignTransactionAndSendResult,
-  SignTransactionBodyParams,
-  SignTransactionBodyRequest,
-  SignTransactionBodyResult,
+  SignTransactionParams,
+  SignTransactionRequest,
+  SignTransactionResult,
 } from '../shared'
 import { DAppSigner } from './DAppSigner'
 import { JsonRpcResult } from '@walletconnect/jsonrpc-types'
@@ -359,9 +359,9 @@ export class DAppConnector {
     })
   }
 
-  public async signTransactionBody(params: SignTransactionBodyParams) {
-    return await this.request<SignTransactionBodyRequest, SignTransactionBodyResult>({
-      method: HederaJsonRpcMethod.SignTransactionBody,
+  public async signTransaction(params: SignTransactionParams) {
+    return await this.request<SignTransactionRequest, SignTransactionResult>({
+      method: HederaJsonRpcMethod.SignTransaction,
       params,
     })
   }

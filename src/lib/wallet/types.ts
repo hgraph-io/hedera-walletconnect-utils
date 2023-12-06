@@ -21,7 +21,7 @@ export interface HederaNativeWallet {
     chainId: HederaChainId
     id: number // session request id
     topic: string // session topic
-    body?: Transaction | Query<any> | Uint8Array[] | undefined
+    body?: Transaction | Transaction[] | Query<any> | Uint8Array[] | undefined
     accountId?: AccountId
   }
 
@@ -83,10 +83,10 @@ export interface HederaNativeWallet {
     signer: HederaWallet,
   ): Promise<void>
 
-  [HederaJsonRpcMethod.SignTransactionBody](
+  [HederaJsonRpcMethod.SignTransaction](
     id: number,
     topic: string,
-    body: Transaction,
+    body: Transaction[],
     signer: HederaWallet,
   ): Promise<void>
 }
