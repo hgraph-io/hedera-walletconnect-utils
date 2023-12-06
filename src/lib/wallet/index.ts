@@ -21,15 +21,15 @@ import {
   signatureMapToBase64,
   getHederaError,
   GetNodeAddresesResponse,
-  SendTransactionOnlyResponse,
+  ExecuteTransactionResponse,
   SignMessageResponse,
   SignQueryAndSendResponse,
-  SignTransactionAndSendResponse,
+  SignAndExecuteTransactionResponse,
   SignTransactionResponse,
-  SendTransactionOnlyParams,
+  ExecuteTransactionParams,
   SignMessageParams,
   SignQueryAndSendParams,
-  SignTransactionAndSendParams,
+  SignAndExecuteTransactionParams,
   SignTransactionParams,
 } from '../shared'
 import Provider from './provider'
@@ -165,11 +165,21 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
           if (params) throw getHederaError('INVALID_PARAMS')
           break
         }
-        case HederaJsonRpcMethod.SendTransactionOnly: {
+        case HederaJsonRpcMethod.ExecuteTransaction: {
           // 2
-          const _params = params as SendTransactionOnlyParams
-          this.validateParam('signedTransaction', _params?.signedTransaction, 'string')
-          body = base64StringToTransaction(_params.signedTransaction)
+          const _params = params as ExecuteTransactionParams
+          this.validateParam('signedTransaction', _params?.signedTransaction, 'array')
+          _params.signedTransaction.forEach((base64StringTransaction, index) =>
+            this.validateParam(
+              `signedTransaction[${index}]`,
+              base64StringTransaction,
+              'string',
+            ),
+          )
+
+          body = _params.signedTransaction.map((base64StringTransaction) =>
+            base64StringToTransaction(base64StringTransaction),
+          )
           break
         }
         case HederaJsonRpcMethod.SignMessage: {
@@ -190,13 +200,19 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
           body = base64StringToQuery(_params.query)
           break
         }
-        case HederaJsonRpcMethod.SignTransactionAndSend: {
+        case HederaJsonRpcMethod.SignAndExecuteTransaction: {
           // 5
-          const _params = params as SignTransactionAndSendParams
+          const _params = params as SignAndExecuteTransactionParams
           this.validateParam('signerAccountId', _params?.signerAccountId, 'string')
-          this.validateParam('signedTransaction', _params?.signedTransaction, 'string')
-          body = base64StringToTransaction(_params.signedTransaction)
+          this.validateParam('transaction', _params?.transaction, 'array')
+          _params.transaction.forEach((base64StringTransaction, index) =>
+            this.validateParam(`transaction[${index}]`, base64StringTransaction, 'string'),
+          )
+
           signerAccountId = AccountId.fromString(_params.signerAccountId)
+          body = _params.transaction.map((base64StringTransaction) =>
+            base64StringToTransaction(base64StringTransaction),
+          )
           break
         }
         case HederaJsonRpcMethod.SignTransaction: {
@@ -204,8 +220,8 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
           const _params = params as SignTransactionParams
           this.validateParam('signerAccountId', _params?.signerAccountId, 'string')
           this.validateParam('transaction', _params?.transaction, 'array')
-          _params.transaction.forEach((base64StringTransaction) =>
-            this.validateParam('signerAccountId', base64StringTransaction, 'string'),
+          _params.transaction.forEach((base64StringTransaction, index) =>
+            this.validateParam(`transaction[${index}]`, base64StringTransaction, 'string'),
           )
 
           signerAccountId = AccountId.fromString(_params.signerAccountId)
@@ -283,39 +299,45 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
     return await this.respondSessionRequest(response)
   }
 
-  // 2. hedera_sendTransactionOnly
+  // 2. hedera_executeTransaction
   // TODO: HIP-820 suggested change
-  public async hedera_sendTransactionOnly(
+  public async hedera_executeTransaction(
     id: number,
     topic: string,
-    body: Transaction, // must be signedTransaction
+    body: Transaction[], // must be signedTransactions
     signer: HederaWallet,
   ): Promise<void> {
-    const transactionId = body.transactionId!.toString()
-    const nodeId = body.nodeAccountIds![0].toString() // is this the actual nodeId this was sent to?
-    const transactionHash = Uint8ArrayToBase64String(await body.getTransactionHash())
-    let precheckCode = 0
+    const resultPromises = body.map(async (transaction) => {
+      const transactionId = transaction.transactionId!.toString()
+      const nodeId = transaction.nodeAccountIds![0].toString()
+      const transactionHash = Uint8ArrayToBase64String(await transaction.getTransactionHash())
+      let precheckCode = 0
 
-    try {
-      await signer.call(body)
-    } catch (err: unknown) {
-      console.error(err)
+      try {
+        await signer.call(transaction)
+      } catch (err: unknown) {
+        console.log(err)
 
-      if (err instanceof PrecheckStatusError) {
-        precheckCode = err.status._code
+        if (err instanceof PrecheckStatusError) {
+          precheckCode = err.status._code
+        }
       }
-    }
 
-    const response: SendTransactionOnlyResponse = {
+      return {
+        transactionId,
+        nodeId,
+        transactionHash,
+        precheckCode,
+      }
+    })
+
+    const result = await Promise.all(resultPromises)
+
+    const response: ExecuteTransactionResponse = {
       topic,
       response: {
         id,
-        result: {
-          precheckCode,
-          transactionId,
-          nodeId,
-          transactionHash: transactionHash,
-        },
+        result,
         jsonrpc: '2.0',
       },
     }
@@ -390,43 +412,52 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
     return await this.respondSessionRequest(response)
   }
 
-  // 5. hedera_signTransactionAndSend
+  // 5. hedera_signAndExecuteTransaction
   // TODO: HIP-820 suggested change
-  public async hedera_signTransactionAndSend(
+  public async hedera_signAndExecuteTransaction(
     id: number,
     topic: string,
-    body: Transaction,
+    body: Transaction[],
     signer: HederaWallet,
   ): Promise<void> {
-    const signedTransaction = await signer.signTransaction(body)
-
-    const transactionId = signedTransaction.transactionId!.toString()
-    const nodeId = signedTransaction.nodeAccountIds![0].toString()
-    const transactionHash = Uint8ArrayToBase64String(
-      await signedTransaction.getTransactionHash(),
+    const signedTransactionsPromises = body.map((transaction) =>
+      signer.signTransaction(transaction),
     )
-    let precheckCode = 0
+    const signedTransactions = await Promise.all(signedTransactionsPromises)
 
-    try {
-      await signer.call(signedTransaction)
-    } catch (err: unknown) {
-      console.log(err)
+    const resultPromises = signedTransactions.map(async (signedTransaction) => {
+      const transactionId = signedTransaction.transactionId!.toString()
+      const nodeId = signedTransaction.nodeAccountIds![0].toString()
+      const transactionHash = Uint8ArrayToBase64String(
+        await signedTransaction.getTransactionHash(),
+      )
+      let precheckCode = 0
 
-      if (err instanceof PrecheckStatusError) {
-        precheckCode = err.status._code
+      try {
+        await signer.call(signedTransaction)
+      } catch (err: unknown) {
+        console.log(err)
+
+        if (err instanceof PrecheckStatusError) {
+          precheckCode = err.status._code
+        }
       }
-    }
 
-    const response: SignTransactionAndSendResponse = {
+      return {
+        transactionId,
+        nodeId,
+        transactionHash,
+        precheckCode,
+      }
+    })
+
+    const result = await Promise.all(resultPromises)
+
+    const response: SignAndExecuteTransactionResponse = {
       topic,
       response: {
         id,
-        result: {
-          precheckCode,
-          transactionId,
-          nodeId,
-          transactionHash: transactionHash,
-        },
+        result,
         jsonrpc: '2.0',
       },
     }

@@ -55,10 +55,10 @@ export interface HederaNativeWallet {
     signer: HederaWallet,
   ): Promise<void>
 
-  [HederaJsonRpcMethod.SendTransactionOnly](
+  [HederaJsonRpcMethod.ExecuteTransaction](
     id: number,
     topic: string,
-    body: Transaction,
+    body: Transaction[],
     signer: HederaWallet,
   ): Promise<void>
 
@@ -76,10 +76,10 @@ export interface HederaNativeWallet {
     signer: HederaWallet,
   ): Promise<void>
 
-  [HederaJsonRpcMethod.SignTransactionAndSend](
+  [HederaJsonRpcMethod.SignAndExecuteTransaction](
     id: number,
     topic: string,
-    body: Transaction,
+    body: Transaction[],
     signer: HederaWallet,
   ): Promise<void>
 

@@ -9,18 +9,18 @@ import {
   networkNamespaces,
   GetNodeAddressesRequest,
   GetNodeAddressesResult,
-  SendTransactionOnlyParams,
-  SendTransactionOnlyRequest,
-  SendTransactionOnlyResult,
+  ExecuteTransactionParams,
+  ExecuteTransactionRequest,
+  ExecuteTransactionResult,
   SignMessageParams,
   SignMessageRequest,
   SignMessageResult,
   SignQueryAndSendRequest,
   SignQueryAndSendResult,
   SignQueryAndSendParams,
-  SignTransactionAndSendParams,
-  SignTransactionAndSendRequest,
-  SignTransactionAndSendResult,
+  SignAndExecuteTransactionParams,
+  SignAndExecuteTransactionRequest,
+  SignAndExecuteTransactionResult,
   SignTransactionParams,
   SignTransactionRequest,
   SignTransactionResult,
@@ -331,9 +331,9 @@ export class DAppConnector {
     })
   }
 
-  public async sendTransactionOnly(params: SendTransactionOnlyParams) {
-    return await this.request<SendTransactionOnlyRequest, SendTransactionOnlyResult>({
-      method: HederaJsonRpcMethod.SendTransactionOnly,
+  public async executeTransaction(params: ExecuteTransactionParams) {
+    return await this.request<ExecuteTransactionRequest, ExecuteTransactionResult>({
+      method: HederaJsonRpcMethod.ExecuteTransaction,
       params,
     })
   }
@@ -352,9 +352,12 @@ export class DAppConnector {
     })
   }
 
-  public async signTransactionAndSend(params: SignTransactionAndSendParams) {
-    return await this.request<SignTransactionAndSendRequest, SignTransactionAndSendResult>({
-      method: HederaJsonRpcMethod.SignTransactionAndSend,
+  public async signAndExecuteTransaction(params: SignAndExecuteTransactionParams) {
+    return await this.request<
+      SignAndExecuteTransactionRequest,
+      SignAndExecuteTransactionResult
+    >({
+      method: HederaJsonRpcMethod.SignAndExecuteTransaction,
       params,
     })
   }

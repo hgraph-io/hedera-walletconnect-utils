@@ -24,25 +24,25 @@ export interface GetNodeAddresesResponse extends EngineTypes.RespondParams {
 }
 
 /*
- * 2. hedera_sendTransactionOnly
+ * 2. hedera_executeTransaction
  */
 // params
-export interface SendTransactionOnlyParams {
-  signedTransaction: string
+export interface ExecuteTransactionParams {
+  signedTransaction: string[]
 }
 // request
-export interface SendTransactionOnlyRequest extends EngineTypes.RequestParams {
+export interface ExecuteTransactionRequest extends EngineTypes.RequestParams {
   request: {
-    method: HederaJsonRpcMethod.SendTransactionOnly
-    params: SendTransactionOnlyParams
+    method: HederaJsonRpcMethod.ExecuteTransaction
+    params: ExecuteTransactionParams
   }
 }
 // result
-export interface SendTransactionOnlyResult
-  extends JsonRpcResult<TransactionResponseJSON & { precheckCode: number }> {}
+export interface ExecuteTransactionResult
+  extends JsonRpcResult<Array<TransactionResponseJSON & { precheckCode: number }>> {}
 // response
-export interface SendTransactionOnlyResponse extends EngineTypes.RespondParams {
-  response: SendTransactionOnlyResult
+export interface ExecuteTransactionResponse extends EngineTypes.RespondParams {
+  response: ExecuteTransactionResult
 }
 
 /*
@@ -90,28 +90,28 @@ export interface SignQueryAndSendResponse extends EngineTypes.RespondParams {
 }
 
 /*
- * 5. hedera_signTransactionAndSend
+ * 5. hedera_signAndExecuteTransaction
  */
 // params
-export interface SignTransactionAndSendParams {
+export interface SignAndExecuteTransactionParams {
   signerAccountId: string
-  signedTransaction: string
+  transaction: string[]
 }
 // request
-export interface SignTransactionAndSendRequest extends EngineTypes.RequestParams {
+export interface SignAndExecuteTransactionRequest extends EngineTypes.RequestParams {
   request: {
-    method: HederaJsonRpcMethod.SignTransactionAndSend
-    params: SignTransactionAndSendParams
+    method: HederaJsonRpcMethod.SignAndExecuteTransaction
+    params: SignAndExecuteTransactionParams
   }
 }
 
 // result
-export interface SignTransactionAndSendResult
-  extends JsonRpcResult<TransactionResponseJSON & { precheckCode: number }> {}
+export interface SignAndExecuteTransactionResult
+  extends JsonRpcResult<Array<TransactionResponseJSON & { precheckCode: number }>> {}
 
 // response
-export interface SignTransactionAndSendResponse extends EngineTypes.RespondParams {
-  response: SignTransactionAndSendResult
+export interface SignAndExecuteTransactionResponse extends EngineTypes.RespondParams {
+  response: SignAndExecuteTransactionResult
 }
 /*
  * 6. hedera_signTransaction

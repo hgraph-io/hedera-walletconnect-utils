@@ -63,7 +63,7 @@ export class HederaSessionRequest {
       topic: this.topic,
       expiry: this.expiry,
       request: {
-        method: HederaJsonRpcMethod.SignTransactionAndSend,
+        method: HederaJsonRpcMethod.SignAndExecuteTransaction,
         params: buildSignAndExecuteTransactionParams(signerAccountId, transaction),
       },
     }
