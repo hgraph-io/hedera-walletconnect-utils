@@ -1,35 +1,50 @@
-import { TopicCreateTransaction, Transaction } from '@hashgraph/sdk'
-import { HederaWallet } from '../../src'
+import { TopicCreateTransaction } from '@hashgraph/sdk'
+import { HederaChainId, SignAndExecuteTransactionResponse, Wallet } from '../../src'
 import {
-  defaultAccountNumber,
   prepareTestTransaction,
+  projectId,
+  requestId,
+  requestTopic,
   testPrivateKeyECDSA,
+  testUserAccountId,
   useJsonFixture,
+  walletMetadata,
 } from '../_helpers'
 
-describe(HederaWallet.name, () => {
+describe(Wallet.name, () => {
   describe('signAndExecuteTransaction', () => {
-    it('should sign and execute, returning the transaction response and receipt', async () => {
-      const mockResult = useJsonFixture('signAndExecuteTransactionSuccess')
-      const wallet = HederaWallet.init({
-        network: 'testnet',
-        accountId: defaultAccountNumber,
-        privateKey: testPrivateKeyECDSA,
-      })
+    it('should sign and execute, returning the transaction response', async () => {
+      const wallet = await Wallet.create(projectId, walletMetadata)
+
+      const hederaWallet = wallet!.getHederaWallet(
+        HederaChainId.Testnet,
+        testUserAccountId.toString(),
+        testPrivateKeyECDSA,
+      )
+
+      const signerCallMock = jest.spyOn(hederaWallet, 'call')
+      signerCallMock.mockImplementation(async () => {}) // Mocking the 'call' method to do nothing
+
       const transaction = prepareTestTransaction(new TopicCreateTransaction(), {
         freeze: true,
       })
-      const transactionExecuteSpy = jest
-        .spyOn(Transaction.prototype, 'execute')
-        .mockImplementation(async () => {
-          return {
-            getReceipt: () => mockResult.receipt,
-            toJSON: () => mockResult.response,
-          } as any
-        })
-      const result = await wallet.signAndExecuteTransaction(transaction)
-      expect(result).toEqual(mockResult)
-      transactionExecuteSpy.mockRestore()
-    })
+
+      const respondSessionRequestSpy = jest.spyOn(wallet, 'respondSessionRequest')
+
+      try {
+        await wallet.hedera_signAndExecuteTransaction(
+          requestId,
+          requestTopic,
+          [transaction],
+          hederaWallet,
+        )
+      } catch (err) {}
+
+      const mockResponse: SignAndExecuteTransactionResponse = useJsonFixture(
+        'signAndExecuteTransactionSuccess',
+      )
+
+      expect(respondSessionRequestSpy).toHaveBeenCalledWith(mockResponse)
+    }, 15_000)
   })
 })

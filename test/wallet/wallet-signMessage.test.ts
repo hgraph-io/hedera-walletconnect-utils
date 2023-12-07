@@ -1,16 +1,11 @@
 import { HederaChainId, SignMessageResponse, Wallet, base64StringToMessage } from '../../src'
-import { testPrivateKeyECDSA, testPrivateKeyED25519, testUserAccountId } from '../_helpers'
-
-const PROJECT_ID = 'ce06497abf4102004138a10edd29c921'
-
-const appMetadata = {
-  name: 'Wallet Test',
-  url: 'https://dapp.hedera.app',
-  description: 'Hedera Hashgraph Wallet Example.',
-  icons: [
-    'https://cdn-assets-cloud.frontify.com/s3/frontify-cloud-files-us/eyJwYXRoIjoiZnJvbnRpZnlcL2FjY291bnRzXC8xNFwvMTQzMTI3XC9wcm9qZWN0c1wvMTgwMjE1XC9hc3NldHNcL2M3XC8zNDU0ODY3XC85ZjM1NDliYmE5MGQ2NDA0OGU0NzlhZTNiMzkyYzY4Yy0xNTY2NTkxOTQ4LmpwZyJ9:frontify:v_zJvQTCjtNploUvnSpk8S5NJB4R5eei6f7ERL2KSeQ?width=800',
-  ],
-}
+import {
+  testPrivateKeyECDSA,
+  testPrivateKeyED25519,
+  testUserAccountId,
+  walletMetadata,
+  projectId,
+} from '../_helpers'
 
 describe(Wallet.name, () => {
   describe('signMessage', () => {
@@ -30,7 +25,7 @@ describe(Wallet.name, () => {
     test.each(testCases)(
       'should decode message bytes and sign with: %p',
       async (_, privateKey, expected) => {
-        const wallet = await Wallet.create(PROJECT_ID, appMetadata)
+        const wallet = await Wallet.create(projectId, walletMetadata)
 
         const id = 1
         const topic = 'test-topic'
@@ -40,7 +35,7 @@ describe(Wallet.name, () => {
           testUserAccountId.toString(),
           privateKey,
         )
-        const respondSessionRequest = jest.spyOn(wallet, 'respondSessionRequest')
+        const respondSessionRequestSpy = jest.spyOn(wallet, 'respondSessionRequest')
 
         try {
           await wallet.hedera_signMessage(id, topic, messageBytes, hederaWallet)
@@ -57,7 +52,7 @@ describe(Wallet.name, () => {
           },
         }
 
-        expect(respondSessionRequest).toHaveBeenCalledWith(mockResponse)
+        expect(respondSessionRequestSpy).toHaveBeenCalledWith(mockResponse)
       },
     )
   })
