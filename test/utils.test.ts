@@ -11,9 +11,6 @@ import {
   freezeTransaction,
   setDefaultNodeAccountIds,
   base64StringToTransaction,
-  // signatureMapToBase64,
-  // HederaChainId,
-  // Wallet,
   base64StringToUint8Array,
   Uint8ArrayToBase64String,
   base64StringToQuery,
@@ -22,7 +19,6 @@ import {
   base64StringToMessage,
   EIPChainIdToLedgerId,
   ledgerIdToEIPChainId,
-  // networkNameToEIPChainId,
   CAIPChainIdToLedgerId,
   HederaChainId,
   ledgerIdToCAIPChainId,
@@ -30,20 +26,8 @@ import {
   networkNameToEIPChainId,
   networkNamespaces,
   HederaSessionEvent,
-  accountAndLedgerFromSession,
-  // base64StringToSignatureMap,
 } from '../src'
-import {
-  prepareTestTransaction,
-  requestId,
-  requestTopic,
-  // projectId,
-  // testPrivateKeyECDSA,
-  testUserAccountId,
-  useJsonFixture,
-  // walletMetadata
-} from './_helpers'
-import { SessionTypes } from '@walletconnect/types'
+import { prepareTestTransaction, testUserAccountId, useJsonFixture } from './_helpers'
 
 describe(freezeTransaction.name, () => {
   it('should freeze an unfrozen transaction', () => {
