@@ -1,4 +1,3 @@
-//@ts-nocheck
 import { type Transaction } from '@hashgraph/sdk'
 import { EngineTypes } from '@walletconnect/types'
 import { HederaJsonRpcMethod, transactionToBase64String } from '../shared'
@@ -6,7 +5,7 @@ import { HederaJsonRpcMethod, transactionToBase64String } from '../shared'
 export function buildSignMessageParams(
   signerAccountId: string,
   messages: (Uint8Array | string)[],
-): any {
+) {
   return {
     signerAccountId,
     messages: messages.map((message) => Buffer.from(message).toString('base64')),
@@ -25,14 +24,14 @@ function _buildTransactionParams(signerAccountId: string, transaction: Transacti
 export function buildSignAndExecuteTransactionParams(
   signerAccountId: string,
   transaction: Transaction,
-): any {
+) {
   return _buildTransactionParams(signerAccountId, transaction)
 }
 
 export function buildSignAndReturnTransactionParams(
   signerAccountId: string,
   transaction: Transaction,
-): any {
+) {
   return _buildTransactionParams(signerAccountId, transaction)
 }
 

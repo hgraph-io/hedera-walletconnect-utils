@@ -1,10 +1,32 @@
 import { AccountId, LedgerId } from '@hashgraph/sdk'
-import { SessionTypes, SignClientTypes } from '@walletconnect/types'
+import { EngineTypes, SessionTypes, SignClientTypes } from '@walletconnect/types'
 import QRCodeModal from '@walletconnect/qrcode-modal'
 import Client, { SignClient } from '@walletconnect/sign-client'
 import { getSdkError } from '@walletconnect/utils'
-import { HederaJsonRpcMethod, accountAndLedgerFromSession, networkNamespaces } from '../shared'
+import {
+  HederaJsonRpcMethod,
+  accountAndLedgerFromSession,
+  networkNamespaces,
+  GetNodeAddressesRequest,
+  GetNodeAddressesResult,
+  SendTransactionOnlyParams,
+  SendTransactionOnlyRequest,
+  SendTransactionOnlyResult,
+  SignMessageParams,
+  SignMessageRequest,
+  SignMessageResult,
+  SignQueryAndSendRequest,
+  SignQueryAndSendResult,
+  SignQueryAndSendParams,
+  SignTransactionAndSendParams,
+  SignTransactionAndSendRequest,
+  SignTransactionAndSendResult,
+  SignTransactionBodyParams,
+  SignTransactionBodyRequest,
+  SignTransactionBodyResult,
+} from '../shared'
 import { DAppSigner } from './DAppSigner'
+import { JsonRpcResult } from '@walletconnect/jsonrpc-types'
 
 export * from './helpers'
 
@@ -47,9 +69,48 @@ export class DAppConnector {
         projectId: this.projectId,
         metadata: this.dAppMetadata,
       })
-      const existingSession = await this.checkPersistedState()
-      existingSession.forEach(async (session) => {
-        await this.onSessionConnected(session)
+      const existingSessions = await this.checkPersistedState()
+
+      if (existingSessions.length) {
+        await this.onSessionConnected(existingSessions.pop()!)
+
+        while (existingSessions.length) {
+          this.disconnect(existingSessions.pop()!.topic)
+        }
+      }
+
+      this.walletConnectClient.on('session_event', (event) => {
+        // Handle session events, such as "chainChanged", "accountsChanged", etc.
+        alert('There has been a session event!')
+        console.log(event)
+      })
+
+      this.walletConnectClient.on('session_update', ({ topic, params }) => {
+        // Handle session update
+        alert('There has been a update to the session!')
+        const { namespaces } = params
+        const _session = this.walletConnectClient!.session.get(topic)
+        // Overwrite the `namespaces` of the existing session with the incoming one.
+        const updatedSession = { ..._session, namespaces }
+        // Integrate the updated session state into your dapp state.
+        console.log(updatedSession)
+      })
+
+      this.walletConnectClient.on('session_delete', (pairing) => {
+        console.log(pairing)
+        this.signers = this.signers.filter((signer) => signer.topic !== pairing.topic)
+        this.disconnect(pairing.topic)
+        // Session was deleted -> reset the dapp state, clean up from user session, etc.
+        console.log('Dapp: Session deleted by wallet!')
+      })
+
+      this.walletConnectClient.core.pairing.events.on('pairing_delete', (pairing) => {
+        // Session was deleted
+        console.log(pairing)
+        this.signers = this.signers.filter((signer) => signer.topic !== pairing.topic)
+        this.disconnect(pairing.topic)
+        console.log(`Dapp: Pairing deleted by wallet!`)
+        // clean up after the pairing for `topic` was deleted.
       })
     } finally {
       this.isInitializing = false
@@ -64,7 +125,6 @@ export class DAppConnector {
         QRCodeModal.open(uri, () => {
           throw new Error('User rejected pairing')
         })
-
         await this.onSessionConnected(await approval())
       } finally {
         QRCodeModal.close()
@@ -86,31 +146,58 @@ export class DAppConnector {
   }
 
   private abortableConnect = async <T>(callback: () => Promise<T>): Promise<T> => {
-    const pairTimeoutMs = 480_000
-    const timeout = setTimeout(() => {
-      QRCodeModal.close()
-      throw new Error(`Connect timed out after ${pairTimeoutMs}(ms)`)
-    }, pairTimeoutMs)
+    return new Promise(async (resolve, reject) => {
+      const pairTimeoutMs = 480_000
+      const timeout = setTimeout(() => {
+        QRCodeModal.close()
+        reject(new Error(`Connect timed out after ${pairTimeoutMs}(ms)`))
+      }, pairTimeoutMs)
 
-    try {
-      return await callback()
-    } finally {
-      clearTimeout(timeout)
-    }
+      try {
+        return resolve(await callback())
+      } finally {
+        clearTimeout(timeout)
+      }
+    })
   }
 
   public async disconnect(topic: string): Promise<void> {
+    await this.walletConnectClient!.disconnect({
+      topic: topic,
+      reason: getSdkError('USER_DISCONNECTED'),
+    })
+  }
+
+  public async disconnectAll(): Promise<void> {
     if (!this.walletConnectClient) {
       throw new Error('WalletConnect is not initialized')
     }
-    if (!topic) {
-      throw new Error('No topic provided')
+
+    const sessions = this.walletConnectClient.session.getAll()
+    const pairings = this.walletConnectClient.core.pairing.getPairings()
+    if (!sessions?.length && !pairings?.length) {
+      throw new Error('There is no active session/pairing. Connect to the wallet at first.')
     }
 
-    await this.walletConnectClient.disconnect({
-      topic,
-      reason: getSdkError('USER_DISCONNECTED'),
-    })
+    const disconnectionPromises: Promise<void>[] = []
+
+    // disconnect sessions
+    for (const session of this.walletConnectClient.session.getAll()) {
+      console.log(`Disconnecting from session: ${session}`)
+      const promise = this.disconnect(session.topic)
+      disconnectionPromises.push(promise)
+    }
+
+    // disconnect pairings
+    //https://docs.walletconnect.com/api/core/pairing
+    for (const pairing of pairings) {
+      const promise = this.disconnect(pairing.topic)
+      disconnectionPromises.push(promise)
+    }
+
+    await Promise.all(disconnectionPromises)
+
+    this.signers = []
   }
 
   private createSigners(session: SessionTypes.Struct): DAppSigner[] {
@@ -125,9 +212,28 @@ export class DAppConnector {
     this.signers.push(...this.createSigners(session))
   }
 
+  private pingWithTimeout = async (
+    { topic }: EngineTypes.PingParams,
+    pingTimeoutMs: number = 1_000,
+  ) => {
+    return new Promise<void>(async (resolve, reject) => {
+      const timeout = setTimeout(() => {
+        reject(new Error(`Ping to ${topic} timed out after ${pingTimeoutMs}(ms)`))
+      }, pingTimeoutMs)
+
+      try {
+        resolve(await this.walletConnectClient?.ping({ topic }))
+      } catch (err) {
+        reject(err)
+      } finally {
+        clearTimeout(timeout)
+      }
+    })
+  }
+
   private async pingWithRetry(topic: string, retries = 3): Promise<void> {
     try {
-      await this.walletConnectClient!.ping({ topic })
+      await this.pingWithTimeout({ topic })
     } catch (error) {
       if (retries > 0) {
         console.log(`Ping failed, ${retries} retries left. Retrying in 1 seconds...`)
@@ -155,11 +261,11 @@ export class DAppConnector {
                 resolve(session)
               } catch (error) {
                 try {
-                  console.log('Ping failed, disconnecting from session. Topic: ', session.topic)
                   await this.walletConnectClient!.disconnect({
                     topic: session.topic,
                     reason: getSdkError('SESSION_SETTLEMENT_FAILED'),
                   })
+                  reject(`Ping failed, disconnecting from session. Topic: ${session.topic}`)
                 } catch (e) {
                   console.log('Non existing session with topic:', session.topic)
                   reject('Non existing session')
@@ -200,6 +306,63 @@ export class DAppConnector {
         this.supportedMethods,
         this.supportedEvents,
       ),
+    })
+  }
+
+  private async request<Req extends EngineTypes.RequestParams, Res extends JsonRpcResult>({
+    method,
+    params,
+  }: Req['request']): Promise<Res> {
+    const signer = this.signers[this.signers.length - 1]
+    if (!signer) {
+      throw new Error('There is no active session. Connect to the wallet at first.')
+    }
+
+    return await signer.request({
+      method: method,
+      params: params,
+    })
+  }
+
+  public async getNodeAddresses() {
+    return await this.request<GetNodeAddressesRequest, GetNodeAddressesResult>({
+      method: HederaJsonRpcMethod.GetNodeAddresses,
+      params: undefined,
+    })
+  }
+
+  public async sendTransactionOnly(params: SendTransactionOnlyParams) {
+    return await this.request<SendTransactionOnlyRequest, SendTransactionOnlyResult>({
+      method: HederaJsonRpcMethod.SendTransactionOnly,
+      params,
+    })
+  }
+
+  public async signMessage(params: SignMessageParams) {
+    return await this.request<SignMessageRequest, SignMessageResult>({
+      method: HederaJsonRpcMethod.SignMessage,
+      params,
+    })
+  }
+
+  public async signQueryAndSend(params: SignQueryAndSendParams) {
+    return await this.request<SignQueryAndSendRequest, SignQueryAndSendResult>({
+      method: HederaJsonRpcMethod.SignQueryAndSend,
+      params,
+    })
+  }
+
+  public async signTransactionAndSend(params: SignTransactionAndSendParams) {
+    return await this.request<SignTransactionAndSendRequest, SignTransactionAndSendResult>({
+      method: HederaJsonRpcMethod.SignTransactionAndSend,
+      params,
+    })
+  }
+
+  public async signTransactionBody(params: SignTransactionBodyParams) {
+    return await this.request<SignTransactionBodyRequest, SignTransactionBodyResult>({
+      method: HederaJsonRpcMethod.SignTransactionBody,
+      params,
     })
   }
 }

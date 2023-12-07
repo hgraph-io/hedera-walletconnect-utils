@@ -70,14 +70,16 @@ export interface SignMessageResponse extends EngineTypes.RespondParams {
 /*
  * 4. hedera_signQueryAndSend
  */
+// params
+export interface SignQueryAndSendParams {
+  signerAccountId: string
+  query: string
+}
 // request
 export interface SignQueryAndSendRequest extends EngineTypes.RequestParams {
   request: {
     method: HederaJsonRpcMethod.SignQueryAndSend
-    params: {
-      signerAccountId: string
-      query: string
-    }
+    params: SignQueryAndSendParams
   }
 }
 // result
