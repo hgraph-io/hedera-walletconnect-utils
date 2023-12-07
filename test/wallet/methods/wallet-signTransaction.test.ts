@@ -1,5 +1,5 @@
 import { TopicCreateTransaction } from '@hashgraph/sdk'
-import { HederaChainId, SignAndExecuteTransactionResponse, Wallet } from '../../src'
+import { HederaChainId, SignTransactionResponse, Wallet } from '../../../src'
 import {
   prepareTestTransaction,
   projectId,
@@ -9,30 +9,22 @@ import {
   testUserAccountId,
   useJsonFixture,
   walletMetadata,
-} from '../_helpers'
+} from '../../_helpers'
 
 describe(Wallet.name, () => {
-  describe('signAndExecuteTransaction', () => {
-    it('should sign and execute, returning the transaction response', async () => {
+  describe('signTransaction', () => {
+    it('should sign a transaction and return without executing', async () => {
       const wallet = await Wallet.create(projectId, walletMetadata)
-
       const hederaWallet = wallet!.getHederaWallet(
         HederaChainId.Testnet,
         testUserAccountId.toString(),
         testPrivateKeyECDSA,
       )
-
-      const signerCallMock = jest.spyOn(hederaWallet, 'call')
-      signerCallMock.mockImplementation(async () => {}) // Mocking the 'call' method to do nothing
-
-      const transaction = prepareTestTransaction(new TopicCreateTransaction(), {
-        freeze: true,
-      })
-
+      const transaction = prepareTestTransaction(new TopicCreateTransaction(), { freeze: true })
       const respondSessionRequestSpy = jest.spyOn(wallet, 'respondSessionRequest')
 
       try {
-        await wallet.hedera_signAndExecuteTransaction(
+        await wallet.hedera_signTransaction(
           requestId,
           requestTopic,
           [transaction],
@@ -40,10 +32,10 @@ describe(Wallet.name, () => {
         )
       } catch (err) {}
 
-      const mockResponse: SignAndExecuteTransactionResponse = useJsonFixture(
-        'signAndExecuteTransactionSuccess',
-      )
+      const mockResponse: SignTransactionResponse = useJsonFixture('signTransactionSuccess')
+      mockResponse.response.result.sort()
 
+      respondSessionRequestSpy
       expect(respondSessionRequestSpy).toHaveBeenCalledWith(mockResponse)
     }, 15_000)
   })

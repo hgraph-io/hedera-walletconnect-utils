@@ -1,11 +1,11 @@
-import { HederaChainId, SignMessageResponse, Wallet, base64StringToMessage } from '../../src'
+import { HederaChainId, SignMessageResponse, Wallet, base64StringToMessage } from '../../../src'
 import {
   testPrivateKeyECDSA,
   testPrivateKeyED25519,
   testUserAccountId,
   walletMetadata,
   projectId,
-} from '../_helpers'
+} from '../../_helpers'
 
 describe(Wallet.name, () => {
   describe('signMessage', () => {
