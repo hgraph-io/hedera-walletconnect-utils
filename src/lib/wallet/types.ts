@@ -1,7 +1,7 @@
 import type { Web3WalletTypes } from '@walletconnect/web3wallet'
 import type { SessionTypes } from '@walletconnect/types'
 import type { Transaction, Query, AccountId, Wallet as HederaWallet } from '@hashgraph/sdk'
-import type { HederaJsonRpcMethod, HederaChainId, SignMessageResponse } from '../shared'
+import type { HederaJsonRpcMethod, HederaChainId } from '../shared'
 import type Provider from './provider'
 
 export interface HederaNativeWallet {

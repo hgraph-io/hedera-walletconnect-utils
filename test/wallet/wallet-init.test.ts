@@ -1,8 +1,8 @@
 import { AccountId, Client, ClientNetworkName, PrivateKey } from '@hashgraph/sdk'
-import { HederaWallet } from '../../src'
+import { Wallet } from '../../src'
 import { defaultAccountNumber } from '../_helpers'
 
-describe(HederaWallet.name, () => {
+describe(Wallet.name, () => {
   describe('init', () => {
     // [networkName, accountId]
     const testCases: [ClientNetworkName, string | number][] = [
