@@ -142,7 +142,7 @@ export function base64StringToMessage(message: string): Uint8Array[] {
 }
 
 export function messageToBase64String(message: string): string {
-  return Buffer.from(message, 'base64').toString('utf-8')
+  return Buffer.from(message, 'utf-8').toString('base64')
 }
 
 /**

@@ -34,8 +34,6 @@ describe(Wallet.name, () => {
       test.each(testCases)(
         'it should initialize HederaWallet with %p chainId and %p accountId',
         async (chainId, accountId, ledgerId) => {
-          const wallet = await Wallet.create(projectId, walletMetadata)
-
           const hederaWallet = wallet!.getHederaWallet(
             chainId,
             accountId.toString(),
