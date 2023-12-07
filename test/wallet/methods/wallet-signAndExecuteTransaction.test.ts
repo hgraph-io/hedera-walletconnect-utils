@@ -41,7 +41,7 @@ describe(Wallet.name, () => {
       } catch (err) {}
 
       const mockResponse: SignAndExecuteTransactionResponse = useJsonFixture(
-        'signAndExecuteTransactionSuccess',
+        'methods/signAndExecuteTransactionSuccess',
       )
 
       expect(respondSessionRequestSpy).toHaveBeenCalledWith(mockResponse)

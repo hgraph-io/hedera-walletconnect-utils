@@ -26,7 +26,9 @@ describe(Wallet.name, () => {
         await wallet.hedera_getNodeAddresses(requestId, requestTopic, null, hederaWallet)
       } catch (err) {}
 
-      const mockResponse: GetNodeAddresesResponse = useJsonFixture('getNodeAddressesSuccess')
+      const mockResponse: GetNodeAddresesResponse = useJsonFixture(
+        'methods/getNodeAddressesSuccess',
+      )
 
       const callArguments = respondSessionRequestSpy.mock.calls[0][0]
       const response = callArguments as GetNodeAddresesResponse
