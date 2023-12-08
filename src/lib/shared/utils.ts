@@ -9,7 +9,7 @@ import hashgraphNamespace from '@hashgraph/proto'
  * Freezes a transaction if it is not already frozen. Transactions must
  * be frozen before they can be converted to bytes.
  *
- * @param transaction Any instance of a class that extends `Transaction`
+ * @param transaction - Any instance of a class that extends `Transaction`
  */
 export function freezeTransaction<T extends Transaction>(transaction: T): void {
   if (!transaction.isFrozen()) {
@@ -23,7 +23,7 @@ export function freezeTransaction<T extends Transaction>(transaction: T): void {
  * function will not modify the transaction. See full list of nodes here:
  * - {@link https://docs.hedera.com/hedera/networks/testnet/testnet-nodes}
  * - {@link https://docs.hedera.com/hedera/networks/mainnet/mainnet-nodes}
- * @param transaction Any instance of a class that extends `Transaction`
+ * @param transaction Any - instance of a class that extends `Transaction`
  */
 export function setDefaultNodeAccountIds<T extends Transaction>(transaction: T): void {
   const isNodeAccountIdNotSet =
@@ -37,7 +37,7 @@ export function setDefaultNodeAccountIds<T extends Transaction>(transaction: T):
 /**
  * Converts a transaction to bytes and then encodes as a base64 string. Will attempt
  * to set default Node Account ID and freeze the transaction before converting.
- * @param transaction Any instance of a class that extends `Transaction`
+ * @param transaction - Any instance of a class that extends `Transaction`
  * @returns a base64 encoded string
  */
 export function transactionToBase64String<T extends Transaction>(transaction: T): string {
@@ -52,10 +52,10 @@ export function transactionToBase64String<T extends Transaction>(transaction: T)
  * then passes to `Transaction.fromBytes`. For greater flexibility, this function uses the base
  * `Transaction` class, but takes an optional type parameter if the type of transaction is known,
  * allowing stronger typeing.
- * @param transactionBytes string - a base64 encoded string
+ * @param transactionBytes - a base64 encoded string
  * @returns `Transaction`
  * @example
- * ```js
+ * ```ts
  * const txn1 = base64StringToTransaction(bytesString)
  * const txn2 = base64StringToTransaction<TransferTransaction>(bytesString)
  * // txn1 type: Transaction
@@ -68,17 +68,17 @@ export function base64StringToTransaction<T extends Transaction>(transactionByte
 }
 
 /**
- * Converts a SignatureMap to a base64 string.
- * @param signatureMap SignatureMap
- * @returns a base64 encoded string
+ * Converts a `SignatureMap` to a base64 string.
+ * @param signatureMap - SignatureMap
+ * @returns base64 encoded string
  */
 export function signatureMapToBase64(signatureMap: SignatureMap): string {
   return Buffer.from(JSON.stringify(signatureMap)).toString('base64')
 }
 
 /**
- * Converts a base64 encoded string to a hashgraphNamespace.proto.ISignatureMap.
- * @param base64string string - a base64 encoded string
+ * Converts a base64 encoded string to a `hashgraphNamespace.proto.ISignatureMap`.
+ * @param base64string - base64 encoded string
  * @returns `hashgraph.proto.ISignatureMap`
  */
 export function base64StringToSignatureMap(
@@ -89,17 +89,17 @@ export function base64StringToSignatureMap(
 }
 
 /**
- * Converts a Uint8Array to a base64 string.
- * @param binary Uint8Array
- * @returns a base64 encoded string
+ * Converts a `Uint8Array` to a base64 string.
+ * @param binary - Uint8Array
+ * @returns base64 encoded string
  */
 export function Uint8ArrayToBase64String(binary: Uint8Array): string {
   return Buffer.from(binary).toString('base64')
 }
 
 /**
- * Converts a base64 encoded string to a Uint8Array.
- * @param base64string string - a base64 encoded string
+ * Converts a base64 encoded string to a `Uint8Array`.
+ * @param base64string - base64 encoded string
  * @returns `Uint8Array`
  */
 export function base64StringToUint8Array(base64string: string): Uint8Array {
@@ -108,9 +108,11 @@ export function base64StringToUint8Array(base64string: string): Uint8Array {
 }
 
 /**
- * Converts a query to bytes and then encodes as a base64 string.
- * @param Query
- * @returns a base64 encoded string
+ * Converts a `Query` to base64 encoded string.
+ * First converts `Query` to binary `Uint8Array` with `Query` instance method `toBytes`.
+ * Then encodes binary `Uint8Array` to base64 string represenation.
+ * @param query - `Query`
+ * @returns base64 encoded representation of `Query`
  */
 export function queryToBase64String<T, Q extends Query<T>>(query: Q): string {
   const queryBytes = query.toBytes()
@@ -122,11 +124,18 @@ export function queryToBase64String<T, Q extends Query<T>>(query: Q): string {
  * then passes to `Query.fromBytes`. For greater flexibility, this function uses the base
  * `Query` class, but takes an optional type parameter if the type of query is known,
  * allowing stronger typeing.
- * @param queryBytes string - a base64 encoded string
+ * @param bytesString - base64 encoded string
  * @returns `Query<T>`
+ * * @example
+ * ```ts
+ * const txn1 = base64StringToTransaction(bytesString)
+ * const txn2 = base64StringToTransaction<TransferTransaction>(bytesString)
+ * // txn1 type: Transaction
+ * // txn2 type: TransferTransaction
+ * ```
  */
-export function base64StringToQuery<T, Q extends Query<T>>(queryBytes: string): Q {
-  const decoded = Buffer.from(queryBytes, 'base64')
+export function base64StringToQuery<Q extends Query<any>>(bytesString: string): Q {
+  const decoded = Buffer.from(bytesString, 'base64')
   return Query.fromBytes(decoded) as Q
 }
 
