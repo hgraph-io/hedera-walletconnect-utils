@@ -1,5 +1,5 @@
-import { RequestType, TopicCreateTransaction, TopicDeleteTransaction } from '@hashgraph/sdk'
-import { HederaJsonRpcMethods, HederaSessionRequest, networkNameToCAIPChainId } from '../../src'
+import { TopicCreateTransaction, TopicDeleteTransaction } from '@hashgraph/sdk'
+import { HederaJsonRpcMethod, HederaSessionRequest, networkNameToCAIPChainId } from '../../src'
 import { prepareTestTransaction, useJsonFixture } from '../_helpers'
 
 const CHAIN_ID = networkNameToCAIPChainId('testnet')
@@ -27,7 +27,7 @@ describe(HederaSessionRequest.name, () => {
   })
 
   describe('buildSignAndExecuteTransactionRequest', () => {
-    it(`should build request with ${HederaJsonRpcMethods.SIGN_AND_EXECUTE_TRANSACTION} params`, () => {
+    it(`should build request with ${HederaJsonRpcMethod.SignAndExecuteTransaction} params`, () => {
       const transaction = prepareTestTransaction(new TopicCreateTransaction())
 
       const result = HederaSessionRequest.create({
@@ -40,7 +40,7 @@ describe(HederaSessionRequest.name, () => {
         topic: TOPIC,
         expiry: undefined,
         request: {
-          method: HederaJsonRpcMethods.SIGN_AND_EXECUTE_TRANSACTION,
+          method: HederaJsonRpcMethod.SignAndExecuteTransaction,
           params: useJsonFixture('buildSignAndExecuteTransactionParamsResult'),
         },
       }
@@ -49,9 +49,9 @@ describe(HederaSessionRequest.name, () => {
     })
   })
 
+  // TODO: rename this helper later maybe?
   describe('buildSignAndReturnTransactionRequest', () => {
-    it(`should build request with ${HederaJsonRpcMethods.SIGN_AND_RETURN_TRANSACTION} params`, () => {
-      const type = RequestType.ConsensusDeleteTopic
+    it(`should build request with ${HederaJsonRpcMethod.SignTransaction} params`, () => {
       const transaction = prepareTestTransaction(new TopicDeleteTransaction())
 
       const result = HederaSessionRequest.create({
@@ -64,7 +64,7 @@ describe(HederaSessionRequest.name, () => {
         topic: TOPIC,
         expiry: undefined,
         request: {
-          method: HederaJsonRpcMethods.SIGN_AND_RETURN_TRANSACTION,
+          method: HederaJsonRpcMethod.SignTransaction,
           params: useJsonFixture('buildSignAndReturnTransactionParamsResult'),
         },
       }
@@ -74,7 +74,7 @@ describe(HederaSessionRequest.name, () => {
   })
 
   describe('buildSignMessageRequest', () => {
-    it(`should build request with ${HederaJsonRpcMethods.SIGN_MESSAGE} params`, () => {
+    it(`should build request with ${HederaJsonRpcMethod.SignMessage} params`, () => {
       const result = HederaSessionRequest.create({
         chainId: CHAIN_ID,
         topic: TOPIC,
@@ -85,7 +85,7 @@ describe(HederaSessionRequest.name, () => {
         topic: TOPIC,
         expiry: undefined,
         request: {
-          method: HederaJsonRpcMethods.SIGN_MESSAGE,
+          method: HederaJsonRpcMethod.SignMessage,
           params: useJsonFixture('buildSignMessageParamsResult'),
         },
       }
