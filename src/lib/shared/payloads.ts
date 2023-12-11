@@ -30,8 +30,12 @@ export interface GetNodeAddresesResponse extends EngineTypes.RespondParams {
 /*
  * 2. hedera_executeTransaction
  */
+
 // params
 export interface ExecuteTransactionParams {
+  /*
+   * signedTransaction - Array of Base64-encoded `Transaction`
+   */
   signedTransaction: string[]
 }
 // request
@@ -54,7 +58,13 @@ export interface ExecuteTransactionResponse extends EngineTypes.RespondParams {
  */
 // params
 export interface SignMessageParams {
+  /*
+   * signerAccountId - a Hedera Account identifier in [HIP-30](https://hips.hedera.com/hip/hip-30) (`<nework>:<shard>.<realm>.<num>`) form.
+   */
   signerAccountId: string
+  /*
+   * message - a plain text string to present to the user prior to authorizing a signature
+   */
   message: string
 }
 // request
