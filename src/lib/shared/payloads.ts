@@ -4,6 +4,10 @@ import type { TransactionResponseJSON } from '@hashgraph/sdk'
 // import type { PrecheckStatusErrorJSON } from '@hashgraph/sdk/lib/PrecheckStatusError'
 import { HederaJsonRpcMethod } from './methods'
 
+/**
+ * Defines various types and interfaces for Hedera JSON-RPC methods.
+ */
+
 /*
  * 1. hedera_getNodeAddresses
  */

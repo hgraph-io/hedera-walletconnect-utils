@@ -1,13 +1,16 @@
-//https://github.com/WalletConnect/walletconnect-monorepo/blob/v2.0/packages/utils/src/errors.ts
+/**
+ * This file defines error handling related to Hedera operations.
+ * @see {@link https://github.com/WalletConnect/walletconnect-monorepo/blob/v2.0/packages/utils/src/errors.ts | WalletConnect Errors}
+ */
+
+/**
+ * Represents keys of Hedera error types.
+ */
 export type HederaErrorKey = keyof typeof HEDERA_ERRORS
 
-// WalletConnect has certain error code ranges reserved for WalletConnect use
-// https://github.com/WalletConnect/walletconnect-monorepo/blob/v2.0/packages/utils/src/errors.ts
-// The following schema uses negative codes to avoid conflicts
-/*
- * ErrorResponse
- *   - JSON-RPC error can be a primitive or structured value that contains additional information about the error
- *   however, ErrorResponse in WalletConnect is defined as a string, so we allow more robust error handling here
+/**
+ * Represents a JSON-RPC error for Hedera operations.
+ * @param T - Generic type for additional data in the error response.
  */
 export interface HederaErrorResponse<T = any> {
   code: number
@@ -15,6 +18,18 @@ export interface HederaErrorResponse<T = any> {
   data?: T
 }
 
+/**
+ * WalletConnect has certain
+ * {@link https://github.com/WalletConnect/walletconnect-monorepo/blob/v2.0/packages/utils/src/errors.ts | error code ranges reserved}
+ * for WalletConnect use.
+ * The following schema uses negative codes to avoid conflicts.
+ *
+ * @see {@link https://github.com/WalletConnect/walletconnect-monorepo/blob/v2.0/packages/utils/src/errors.ts | WalletConnect Errors}
+ */
+
+/**
+ * Object containing specific Hedera errors with their respective codes and messages.
+ */
 export const HEDERA_ERRORS: { [key: string]: Pick<HederaErrorResponse, 'code' | 'message'> } = {
   INVALID_PARAMS: {
     code: -1,
@@ -22,12 +37,23 @@ export const HEDERA_ERRORS: { [key: string]: Pick<HederaErrorResponse, 'code' | 
   },
 }
 
+/**
+ * Represents a JSON-RPC error for Hedera operations.
+ * @param T - Generic type for additional data in the error response.
+ */
 export interface HederaJsonRpcError<T = any> {
   id: number
   jsonrpc: '2.0'
   error: HederaErrorResponse<T>
 }
 
+/**
+ * Generates a Hedera error response based on the provided key, context, and additional data.
+ * @param key - Key representing the specific error type.
+ * @param context - Contextual information for the error (optional).
+ * @param data - Additional data to include in the error response (optional).
+ * @returns A HederaErrorResponse object with the specified code, message, and additional data.
+ */
 export function getHederaError<T>(
   key: string,
   context?: string | number,
