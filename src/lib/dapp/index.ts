@@ -43,6 +43,14 @@ export class DAppConnector {
   signers: DAppSigner[] = []
   isInitializing = false
 
+  /**
+   * Initializes the DAppConnector instance.
+   * @param metadata - SignClientTypes.Metadata object for the DApp metadata.
+   * @param network - LedgerId representing the network (default: LedgerId.TESTNET).
+   * @param projectId - Project ID for the WalletConnect client.
+   * @param methods - Array of supported methods for the DApp (optional).
+   * @param events - Array of supported events for the DApp (optional).
+   */
   constructor(
     metadata: SignClientTypes.Metadata,
     network: LedgerId,
@@ -57,6 +65,10 @@ export class DAppConnector {
     this.projectId = projectId
   }
 
+  /**
+   * Initializes the DAppConnector instance.
+   * @param logger - `BaseLogger` for logging purposes (optional).
+   */
   async init({ logger }: { logger?: BaseLogger } = {}) {
     try {
       this.isInitializing = true
@@ -117,6 +129,11 @@ export class DAppConnector {
     }
   }
 
+  /**
+   * Initiates the WallecConnect connection flow using a QR code.
+   * @param pairingTopic - The pairing topic for the connection (optional).
+   * @returns A Promise that resolves when the connection process is complete.
+   */
   public async connectQR(pairingTopic?: string): Promise<void> {
     return this.abortableConnect(async () => {
       try {
@@ -132,6 +149,11 @@ export class DAppConnector {
     })
   }
 
+  /**
+   * Initiates the WallecConnect connection flow using URI.
+   * @param pairingTopic - The pairing topic for the connection (optional).
+   * @returns A Promise that resolves when the connection process is complete.
+   */
   public async connect(
     launchCallback: (uri: string) => void,
     pairingTopic?: string,
@@ -161,6 +183,11 @@ export class DAppConnector {
     })
   }
 
+  /**
+   * Disconnects the current session associated with the specified topic.
+   * @param topic - The topic of the session to disconnect.
+   * @returns A Promise that resolves when the session is disconnected.
+   */
   public async disconnect(topic: string): Promise<void> {
     await this.walletConnectClient!.disconnect({
       topic: topic,
@@ -168,6 +195,12 @@ export class DAppConnector {
     })
   }
 
+  /**
+   * Disconnects all active sessions and pairings.
+   *
+   * Throws error when WalletConnect is not initialized or there are no active sessions/pairings.
+   * @returns A Promise that resolves when all active sessions and pairings are disconnected.
+   */
   public async disconnectAll(): Promise<void> {
     if (!this.walletConnectClient) {
       throw new Error('WalletConnect is not initialized')
@@ -324,6 +357,12 @@ export class DAppConnector {
     })
   }
 
+  /**
+   * Retrieves the node addresses associated with the current Hedera network.
+   *
+   * When there is no active session or an error occurs during the request.
+   * @returns Promise\<{@link GetNodeAddressesResult}\>
+   */
   public async getNodeAddresses() {
     return await this.request<GetNodeAddressesRequest, GetNodeAddressesResult>({
       method: HederaJsonRpcMethod.GetNodeAddresses,
@@ -331,6 +370,22 @@ export class DAppConnector {
     })
   }
 
+  /**
+   * Executes a transaction on the Hedera network.
+   *
+   * @param {ExecuteTransactionParams} params - The parameters of type {@link ExecuteTransactionParams | `ExecuteTransactionParams`} required for the transaction execution.
+   * @param {string[]} params.signedTransaction - Array of Base64-encoded `Transaction`'s
+   * @returns Promise\<{@link ExecuteTransactionResult}\>
+   * @example
+   * Use helper `transactionToBase64String` to encode `Transaction` to Base64 string
+   * ```ts
+   * const params = {
+   *  signedTransaction: [transactionToBase64String(transaction)]
+   * }
+   *
+   * const result = await dAppConnector.executeTransaction(params)
+   * ```
+   */
   public async executeTransaction(params: ExecuteTransactionParams) {
     return await this.request<ExecuteTransactionRequest, ExecuteTransactionResult>({
       method: HederaJsonRpcMethod.ExecuteTransaction,
@@ -338,6 +393,23 @@ export class DAppConnector {
     })
   }
 
+  /**
+   * Signs a provided `message` with provided `signerAccountId`.
+   *
+   * @param {SignMessageParams} params - The parameters of type {@link SignMessageParams | `SignMessageParams`} required for signing message.
+   * @param {string} params.signerAccountId - a signer Hedera Account identifier in {@link https://hips.hedera.com/hip/hip-30 | HIP-30} (`<nework>:<shard>.<realm>.<num>`) form.
+   * @param {string} params.message - a plain UTF-8 string
+   * @returns Promise\<{@link SignMessageResult}\>
+   * @example
+   * ```ts
+   * const params = {
+   *  signerAccountId: '0.0.12345',
+   *  message: 'Hello World!'
+   * }
+   *
+   * const result = await dAppConnector.signMessage(params)
+   * ```
+   */
   public async signMessage(params: SignMessageParams) {
     return await this.request<SignMessageRequest, SignMessageResult>({
       method: HederaJsonRpcMethod.SignMessage,
@@ -345,6 +417,24 @@ export class DAppConnector {
     })
   }
 
+  /**
+   * Signs and send `Query` on the Hedera network.
+   *
+   * @param {SignQueryAndSendParams} params - The parameters of type {@link SignQueryAndSendParams | `SignQueryAndSendParams`} required for the Query execution.
+   * @param {string} params.signerAccountId - a signer Hedera Account identifier in {@link https://hips.hedera.com/hip/hip-30 | HIP-30} (`<nework>:<shard>.<realm>.<num>`) form.
+   * @param {string} params.query - `Query` object represented as Base64 string
+   * @returns Promise\<{@link SignQueryAndSendResult}\>
+   * @example
+   * Use helper `queryToBase64String` to encode `Query` to Base64 string
+   * ```ts
+   * const params = {
+   *  signerAccountId: '0.0.12345',
+   *  query: queryToBase64String(query),
+   * }
+   *
+   * const result = await dAppConnector.signQueryAndSend(params)
+   * ```
+   */
   public async signQueryAndSend(params: SignQueryAndSendParams) {
     return await this.request<SignQueryAndSendRequest, SignQueryAndSendResult>({
       method: HederaJsonRpcMethod.SignQueryAndSend,
@@ -352,6 +442,24 @@ export class DAppConnector {
     })
   }
 
+  /**
+   * Signs and executes Transactions on the Hedera network.
+   *
+   * @param {SignAndExecuteTransactionParams} params - The parameters of type {@link SignAndExecuteTransactionParams | `SignAndExecuteTransactionParams`} required for `Transaction` signing and execution.
+   * @param {string} params.signerAccountId - a signer Hedera Account identifier in {@link https://hips.hedera.com/hip/hip-30 | HIP-30} (`<nework>:<shard>.<realm>.<num>`) form.
+   * @param {string[]} params.transaction - Array of Base64-encoded `Transaction`'s
+   * @returns Promise\<{@link SignAndExecuteTransactionResult}\>
+   * @example
+   * Use helper `transactionToBase64String` to encode `Transaction` to Base64 string
+   * ```ts
+   * const params = {
+   *  signerAccountId: '0.0.12345'
+   *  transaction: [transactionToBase64String(transaction)]
+   * }
+   *
+   * const result = await dAppConnector.signAndExecuteTransaction(params)
+   * ```
+   */
   public async signAndExecuteTransaction(params: SignAndExecuteTransactionParams) {
     return await this.request<
       SignAndExecuteTransactionRequest,
@@ -362,6 +470,24 @@ export class DAppConnector {
     })
   }
 
+  /**
+   * Signs and executes Transactions on the Hedera network.
+   *
+   * @param {SignTransactionParams} params - The parameters of type {@link SignTransactionParams | `SignTransactionParams`} required for `Transaction` signing.
+   * @param {string} params.signerAccountId - a signer Hedera Account identifier in {@link https://hips.hedera.com/hip/hip-30 | HIP-30} (`<nework>:<shard>.<realm>.<num>`) form.
+   * @param {string[]} params.transaction - Array of Base64-encoded `Transaction`'s
+   * @returns Promise\<{@link SignTransactionResult}\>
+   * @example
+   * Use helper `transactionToBase64String` to encode `Transaction` to Base64 string
+   * ```ts
+   * const params = {
+   *  signerAccountId: '0.0.12345'
+   *  transaction: [transactionToBase64String(transaction)]
+   * }
+   *
+   * const result = await dAppConnector.signTransaction(params)
+   * ```
+   */
   public async signTransaction(params: SignTransactionParams) {
     return await this.request<SignTransactionRequest, SignTransactionResult>({
       method: HederaJsonRpcMethod.SignTransaction,

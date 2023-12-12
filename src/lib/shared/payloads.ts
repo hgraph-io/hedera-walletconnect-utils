@@ -4,6 +4,10 @@ import type { TransactionResponseJSON } from '@hashgraph/sdk'
 // import type { PrecheckStatusErrorJSON } from '@hashgraph/sdk/lib/PrecheckStatusError'
 import { HederaJsonRpcMethod } from './methods'
 
+/**
+ * Defines various types and interfaces for Hedera JSON-RPC methods.
+ */
+
 /*
  * 1. hedera_getNodeAddresses
  */
@@ -26,8 +30,12 @@ export interface GetNodeAddresesResponse extends EngineTypes.RespondParams {
 /*
  * 2. hedera_executeTransaction
  */
+
 // params
 export interface ExecuteTransactionParams {
+  /*
+   * signedTransaction - Array of Base64-encoded `Transaction`
+   */
   signedTransaction: string[]
 }
 // request
@@ -50,7 +58,13 @@ export interface ExecuteTransactionResponse extends EngineTypes.RespondParams {
  */
 // params
 export interface SignMessageParams {
+  /*
+   * signerAccountId - a Hedera Account identifier in [HIP-30](https://hips.hedera.com/hip/hip-30) (`<nework>:<shard>.<realm>.<num>`) form.
+   */
   signerAccountId: string
+  /*
+   * message - a plain text string to present to the user prior to authorizing a signature
+   */
   message: string
 }
 // request

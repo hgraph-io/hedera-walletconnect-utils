@@ -1,6 +1,5 @@
 import {
   AccountId,
-  AccountInfo,
   AccountInfoQuery,
   LedgerId,
   Query,
@@ -175,7 +174,7 @@ describe(`Query helpers`, () => {
 
   describe(base64StringToQuery.name, () => {
     it('should decode base64 string to Query', async () => {
-      const query = base64StringToQuery<AccountInfo, AccountInfoQuery>(base64Query)
+      const query = base64StringToQuery<AccountInfoQuery>(base64Query)
 
       expect(query).toBeInstanceOf(Query)
       expect(query).toBeInstanceOf(AccountInfoQuery)
