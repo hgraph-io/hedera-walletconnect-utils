@@ -1,6 +1,7 @@
 import type { Config } from 'jest'
 
 const config: Config = {
+  preset: 'ts-jest',
   detectOpenHandles: true,
   fakeTimers: {
     enableGlobally: true,

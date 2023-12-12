@@ -16,7 +16,7 @@ describe('DAppConnector', () => {
   let connector: DAppConnector
 
   describe('connect', () => {
-    it('should stablish connection and create session', async () => {
+    it('should establish connection and create session', async () => {
       connector = new DAppConnector(appMetadata, LedgerId.TESTNET, PROJECT_ID)
       await connector.init()
       expect(connector.walletConnectClient).not.toBeNull()
