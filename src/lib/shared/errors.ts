@@ -12,7 +12,7 @@ export type HederaErrorKey = keyof typeof HEDERA_ERRORS
  * Represents a JSON-RPC error for Hedera operations.
  * @param T - Generic type for additional data in the error response.
  */
-export interface HederaErrorResponse<T = any> {
+export interface HederaErrorResponse<T = string | number> {
   code: number
   message: string
   data?: T
@@ -32,7 +32,7 @@ export interface HederaErrorResponse<T = any> {
  */
 export const HEDERA_ERRORS: { [key: string]: Pick<HederaErrorResponse, 'code' | 'message'> } = {
   INVALID_PARAMS: {
-    code: -1,
+    code: 9000,
     message: 'INVALID_PARAMS',
   },
 }
@@ -41,7 +41,7 @@ export const HEDERA_ERRORS: { [key: string]: Pick<HederaErrorResponse, 'code' | 
  * Represents a JSON-RPC error for Hedera operations.
  * @param T - Generic type for additional data in the error response.
  */
-export interface HederaJsonRpcError<T = any> {
+export interface HederaJsonRpcError<T = string | number> {
   id: number
   jsonrpc: '2.0'
   error: HederaErrorResponse<T>
