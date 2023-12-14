@@ -1,7 +1,6 @@
 import { JsonRpcResult } from '@walletconnect/jsonrpc-types'
 import { EngineTypes } from '@walletconnect/types'
 import type { TransactionResponseJSON } from '@hashgraph/sdk'
-// import type { PrecheckStatusErrorJSON } from '@hashgraph/sdk/lib/PrecheckStatusError'
 import { HederaJsonRpcMethod } from './methods'
 
 /**
@@ -34,9 +33,9 @@ export interface GetNodeAddresesResponse extends EngineTypes.RespondParams {
 // params
 export interface ExecuteTransactionParams {
   /*
-   * signedTransaction - Array of Base64-encoded `Transaction`
+   * transactionList - Base64-encoded `TransactionList`
    */
-  signedTransaction: string[]
+  transactionList: string
 }
 // request
 export interface ExecuteTransactionRequest extends EngineTypes.RequestParams {
@@ -46,8 +45,7 @@ export interface ExecuteTransactionRequest extends EngineTypes.RequestParams {
   }
 }
 // result
-export interface ExecuteTransactionResult
-  extends JsonRpcResult<Array<TransactionResponseJSON & { precheckCode: number }>> {}
+export interface ExecuteTransactionResult extends JsonRpcResult<TransactionResponseJSON> {}
 // response
 export interface ExecuteTransactionResponse extends EngineTypes.RespondParams {
   response: ExecuteTransactionResult
@@ -109,7 +107,7 @@ export interface SignAndExecuteQueryResponse extends EngineTypes.RespondParams {
 // params
 export interface SignAndExecuteTransactionParams {
   signerAccountId: string
-  transaction: string[]
+  transactionList: string
 }
 // request
 export interface SignAndExecuteTransactionRequest extends EngineTypes.RequestParams {
@@ -121,7 +119,7 @@ export interface SignAndExecuteTransactionRequest extends EngineTypes.RequestPar
 
 // result
 export interface SignAndExecuteTransactionResult
-  extends JsonRpcResult<Array<TransactionResponseJSON & { precheckCode: number }>> {}
+  extends JsonRpcResult<TransactionResponseJSON> {}
 
 // response
 export interface SignAndExecuteTransactionResponse extends EngineTypes.RespondParams {
@@ -134,7 +132,7 @@ export interface SignAndExecuteTransactionResponse extends EngineTypes.RespondPa
 // params
 export interface SignTransactionParams {
   signerAccountId: string
-  transaction: string[]
+  transactionList: string
 }
 
 //request
@@ -146,7 +144,7 @@ export interface SignTransactionRequest extends EngineTypes.RequestParams {
 }
 
 // result
-export interface SignTransactionResult extends JsonRpcResult<string[]> {}
+export interface SignTransactionResult extends JsonRpcResult<{ signatureMap: string }> {}
 
 // response
 export interface SignTransactionResponse extends EngineTypes.RespondParams {

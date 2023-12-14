@@ -230,7 +230,7 @@ async function simulateTransactionExpiredError(_: Event) {
     .addHbarTransfer(recepient, new Hbar(+5))
 
   const params: SignAndExecuteTransactionParams = {
-    transaction: [transactionToBase64String(transaction)],
+    transaction: transactionToBase64String(transaction),
     signerAccountId: sender,
   }
 
