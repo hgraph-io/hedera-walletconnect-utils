@@ -8,21 +8,19 @@ import {
   AccountId,
   Timestamp,
   LedgerId,
-  AccountInfo,
 } from '@hashgraph/sdk'
 import {
   HederaSessionEvent,
   HederaJsonRpcMethod,
   transactionToBase64String,
   queryToBase64String,
-  SendTransactionOnlyParams,
+  ExecuteTransactionParams,
   SignMessageParams,
-  SignQueryAndSendParams,
-  SignTransactionAndSendParams,
-  SignTransactionBodyParams,
+  SignAndExecuteQueryParams,
+  SignAndExecuteTransactionParams,
+  SignTransactionParams,
+  DAppConnector,
 } from '@hashgraph/walletconnect'
-
-import { DAppConnector } from '@hashgraph/walletconnect'
 
 import { saveState, loadState, getState } from '../shared'
 
@@ -116,16 +114,16 @@ async function hedera_getNodeAddresses(_: Event) {
 document.getElementById('hedera_getNodeAddresses')!.onsubmit = (e: SubmitEvent) =>
   showErrorOrSuccess(hedera_getNodeAddresses, e)
 
-// 2. hedera_sendTransactionOnly
-async function hedera_sendTransactionOnly(_: Event) {
-  const params: SendTransactionOnlyParams = {
+// 2. hedera_executeTransaction
+async function hedera_executeTransaction(_: Event) {
+  const params: ExecuteTransactionParams = {
     signedTransaction: getState('send-transaction'),
   }
 
-  return await dAppConnector!.sendTransactionOnly(params)
+  return await dAppConnector!.executeTransaction(params)
 }
-document.getElementById('hedera_sendTransactionOnly')!.onsubmit = (e: SubmitEvent) =>
-  showErrorOrSuccess(hedera_sendTransactionOnly, e)
+document.getElementById('hedera_executeTransaction')!.onsubmit = (e: SubmitEvent) =>
+  showErrorOrSuccess(hedera_executeTransaction, e)
 
 // 3. hedera_signMessage
 async function hedera_signMessage(_: Event) {
@@ -140,55 +138,55 @@ async function hedera_signMessage(_: Event) {
 document.getElementById('hedera_signMessage')!.onsubmit = (e: SubmitEvent) =>
   showErrorOrSuccess(hedera_signMessage, e)
 
-// 4. SignQueryAndSend
-async function hedera_signQueryAndSend(_: Event) {
+// 4. SignAndExecuteQuery
+async function hedera_signAndExecuteQuery(_: Event) {
   const query = new AccountInfoQuery().setAccountId(getState('query-payment-account'))
-  const params: SignQueryAndSendParams = {
+  const params: SignAndExecuteQueryParams = {
     signerAccountId: getState('query-payment-account'),
     query: queryToBase64String(query),
   }
 
-  return await dAppConnector!.signQueryAndSend(params)
+  return await dAppConnector!.signAndExecuteQuery(params)
 }
 
-document.getElementById('hedera_signQueryAndSend')!.onsubmit = (e: SubmitEvent) =>
-  showErrorOrSuccess(hedera_signQueryAndSend, e)
+document.getElementById('hedera_signAndExecuteQuery')!.onsubmit = (e: SubmitEvent) =>
+  showErrorOrSuccess(hedera_signAndExecuteQuery, e)
 
-// 5. hedera_signTransactionAndSend
-async function hedera_signTransactionAndSend(_: Event) {
+// 5. hedera_signAndExecuteTransaction
+async function hedera_signAndExecuteTransaction(_: Event) {
   const transaction = new TransferTransaction()
     .setTransactionId(TransactionId.generate(getState('sign-send-from')))
     .addHbarTransfer(getState('sign-send-from'), new Hbar(-getState('sign-send-amount')))
     .addHbarTransfer(getState('sign-send-to'), new Hbar(+getState('sign-send-amount')))
 
-  const params: SignTransactionAndSendParams = {
-    signedTransaction: transactionToBase64String(transaction),
+  const params: SignAndExecuteTransactionParams = {
+    transaction: [transactionToBase64String(transaction)],
     signerAccountId: getState('sign-send-from'),
   }
 
   console.log(params)
 
-  return await dAppConnector!.signTransactionAndSend(params)
+  return await dAppConnector!.signAndExecuteTransaction(params)
 }
-document.getElementById('hedera_signTransactionAndSend')!.onsubmit = (e: SubmitEvent) =>
-  showErrorOrSuccess(hedera_signTransactionAndSend, e)
+document.getElementById('hedera_signAndExecuteTransaction')!.onsubmit = (e: SubmitEvent) =>
+  showErrorOrSuccess(hedera_signAndExecuteTransaction, e)
 
-// 6. hedera_signTransactionBody
-async function hedera_signTransactionBody(_: Event) {
+// 6. hedera_signTransaction
+async function hedera_signTransaction(_: Event) {
   const transaction = new TransferTransaction()
     .setTransactionId(TransactionId.generate(getState('sign-from')))
     .addHbarTransfer(getState('sign-from'), new Hbar(-getState('sign-amount')))
     .addHbarTransfer(getState('sign-to'), new Hbar(+getState('sign-amount')))
 
-  const params: SignTransactionBodyParams = {
+  const params: SignTransactionParams = {
     signerAccountId: getState('sign-from'),
-    transactionBody: transactionToBase64String(transaction),
+    transaction: [transactionToBase64String(transaction)],
   }
 
-  return await dAppConnector!.signTransactionBody(params)
+  return await dAppConnector!.signTransaction(params)
 }
-document.getElementById('hedera_signTransactionBody')!.onsubmit = (e: SubmitEvent) =>
-  showErrorOrSuccess(hedera_signTransactionBody, e)
+document.getElementById('hedera_signTransaction')!.onsubmit = (e: SubmitEvent) =>
+  showErrorOrSuccess(hedera_signTransaction, e)
 
 /*
  * Error handling simulation
@@ -203,12 +201,12 @@ async function simulateGossipNodeError(_: Event) {
     .addHbarTransfer(sender, new Hbar(-5))
     .addHbarTransfer(recepient, new Hbar(+5))
 
-  const params: SignTransactionAndSendParams = {
-    signedTransaction: transactionToBase64String(transaction),
+  const params: SignAndExecuteTransactionParams = {
+    transaction: [transactionToBase64String(transaction)],
     signerAccountId: getState('sign-send-from'),
   }
 
-  return await dAppConnector!.signTransactionAndSend(params)
+  return await dAppConnector!.signAndExecuteTransaction(params)
 }
 
 document.getElementById('error-gossip-node')!.onsubmit = (e: SubmitEvent) =>
@@ -231,12 +229,12 @@ async function simulateTransactionExpiredError(_: Event) {
     .addHbarTransfer(sender, new Hbar(-5))
     .addHbarTransfer(recepient, new Hbar(+5))
 
-  const params: SignTransactionAndSendParams = {
-    signedTransaction: transactionToBase64String(transaction),
+  const params: SignAndExecuteTransactionParams = {
+    transaction: transactionToBase64String(transaction),
     signerAccountId: sender,
   }
 
-  return await dAppConnector!.signTransactionAndSend(params)
+  return await dAppConnector!.signAndExecuteTransaction(params)
 }
 
 document.getElementById('error-transaction-expired')!.onsubmit = (e: SubmitEvent) =>

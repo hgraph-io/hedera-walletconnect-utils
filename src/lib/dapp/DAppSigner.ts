@@ -87,7 +87,7 @@ export class DAppSigner implements Signer {
 
   async signTransaction<T extends Transaction>(transaction: T): Promise<T> {
     const signedStringTransaction = await this.request<string>({
-      method: HederaJsonRpcMethod.SignTransactionBody,
+      method: HederaJsonRpcMethod.SignTransaction,
       params: buildSignAndReturnTransactionParams(this.accountId.toString(), transaction),
     })
 

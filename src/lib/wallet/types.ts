@@ -55,7 +55,7 @@ export interface HederaNativeWallet {
     signer: HederaWallet,
   ): Promise<void>
 
-  [HederaJsonRpcMethod.SendTransactionOnly](
+  [HederaJsonRpcMethod.ExecuteTransaction](
     id: number,
     topic: string,
     body: Transaction,
@@ -69,21 +69,21 @@ export interface HederaNativeWallet {
     signer: HederaWallet,
   ): Promise<void>
 
-  [HederaJsonRpcMethod.SignQueryAndSend](
+  [HederaJsonRpcMethod.SignAndExecuteQuery](
     id: number,
     topic: string,
     body: Query<any>,
     signer: HederaWallet,
   ): Promise<void>
 
-  [HederaJsonRpcMethod.SignTransactionAndSend](
+  [HederaJsonRpcMethod.SignAndExecuteTransaction](
     id: number,
     topic: string,
     body: Transaction,
     signer: HederaWallet,
   ): Promise<void>
 
-  [HederaJsonRpcMethod.SignTransactionBody](
+  [HederaJsonRpcMethod.SignTransaction](
     id: number,
     topic: string,
     body: Transaction,

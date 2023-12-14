@@ -2,30 +2,22 @@ import { Core } from '@walletconnect/core'
 import { Web3Wallet, Web3WalletTypes } from '@walletconnect/web3wallet'
 import { SessionTypes } from '@walletconnect/types'
 import { buildApprovedNamespaces, getSdkError } from '@walletconnect/utils'
-import {
-  Wallet as HederaWallet,
-  Client,
-  AccountId,
-  Transaction,
-  Query,
-  PrecheckStatusError,
-} from '@hashgraph/sdk'
+import { Wallet as HederaWallet, Client, AccountId, Transaction, Query } from '@hashgraph/sdk'
 import {
   HederaChainId,
   HederaSessionEvent,
   HederaJsonRpcMethod,
-  base64StringToTransaction,
   base64StringToQuery,
   base64StringToMessage,
   Uint8ArrayToBase64String,
   signatureMapToBase64,
   getHederaError,
   GetNodeAddresesResponse,
-  SendTransactionOnlyResponse,
+  ExecuteTransactionResponse,
   SignMessageResponse,
-  SignQueryAndSendResponse,
-  SignTransactionAndSendResponse,
-  SignTransactionBodyResponse,
+  SignAndExecuteQueryResponse,
+  SignAndExecuteTransactionResponse,
+  SignTransactionResponse,
 } from '../shared'
 import Provider from './provider'
 import type { HederaNativeWallet } from './types'
@@ -120,11 +112,13 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
    *  Session Requests
    */
   public validateParam(name: string, value: any, expectedType: string) {
-    if (typeof value !== expectedType)
-      throw getHederaError<string>(
-        'INVALID_PARAMS',
-        `Invalid paramameter value for ${name}, expected ${expectedType} but got ${typeof value}`,
-      )
+    if (expectedType === 'array' && Array.isArray(value)) return
+    if (typeof value === expectedType) return
+
+    throw getHederaError<string>(
+      'INVALID_PARAMS',
+      `Invalid paramameter value for ${name}, expected ${expectedType} but got ${typeof value}`,
+    )
   }
 
   public parseSessionRequest(
@@ -153,37 +147,53 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
     // then convert params to a body that the respective function expects
     try {
       switch (method) {
-        case HederaJsonRpcMethod.GetNodeAddresses: // 1
+        case HederaJsonRpcMethod.GetNodeAddresses: {
+          // 1
           if (params) throw getHederaError('INVALID_PARAMS')
           break
-        case HederaJsonRpcMethod.SendTransactionOnly: // 2
-          this.validateParam('signedTransaction', params?.signedTransaction, 'string')
-          body = base64StringToTransaction(params.signedTransaction)
+        }
+        case HederaJsonRpcMethod.ExecuteTransaction: {
+          // 2
+          const { transactionList } = params
+          this.validateParam('transactionList', transactionList, 'array')
+          body = transactionList
           break
-        case HederaJsonRpcMethod.SignMessage: // 3
-          this.validateParam('signerAccountId', params?.signerAccountId, 'string')
-          this.validateParam('message', params?.message, 'string')
-          signerAccountId = AccountId.fromString(params.signerAccountId)
-          body = base64StringToMessage(params.message)
+        }
+        case HederaJsonRpcMethod.SignMessage: {
+          // 3
+          const { signerAccountId: _accountId, message } = params
+          this.validateParam('signerAccountId', _accountId, 'string')
+          this.validateParam('message', message, 'string')
+          signerAccountId = AccountId.fromString(_accountId)
+          body = base64StringToMessage(message)
           break
-        case HederaJsonRpcMethod.SignQueryAndSend: // 4
-          this.validateParam('signerAccountId', params?.signerAccountId, 'string')
-          this.validateParam('query', params?.query, 'string')
-          signerAccountId = AccountId.fromString(params.signerAccountId)
-          body = base64StringToQuery(params.query)
+        }
+        case HederaJsonRpcMethod.SignAndExecuteQuery: {
+          // 4
+          const { signerAccountId: _accountId, query } = params
+          this.validateParam('signerAccountId', _accountId, 'string')
+          this.validateParam('query', query, 'string')
+          signerAccountId = AccountId.fromString(_accountId)
+          body = base64StringToQuery(query)
           break
-        case HederaJsonRpcMethod.SignTransactionAndSend: // 5
-          this.validateParam('signerAccountId', params?.signerAccountId, 'string')
-          this.validateParam('signedTransaction', params?.signedTransaction, 'string')
-          body = base64StringToTransaction(params.signedTransaction)
-          signerAccountId = AccountId.fromString(params.signerAccountId)
+        }
+        case HederaJsonRpcMethod.SignAndExecuteTransaction: {
+          // 5
+          const { signerAccountId: _accountId, transactionList } = params
+          this.validateParam('signerAccountId', _accountId, 'string')
+          this.validateParam('transactionList', transactionList, 'string')
+
+          signerAccountId = AccountId.fromString(_accountId)
           break
-        case HederaJsonRpcMethod.SignTransactionBody: // 6
-          this.validateParam('signerAccountId', params?.signerAccountId, 'string')
-          this.validateParam('transactionBody', params?.transactionBody, 'string')
-          signerAccountId = AccountId.fromString(params.signerAccountId)
-          body = base64StringToTransaction(params.transactionBody)
+        }
+        case HederaJsonRpcMethod.SignTransaction: {
+          // 6
+          const { signerAccountId: _accountId, transactionList } = params
+          this.validateParam('signerAccountId', _accountId, 'string')
+          this.validateParam('transactionList', transactionList, 'string')
+          signerAccountId = AccountId.fromString(_accountId)
           break
+        }
         default:
           throw getSdkError('INVALID_METHOD')
       }
@@ -253,39 +263,18 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
     return await this.respondSessionRequest(response)
   }
 
-  // 2. hedera_sendTransactionOnly
-  // TODO: HIP-820 suggested change
-  public async hedera_sendTransactionOnly(
+  // 2. hedera_executeTransaction
+  public async hedera_executeTransaction(
     id: number,
     topic: string,
-    body: Transaction, // must be signedTransaction
+    body: Transaction,
     signer: HederaWallet,
   ): Promise<void> {
-    const transactionId = body.transactionId!.toString()
-    const nodeId = body.nodeAccountIds![0].toString() // is this the actual nodeId this was sent to?
-    const transactionHash = Uint8ArrayToBase64String(await body.getTransactionHash())
-    let precheckCode = 0
-
-    try {
-      await signer.call(body)
-    } catch (err: unknown) {
-      console.error(err)
-
-      if (err instanceof PrecheckStatusError) {
-        precheckCode = err.status._code
-      }
-    }
-
-    const response: SendTransactionOnlyResponse = {
+    const response: ExecuteTransactionResponse = {
       topic,
       response: {
         id,
-        result: {
-          precheckCode,
-          transactionId,
-          nodeId,
-          transactionHash: transactionHash,
-        },
+        result: (await signer.call(body)).toJSON(),
         jsonrpc: '2.0',
       },
     }
@@ -338,8 +327,8 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
     // >>>>>>> origin/feature/hip820-methods
   }
 
-  // 4. hedera_signQueryAndSend
-  public async hedera_signQueryAndSend(
+  // 4. hedera_signAndExecuteQuery
+  public async hedera_signAndExecuteQuery(
     id: number,
     topic: string,
     body: Query<any>,
@@ -348,7 +337,7 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
     const queryResult = await body.executeWithSigner(signer)
     const queryResponse = Uint8ArrayToBase64String(queryResult.toBytes())
 
-    const response: SignQueryAndSendResponse = {
+    const response: SignAndExecuteQueryResponse = {
       topic,
       response: {
         jsonrpc: '2.0',
@@ -360,9 +349,8 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
     return await this.respondSessionRequest(response)
   }
 
-  // 5. hedera_signTransactionAndSend
-  // TODO: HIP-820 suggested change
-  public async hedera_signTransactionAndSend(
+  // 5. hedera_signAndExecuteTransaction
+  public async hedera_signAndExecuteTransaction(
     id: number,
     topic: string,
     body: Transaction,
@@ -370,33 +358,11 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
   ): Promise<void> {
     const signedTransaction = await signer.signTransaction(body)
 
-    const transactionId = signedTransaction.transactionId!.toString()
-    const nodeId = signedTransaction.nodeAccountIds![0].toString()
-    const transactionHash = Uint8ArrayToBase64String(
-      await signedTransaction.getTransactionHash(),
-    )
-    let precheckCode = 0
-
-    try {
-      await signer.call(signedTransaction)
-    } catch (err: unknown) {
-      console.log(err)
-
-      if (err instanceof PrecheckStatusError) {
-        precheckCode = err.status._code
-      }
-    }
-
-    const response: SignTransactionAndSendResponse = {
+    const response: SignAndExecuteTransactionResponse = {
       topic,
       response: {
         id,
-        result: {
-          precheckCode,
-          transactionId,
-          nodeId,
-          transactionHash: transactionHash,
-        },
+        result: (await signer.call(signedTransaction)).toJSON(),
         jsonrpc: '2.0',
       },
     }
@@ -404,24 +370,27 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
     return await this.respondSessionRequest(response)
   }
 
-  // 6. hedera_signTransactionBody
-  // TODO: HIP-820 suggested change
-  public async hedera_signTransactionBody(
+  // 6. hedera_signTransaction
+  public async hedera_signTransaction(
     id: number,
     topic: string,
-    body: Transaction, // The HIP calls for this to be a TransactionBody not a transaction
+    //TODO: // The spec calls for this to be a TransactionBody not a transaction
+    body: Transaction,
     signer: HederaWallet,
   ): Promise<void> {
-    const transaction = await signer.signTransaction(body)
-    const signatureMap = transaction.getSignatures()
-    const base64SignatureMap = signatureMapToBase64(signatureMap)
+    const signedTransaction = await signer.signTransaction(body)
+    const signatureMap = signedTransaction.getSignatures()
 
-    const response: SignTransactionBodyResponse = {
+    const result = {
+      signatureMap: signatureMapToBase64(signatureMap),
+    }
+
+    const response: SignTransactionResponse = {
       topic,
       response: {
         jsonrpc: '2.0',
         id,
-        result: { signatureMap: base64SignatureMap },
+        result,
       },
     }
 

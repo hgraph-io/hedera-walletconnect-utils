@@ -69,9 +69,9 @@
         </form>
       </section>
       <section>
-        <form id="hedera_sendTransactionOnly" class="toggle">
+        <form id="hedera_executeTransaction" class="toggle">
           <fieldset>
-            <legend>2. hedera_sendTransactionOnly</legend>
+            <legend>2. hedera_executeTransaction</legend>
             <label
               >Signed transaction bytes:
               <input name="send-transaction" required />
@@ -93,9 +93,9 @@
         </form>
       </section>
       <section>
-        <form id="hedera_signQueryAndSend" class="toggle">
+        <form id="hedera_signAndExecuteQuery" class="toggle">
           <fieldset>
-            <legend>4. hedera_signQueryAndSend</legend>
+            <legend>4. hedera_signAndExecuteQuery</legend>
             <label
               >Query type:
               <select name="query-type">
@@ -111,13 +111,13 @@
               <input name="query-payment-account" required />
             </label>
           </fieldset>
-          <button type="submit">hedera_signQueryAndSend</button>
+          <button type="submit">hedera_signAndExecuteQuery</button>
         </form>
       </section>
       <section>
-        <form id="hedera_signTransactionAndSend" class="toggle">
+        <form id="hedera_signAndExecuteTransaction" class="toggle">
           <fieldset>
-            <legend>5. hedera_signTransactionAndSend</legend>
+            <legend>5. hedera_signAndExecuteTransaction</legend>
             <label
               >Transaction type:
               <select name="sign-send-transaction-type">
@@ -141,9 +141,9 @@
         </form>
       </section>
       <section>
-        <form id="hedera_signTransactionBody" class="toggle">
+        <form id="hedera_signTransaction" class="toggle">
           <fieldset>
-            <legend>6. hedera_signTransactionBody</legend>
+            <legend>6. hedera_signTransaction</legend>
             <label
               >Transaction type:
               <select name="sign-transaction-type">
@@ -184,8 +184,8 @@
 
           <p>
             <i>
-              Call <b>hedera_sendTransactionOnly</b> or
-              <b>hedera_signTransactionAndSend</b> above with valid addresses before using
+              Call <b>hedera_executeTransaction</b> or
+              <b>hedera_signAndExecuteTransaction</b> above with valid addresses before using
               simulating errors described below.</i
             >
           </p>

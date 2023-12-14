@@ -1,8 +1,11 @@
 import { JsonRpcResult } from '@walletconnect/jsonrpc-types'
 import { EngineTypes } from '@walletconnect/types'
 import type { TransactionResponseJSON } from '@hashgraph/sdk'
-// import type { PrecheckStatusErrorJSON } from '@hashgraph/sdk/lib/PrecheckStatusError'
 import { HederaJsonRpcMethod } from './methods'
+
+/**
+ * Defines various types and interfaces for Hedera JSON-RPC methods.
+ */
 
 /*
  * 1. hedera_getNodeAddresses
@@ -24,25 +27,28 @@ export interface GetNodeAddresesResponse extends EngineTypes.RespondParams {
 }
 
 /*
- * 2. hedera_sendTransactionOnly
+ * 2. hedera_executeTransaction
  */
+
 // params
-export interface SendTransactionOnlyParams {
-  signedTransaction: string
+export interface ExecuteTransactionParams {
+  /*
+   * transactionList - Base64-encoded `TransactionList`
+   */
+  transactionList: string
 }
 // request
-export interface SendTransactionOnlyRequest extends EngineTypes.RequestParams {
+export interface ExecuteTransactionRequest extends EngineTypes.RequestParams {
   request: {
-    method: HederaJsonRpcMethod.SendTransactionOnly
-    params: SendTransactionOnlyParams
+    method: HederaJsonRpcMethod.ExecuteTransaction
+    params: ExecuteTransactionParams
   }
 }
 // result
-export interface SendTransactionOnlyResult
-  extends JsonRpcResult<TransactionResponseJSON & { precheckCode: number }> {}
+export interface ExecuteTransactionResult extends JsonRpcResult<TransactionResponseJSON> {}
 // response
-export interface SendTransactionOnlyResponse extends EngineTypes.RespondParams {
-  response: SendTransactionOnlyResult
+export interface ExecuteTransactionResponse extends EngineTypes.RespondParams {
+  response: ExecuteTransactionResult
 }
 
 /*
@@ -50,7 +56,13 @@ export interface SendTransactionOnlyResponse extends EngineTypes.RespondParams {
  */
 // params
 export interface SignMessageParams {
+  /*
+   * signerAccountId - a Hedera Account identifier in [HIP-30](https://hips.hedera.com/hip/hip-30) (`<nework>:<shard>.<realm>.<num>`) form.
+   */
   signerAccountId: string
+  /*
+   * message - a plain text string to present to the user prior to authorizing a signature
+   */
   message: string
 }
 // request
@@ -68,72 +80,73 @@ export interface SignMessageResponse extends EngineTypes.RespondParams {
 }
 
 /*
- * 4. hedera_signQueryAndSend
+ * 4. hedera_signAndExecuteQuery
  */
 // params
-export interface SignQueryAndSendParams {
+export interface SignAndExecuteQueryParams {
   signerAccountId: string
   query: string
 }
 // request
-export interface SignQueryAndSendRequest extends EngineTypes.RequestParams {
+export interface SignAndExecuteQueryRequest extends EngineTypes.RequestParams {
   request: {
-    method: HederaJsonRpcMethod.SignQueryAndSend
-    params: SignQueryAndSendParams
+    method: HederaJsonRpcMethod.SignAndExecuteQuery
+    params: SignAndExecuteQueryParams
   }
 }
 // result
-export interface SignQueryAndSendResult extends JsonRpcResult<{ response: string }> {}
+export interface SignAndExecuteQueryResult extends JsonRpcResult<{ response: string }> {}
 // response
-export interface SignQueryAndSendResponse extends EngineTypes.RespondParams {
-  response: SignQueryAndSendResult
+export interface SignAndExecuteQueryResponse extends EngineTypes.RespondParams {
+  response: SignAndExecuteQueryResult
 }
 
 /*
- * 5. hedera_signTransactionAndSend
+ * 5. hedera_signAndExecuteTransaction
  */
 // params
-export interface SignTransactionAndSendParams {
+export interface SignAndExecuteTransactionParams {
   signerAccountId: string
-  signedTransaction: string
+  transactionList: string
 }
 // request
-export interface SignTransactionAndSendRequest extends EngineTypes.RequestParams {
+export interface SignAndExecuteTransactionRequest extends EngineTypes.RequestParams {
   request: {
-    method: HederaJsonRpcMethod.SignTransactionAndSend
-    params: SignTransactionAndSendParams
+    method: HederaJsonRpcMethod.SignAndExecuteTransaction
+    params: SignAndExecuteTransactionParams
   }
 }
 
 // result
-export interface SignTransactionAndSendResult
-  extends JsonRpcResult<TransactionResponseJSON & { precheckCode: number }> {}
+export interface SignAndExecuteTransactionResult
+  extends JsonRpcResult<TransactionResponseJSON> {}
 
 // response
-export interface SignTransactionAndSendResponse extends EngineTypes.RespondParams {
-  response: SignTransactionAndSendResult
+export interface SignAndExecuteTransactionResponse extends EngineTypes.RespondParams {
+  response: SignAndExecuteTransactionResult
 }
 /*
- * 6. hedera_signTransactionBody
+ * 6. hedera_signTransaction
  */
+
 // params
-export interface SignTransactionBodyParams {
+export interface SignTransactionParams {
   signerAccountId: string
-  transactionBody: string
+  transactionList: string
 }
 
 //request
-export interface SignTransactionBodyRequest extends EngineTypes.RequestParams {
+export interface SignTransactionRequest extends EngineTypes.RequestParams {
   request: {
-    method: HederaJsonRpcMethod.SignTransactionBody
-    params: SignTransactionBodyParams
+    method: HederaJsonRpcMethod.SignTransaction
+    params: SignTransactionParams
   }
 }
 
 // result
-export interface SignTransactionBodyResult extends JsonRpcResult<{ signatureMap: string }> {}
+export interface SignTransactionResult extends JsonRpcResult<{ signatureMap: string }> {}
 
 // response
-export interface SignTransactionBodyResponse extends EngineTypes.RespondParams {
-  response: SignTransactionBodyResult
+export interface SignTransactionResponse extends EngineTypes.RespondParams {
+  response: SignTransactionResult
 }

@@ -2,6 +2,15 @@ import { type Transaction } from '@hashgraph/sdk'
 import { EngineTypes } from '@walletconnect/types'
 import { HederaJsonRpcMethod, transactionToBase64String } from '../shared'
 
+/**
+ * Builds parameters for signing messages.
+ *
+ * account ID - Hedera Account identifier in {@link https://hips.hedera.com/hip/hip-30 | HIP-30} (`<nework>:<shard>.<realm>.<num>`) form.
+ * @param signerAccountId - The signer's account ID.
+ * @param messages - An array of messages to be signed, each can be a Uint8Array or a string.
+ * @returns An object containing signer's account ID and base64 encoded messages.
+ *
+ */
 export function buildSignMessageParams(
   signerAccountId: string,
   messages: (Uint8Array | string)[],
@@ -63,7 +72,7 @@ export class HederaSessionRequest {
       topic: this.topic,
       expiry: this.expiry,
       request: {
-        method: HederaJsonRpcMethod.SignTransactionAndSend,
+        method: HederaJsonRpcMethod.SignAndExecuteTransaction,
         params: buildSignAndExecuteTransactionParams(signerAccountId, transaction),
       },
     }
@@ -78,7 +87,7 @@ export class HederaSessionRequest {
       topic: this.topic,
       expiry: this.expiry,
       request: {
-        method: HederaJsonRpcMethod.SignTransactionBody,
+        method: HederaJsonRpcMethod.SignTransaction,
         params: buildSignAndReturnTransactionParams(signerAccountId, transaction),
       },
     }

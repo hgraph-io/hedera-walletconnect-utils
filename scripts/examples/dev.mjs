@@ -27,8 +27,8 @@ async function main() {
     port: 8081,
   })
 
-  console.log(`Server 1 is up ${server1.host}:${server1.port}`);
-  console.log(`Server 2 is up ${server2.host}:${server2.port}`);
+  console.log(`Server 1 is up ${server1.host}:${server1.port}`)
+  console.log(`Server 2 is up ${server2.host}:${server2.port}`)
 }
 
 await main()
