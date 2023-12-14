@@ -374,8 +374,8 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
   public async hedera_signTransaction(
     id: number,
     topic: string,
-    //TODO:!!!!
-    body: Transaction, // The HIP calls for this to be a TransactionBody not a transaction
+    //TODO: // The spec calls for this to be a TransactionBody not a transaction
+    body: Transaction,
     signer: HederaWallet,
   ): Promise<void> {
     const signedTransaction = await signer.signTransaction(body)

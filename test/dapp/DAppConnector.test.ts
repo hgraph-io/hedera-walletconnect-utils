@@ -168,7 +168,7 @@ describe('DAppConnector', () => {
       const transaction = prepareTestTransaction(new TopicCreateTransaction(), { freeze: true })
 
       const params: ExecuteTransactionParams = {
-        signedTransaction: [transactionToBase64String(transaction)],
+        transactionList: transactionToBase64String(transaction),
       }
 
       it('should throw an error if there is no any signer', async () => {
@@ -251,7 +251,7 @@ describe('DAppConnector', () => {
       const transaction = prepareTestTransaction(new TopicCreateTransaction(), { freeze: true })
       const params: SignAndExecuteTransactionParams = {
         signerAccountId: testUserAccountId.toString(),
-        transaction: [transactionToBase64String(transaction)],
+        transactionList: transactionToBase64String(transaction),
       }
 
       it('should throw an error if there is no any signer', async () => {
@@ -279,7 +279,7 @@ describe('DAppConnector', () => {
       const transaction = prepareTestTransaction(new TopicCreateTransaction(), { freeze: true })
       const params: SignTransactionParams = {
         signerAccountId: testUserAccountId.toString(),
-        transaction: [transactionToBase64String(transaction)],
+        transactionList: transactionToBase64String(transaction),
       }
 
       it('should throw an error if there is no any signer', async () => {
