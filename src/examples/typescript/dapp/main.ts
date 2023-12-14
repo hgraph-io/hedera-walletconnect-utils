@@ -8,7 +8,6 @@ import {
   AccountId,
   Timestamp,
   LedgerId,
-  AccountInfo,
 } from '@hashgraph/sdk'
 import {
   HederaSessionEvent,
@@ -17,12 +16,11 @@ import {
   queryToBase64String,
   ExecuteTransactionParams,
   SignMessageParams,
-  SignQueryAndSendParams,
+  SignAndExecuteQueryParams,
   SignAndExecuteTransactionParams,
   SignTransactionParams,
+  DAppConnector,
 } from '@hashgraph/walletconnect'
-
-import { DAppConnector } from '@hashgraph/walletconnect'
 
 import { saveState, loadState, getState } from '../shared'
 
@@ -140,19 +138,19 @@ async function hedera_signMessage(_: Event) {
 document.getElementById('hedera_signMessage')!.onsubmit = (e: SubmitEvent) =>
   showErrorOrSuccess(hedera_signMessage, e)
 
-// 4. SignQueryAndSend
-async function hedera_signQueryAndSend(_: Event) {
+// 4. SignAndExecuteQuery
+async function hedera_signAndExecuteQuery(_: Event) {
   const query = new AccountInfoQuery().setAccountId(getState('query-payment-account'))
-  const params: SignQueryAndSendParams = {
+  const params: SignAndExecuteQueryParams = {
     signerAccountId: getState('query-payment-account'),
     query: queryToBase64String(query),
   }
 
-  return await dAppConnector!.signQueryAndSend(params)
+  return await dAppConnector!.signAndExecuteQuery(params)
 }
 
-document.getElementById('hedera_signQueryAndSend')!.onsubmit = (e: SubmitEvent) =>
-  showErrorOrSuccess(hedera_signQueryAndSend, e)
+document.getElementById('hedera_signAndExecuteQuery')!.onsubmit = (e: SubmitEvent) =>
+  showErrorOrSuccess(hedera_signAndExecuteQuery, e)
 
 // 5. hedera_signAndExecuteTransaction
 async function hedera_signAndExecuteTransaction(_: Event) {

@@ -23,12 +23,12 @@ import {
   GetNodeAddresesResponse,
   ExecuteTransactionResponse,
   SignMessageResponse,
-  SignQueryAndSendResponse,
+  SignAndExecuteQueryResponse,
   SignAndExecuteTransactionResponse,
   SignTransactionResponse,
   ExecuteTransactionParams,
   SignMessageParams,
-  SignQueryAndSendParams,
+  SignAndExecuteQueryParams,
   SignAndExecuteTransactionParams,
   SignTransactionParams,
 } from '../shared'
@@ -191,9 +191,9 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
           body = base64StringToMessage(_params.message)
           break
         }
-        case HederaJsonRpcMethod.SignQueryAndSend: {
+        case HederaJsonRpcMethod.SignAndExecuteQuery: {
           // 4
-          const _params = params as SignQueryAndSendParams
+          const _params = params as SignAndExecuteQueryParams
           this.validateParam('signerAccountId', _params?.signerAccountId, 'string')
           this.validateParam('query', _params?.query, 'string')
           signerAccountId = AccountId.fromString(_params.signerAccountId)
@@ -390,8 +390,8 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
     // >>>>>>> origin/feature/hip820-methods
   }
 
-  // 4. hedera_signQueryAndSend
-  public async hedera_signQueryAndSend(
+  // 4. hedera_signAndExecuteQuery
+  public async hedera_signAndExecuteQuery(
     id: number,
     topic: string,
     body: Query<any>,
@@ -400,7 +400,7 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
     const queryResult = await body.executeWithSigner(signer)
     const queryResponse = Uint8ArrayToBase64String(queryResult.toBytes())
 
-    const response: SignQueryAndSendResponse = {
+    const response: SignAndExecuteQueryResponse = {
       topic,
       response: {
         jsonrpc: '2.0',

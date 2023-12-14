@@ -82,25 +82,25 @@ export interface SignMessageResponse extends EngineTypes.RespondParams {
 }
 
 /*
- * 4. hedera_signQueryAndSend
+ * 4. hedera_signAndExecuteQuery
  */
 // params
-export interface SignQueryAndSendParams {
+export interface SignAndExecuteQueryParams {
   signerAccountId: string
   query: string
 }
 // request
-export interface SignQueryAndSendRequest extends EngineTypes.RequestParams {
+export interface SignAndExecuteQueryRequest extends EngineTypes.RequestParams {
   request: {
-    method: HederaJsonRpcMethod.SignQueryAndSend
-    params: SignQueryAndSendParams
+    method: HederaJsonRpcMethod.SignAndExecuteQuery
+    params: SignAndExecuteQueryParams
   }
 }
 // result
-export interface SignQueryAndSendResult extends JsonRpcResult<{ response: string }> {}
+export interface SignAndExecuteQueryResult extends JsonRpcResult<{ response: string }> {}
 // response
-export interface SignQueryAndSendResponse extends EngineTypes.RespondParams {
-  response: SignQueryAndSendResult
+export interface SignAndExecuteQueryResponse extends EngineTypes.RespondParams {
+  response: SignAndExecuteQueryResult
 }
 
 /*

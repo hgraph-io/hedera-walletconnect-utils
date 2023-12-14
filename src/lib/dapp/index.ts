@@ -15,9 +15,9 @@ import {
   SignMessageParams,
   SignMessageRequest,
   SignMessageResult,
-  SignQueryAndSendRequest,
-  SignQueryAndSendResult,
-  SignQueryAndSendParams,
+  SignAndExecuteQueryRequest,
+  SignAndExecuteQueryResult,
+  SignAndExecuteQueryParams,
   SignAndExecuteTransactionParams,
   SignAndExecuteTransactionRequest,
   SignAndExecuteTransactionResult,
@@ -420,10 +420,10 @@ export class DAppConnector {
   /**
    * Signs and send `Query` on the Hedera network.
    *
-   * @param {SignQueryAndSendParams} params - The parameters of type {@link SignQueryAndSendParams | `SignQueryAndSendParams`} required for the Query execution.
+   * @param {SignAndExecuteQueryParams} params - The parameters of type {@link SignAndExecuteQueryParams | `SignAndExecuteQueryParams`} required for the Query execution.
    * @param {string} params.signerAccountId - a signer Hedera Account identifier in {@link https://hips.hedera.com/hip/hip-30 | HIP-30} (`<nework>:<shard>.<realm>.<num>`) form.
    * @param {string} params.query - `Query` object represented as Base64 string
-   * @returns Promise\<{@link SignQueryAndSendResult}\>
+   * @returns Promise\<{@link SignAndExecuteQueryResult}\>
    * @example
    * Use helper `queryToBase64String` to encode `Query` to Base64 string
    * ```ts
@@ -432,12 +432,12 @@ export class DAppConnector {
    *  query: queryToBase64String(query),
    * }
    *
-   * const result = await dAppConnector.signQueryAndSend(params)
+   * const result = await dAppConnector.signAndExecuteQuery(params)
    * ```
    */
-  public async signQueryAndSend(params: SignQueryAndSendParams) {
-    return await this.request<SignQueryAndSendRequest, SignQueryAndSendResult>({
-      method: HederaJsonRpcMethod.SignQueryAndSend,
+  public async signAndExecuteQuery(params: SignAndExecuteQueryParams) {
+    return await this.request<SignAndExecuteQueryRequest, SignAndExecuteQueryResult>({
+      method: HederaJsonRpcMethod.SignAndExecuteQuery,
       params,
     })
   }

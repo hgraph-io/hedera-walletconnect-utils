@@ -69,7 +69,7 @@ export interface HederaNativeWallet {
     signer: HederaWallet,
   ): Promise<void>
 
-  [HederaJsonRpcMethod.SignQueryAndSend](
+  [HederaJsonRpcMethod.SignAndExecuteQuery](
     id: number,
     topic: string,
     body: Query<any>,
