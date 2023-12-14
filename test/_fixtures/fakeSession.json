@@ -11,7 +11,7 @@
         "hedera_getNodeAddresses",
         "hedera_sendTransactionOnly",
         "hedera_signMessage",
-        "hedera_signQueryAndSend",
+        "hedera_signAndExecuteQuery",
         "hedera_signAndExecuteTransaction",
         "hedera_signTransaction"
       ],
@@ -28,7 +28,7 @@
         "hedera_getNodeAddresses",
         "hedera_sendTransactionOnly",
         "hedera_signMessage",
-        "hedera_signQueryAndSend",
+        "hedera_signAndExecuteQuery",
         "hedera_signAndExecuteTransaction",
         "hedera_signTransaction"
       ],

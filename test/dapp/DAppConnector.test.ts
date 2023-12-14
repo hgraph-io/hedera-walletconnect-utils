@@ -6,7 +6,7 @@ import {
   HederaSessionEvent,
   SignAndExecuteTransactionParams,
   SignMessageParams,
-  SignQueryAndSendParams,
+  SignAndExecuteQueryParams,
   SignTransactionParams,
   queryToBase64String,
   transactionToBase64String,
@@ -219,9 +219,9 @@ describe('DAppConnector', () => {
     })
 
     // 4
-    describe(DAppConnector.prototype.signQueryAndSend, () => {
+    describe(DAppConnector.prototype.signAndExecuteQuery, () => {
       const query = new AccountInfoQuery().setAccountId(testUserAccountId.toString())
-      const params: SignQueryAndSendParams = {
+      const params: SignAndExecuteQueryParams = {
         signerAccountId: testUserAccountId.toString(),
         query: queryToBase64String(query),
       }
@@ -229,18 +229,18 @@ describe('DAppConnector', () => {
       it('should throw an error if there is no any signer', async () => {
         connector.signers = []
 
-        await expect(connector.signQueryAndSend(params)).rejects.toThrow(
+        await expect(connector.signAndExecuteQuery(params)).rejects.toThrow(
           'There is no active session. Connect to the wallet at first.',
         )
       })
 
       it('should invoke last signer request with correct params', async () => {
-        await connector.signQueryAndSend(params)
+        await connector.signAndExecuteQuery(params)
 
         expect(lastSignerRequestMock).toHaveBeenCalled()
         expect(lastSignerRequestMock).toHaveBeenCalledTimes(1)
         expect(lastSignerRequestMock).toHaveBeenCalledWith({
-          method: HederaJsonRpcMethod.SignQueryAndSend,
+          method: HederaJsonRpcMethod.SignAndExecuteQuery,
           params,
         })
       })

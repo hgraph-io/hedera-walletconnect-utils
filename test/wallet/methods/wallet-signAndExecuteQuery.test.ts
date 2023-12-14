@@ -16,7 +16,7 @@ import {
 } from '../../_helpers'
 
 describe(Wallet.name, () => {
-  describe('signQueryAndSend', () => {
+  describe('signAndExecuteQuery', () => {
     it('should sign and execute query, returning the query response', async () => {
       const wallet = await Wallet.create(projectId, walletMetadata)
 
@@ -33,11 +33,11 @@ describe(Wallet.name, () => {
       signerCallMock.mockImplementation(async () => ({ toBytes }) as AccountInfo)
 
       try {
-        await wallet.hedera_signQueryAndSend(requestId, requestTopic, query, hederaWallet)
+        await wallet.hedera_signAndExecuteQuery(requestId, requestTopic, query, hederaWallet)
       } catch (err) {}
 
       const mockResponse: SignAndExecuteTransactionResponse = useJsonFixture(
-        'methods/signQueryAndSendSuccess',
+        'methods/signAndExecuteQuerySuccess',
       )
 
       expect(respondSessionRequestSpy).toHaveBeenCalledWith(mockResponse)
