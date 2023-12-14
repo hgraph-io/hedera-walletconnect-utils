@@ -117,7 +117,7 @@ document.getElementById('hedera_getNodeAddresses')!.onsubmit = (e: SubmitEvent) 
 // 2. hedera_executeTransaction
 async function hedera_executeTransaction(_: Event) {
   const params: ExecuteTransactionParams = {
-    signedTransaction: getState('send-transaction'),
+    transactionList: getState('send-transaction'),
   }
 
   return await dAppConnector!.executeTransaction(params)
@@ -160,7 +160,7 @@ async function hedera_signAndExecuteTransaction(_: Event) {
     .addHbarTransfer(getState('sign-send-to'), new Hbar(+getState('sign-send-amount')))
 
   const params: SignAndExecuteTransactionParams = {
-    transaction: [transactionToBase64String(transaction)],
+    transactionList: transactionToBase64String(transaction),
     signerAccountId: getState('sign-send-from'),
   }
 
@@ -180,7 +180,7 @@ async function hedera_signTransaction(_: Event) {
 
   const params: SignTransactionParams = {
     signerAccountId: getState('sign-from'),
-    transaction: [transactionToBase64String(transaction)],
+    transactionList: transactionToBase64String(transaction),
   }
 
   return await dAppConnector!.signTransaction(params)
@@ -202,7 +202,7 @@ async function simulateGossipNodeError(_: Event) {
     .addHbarTransfer(recepient, new Hbar(+5))
 
   const params: SignAndExecuteTransactionParams = {
-    transaction: [transactionToBase64String(transaction)],
+    transactionList: transactionToBase64String(transaction),
     signerAccountId: getState('sign-send-from'),
   }
 
