@@ -35,7 +35,7 @@ describe(Wallet.name, () => {
         await wallet.hedera_signAndExecuteTransaction(
           requestId,
           requestTopic,
-          [transaction],
+          transaction,
           hederaWallet,
         )
       } catch (err) {}

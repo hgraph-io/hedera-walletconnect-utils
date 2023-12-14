@@ -24,18 +24,13 @@ describe(Wallet.name, () => {
       const respondSessionRequestSpy = jest.spyOn(wallet, 'respondSessionRequest')
 
       try {
-        await wallet.hedera_signTransaction(
-          requestId,
-          requestTopic,
-          [transaction],
-          hederaWallet,
-        )
+        await wallet.hedera_signTransaction(requestId, requestTopic, transaction, hederaWallet)
       } catch (err) {}
 
       const mockResponse: SignTransactionResponse = useJsonFixture(
         'methods/signTransactionSuccess',
       )
-      mockResponse.response.result.sort()
+      mockResponse.response.result
 
       respondSessionRequestSpy
       expect(respondSessionRequestSpy).toHaveBeenCalledWith(mockResponse)

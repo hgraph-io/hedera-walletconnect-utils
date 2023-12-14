@@ -36,7 +36,7 @@ describe(Wallet.name, () => {
         await wallet.hedera_executeTransaction(
           requestId,
           requestTopic,
-          [signedTranasction],
+          signedTranasction,
           hederaWallet,
         )
       } catch (err) {}
