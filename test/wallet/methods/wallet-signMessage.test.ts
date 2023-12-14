@@ -1,4 +1,4 @@
-import { HederaChainId, SignMessageResponse, Wallet, base64StringToMessage } from '../../../src'
+import { HederaChainId, SignMessageResponse, Wallet } from '../../../src'
 import {
   testPrivateKeyECDSA,
   testPrivateKeyED25519,
@@ -29,7 +29,6 @@ describe(Wallet.name, () => {
 
         const id = 1
         const topic = 'test-topic'
-        const messageBytes = base64StringToMessage(btoa('Hello World'))
         const hederaWallet = wallet!.getHederaWallet(
           HederaChainId.Testnet,
           testUserAccountId.toString(),
@@ -38,7 +37,7 @@ describe(Wallet.name, () => {
         const respondSessionRequestSpy = jest.spyOn(wallet, 'respondSessionRequest')
 
         try {
-          await wallet.hedera_signMessage(id, topic, messageBytes, hederaWallet)
+          await wallet.hedera_signMessage(id, topic, 'Hello Future', hederaWallet)
         } catch (err) {}
 
         const mockResponse: SignMessageResponse = {

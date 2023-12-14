@@ -8,8 +8,8 @@ import {
   HederaSessionEvent,
   HederaJsonRpcMethod,
   base64StringToQuery,
-  base64StringToMessage,
   Uint8ArrayToBase64String,
+  stringToSignerMessage,
   signatureMapToBase64,
   getHederaError,
   GetNodeAddresesResponse,
@@ -130,7 +130,7 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
     chainId: HederaChainId
     id: number // session request id
     topic: string // session topic
-    body?: Transaction | Query<any> | Uint8Array[] | undefined
+    body?: Transaction | Query<any> | string | undefined
     accountId?: AccountId
   } {
     const { id, topic } = event
@@ -139,7 +139,7 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
       chainId,
     } = event.params
 
-    let body: Transaction | Query<any> | Uint8Array[] | undefined
+    let body: Transaction | Query<any> | string | undefined
     // get account id from optional second param for transactions and queries or from transaction id
     // this allows for the case where the requested signer is not the payer, but defaults to the payer if a second param is not provided
     let signerAccountId: AccountId | undefined
@@ -165,7 +165,7 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
           this.validateParam('signerAccountId', _accountId, 'string')
           this.validateParam('message', message, 'string')
           signerAccountId = AccountId.fromString(_accountId)
-          body = base64StringToMessage(message)
+          body = message
           break
         }
         case HederaJsonRpcMethod.SignAndExecuteQuery: {
@@ -282,16 +282,14 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
     return await this.respondSessionRequest(response)
   }
   // 3. hedera_signMessage
-  // TODO: PR/ discussion into HIP for array of messages
-  // TODO: HIP-820 suggested change
   public async hedera_signMessage(
     id: number,
     topic: string,
-    body: Uint8Array[],
+    body: string,
     signer: HederaWallet,
   ): Promise<void> {
-    const signerSignatures = await signer.sign(body)
-    console.log(signerSignatures)
+    const signerSignatures = await signer.sign(stringToSignerMessage(body))
+
     const signatureMap = Uint8ArrayToBase64String(signerSignatures[0].signature)
     // =======
     //     const ECDSASecp256k1 = signerSignatures[0].signature

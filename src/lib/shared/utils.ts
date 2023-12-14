@@ -148,22 +148,14 @@ export function base64StringToQuery<Q extends Query<any>>(bytesString: string): 
 }
 
 /**
- * Prepares a Base64-encoded string message for signing.
- * First decodes a Base64-encoded message to a UTF-8 string.
- * Then incorporates additional data (salt) into the message to alter the output signature.
+ * Incorporates additional data (salt) into the message to alter the output signature.
  * This alteration ensures that passing a transaction here for signing will yield an invalid signature,
  * as the additional data modifies the signature text.
- * @param message - Base64 encoded string representing the message
+ * @param message -  A plain text string
  * @returns An array of Uint8Array containing the prepared message for signing
  */
-export function base64StringToMessage(message: string): Uint8Array[] {
-  const decoded = Buffer.from(message, 'base64').toString('utf-8')
-  // Buffer.from(keccak256('\x19Hedera Signed Message:\n' + decoded.length + decoded)),
-  return [Buffer.from('\x19Hedera Signed Message:\n' + decoded.length + decoded)]
-}
-
-export function messageToBase64String(message: string): string {
-  return Buffer.from(message, 'utf-8').toString('base64')
+export function stringToSignerMessage(message: string): Uint8Array[] {
+  return [Buffer.from('\x19Hedera Signed Message:\n' + message.length + message)]
 }
 
 /**
