@@ -22,9 +22,7 @@ import {
   SignTransactionParams,
   DAppConnector,
   HederaChainId,
-  base64StringToSignatureMap,
-  base64StringToUint8Array,
-  stringToSignerMessage,
+  verifyMessageSignature,
 } from '@hashgraph/walletconnect'
 
 import { saveState, loadState, getState } from '../shared'
@@ -139,22 +137,12 @@ async function hedera_signMessage(_: Event) {
     message,
   }
 
-  // wallet will sign this padded message
-  const signedMessage = stringToSignerMessage(message)[0]
-
   const { signatureMap } = await dAppConnector!.signMessage(params)
-
-  const parsed = base64StringToSignatureMap(signatureMap)
-
-  // use public key of account
-  const publicKey = PublicKey.fromString(
-    '302a300506032b65700321001fdd4280459b798dbd9ffdd49af8a04cb140af3ad0040895a67bb022c8d0f1b2',
-  )
-  const signature = parsed.sigPair[0].ed25519 || parsed.sigPair[0].ECDSASecp256k1
-  const verified = publicKey.verify(signedMessage, signature)
+  const accountPublicKey = PublicKey.fromString(getState('public-key'))
+  const verified = verifyMessageSignature(message, signatureMap, accountPublicKey)
 
   document.getElementById('sign-message-result')!.innerHTML =
-    `Message verified - ${verified}: ${signedMessage}`
+    `Message signed - ${verified}: ${message}`
   return signatureMap
 }
 
