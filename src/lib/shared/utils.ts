@@ -76,7 +76,8 @@ export function base64StringToTransaction<T extends Transaction>(transactionByte
  * @returns Base64-encoded string representation of the input `proto.SignatureMap`
  */
 export function signatureMapToBase64(signatureMap: proto.SignatureMap): string {
-  return Buffer.from(JSON.stringify(signatureMap)).toString('base64')
+  const encoded = proto.SignatureMap.encode(signatureMap).finish()
+  return Uint8ArrayToBase64String(encoded)
 }
 
 /**
@@ -85,8 +86,8 @@ export function signatureMapToBase64(signatureMap: proto.SignatureMap): string {
  * @returns `proto.SignatureMap`
  */
 export function base64StringToSignatureMap(base64string: string): proto.SignatureMap {
-  const decoded = Buffer.from(base64string, 'base64').toString('utf-8')
-  return proto.SignatureMap.decode(JSON.parse(decoded))
+  const decoded = Buffer.from(base64string, 'base64')
+  return proto.SignatureMap.decode(decoded)
 }
 
 /**
@@ -161,9 +162,9 @@ export function stringToSignerMessage(message: string): Uint8Array[] {
 export function signerSignaturesToSignatureMapProto(
   signerSignatures: SignerSignature[],
 ): proto.SignatureMap {
-  const signatureMap: proto.SignatureMap = {
+  const signatureMap = proto.SignatureMap.create({
     sigPair: signerSignatures.map((s) => s.publicKey._toProtobufSignature(s.signature)),
-  }
+  })
 
   return signatureMap
 }
