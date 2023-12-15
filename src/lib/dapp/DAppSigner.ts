@@ -1,4 +1,3 @@
-import { Buffer } from 'buffer'
 import {
   Signer,
   AccountBalance,
@@ -13,13 +12,7 @@ import {
 } from '@hashgraph/sdk'
 import type { ISignClient } from '@walletconnect/types'
 
-import {
-  HederaJsonRpcMethod,
-  base64StringToTransaction,
-  ledgerIdToCAIPChainId,
-} from '../shared'
-
-import { buildSignAndReturnTransactionParams, buildSignMessageParams } from './helpers'
+import { ledgerIdToCAIPChainId } from '../shared'
 
 export class DAppSigner implements Signer {
   constructor(
@@ -74,24 +67,6 @@ export class DAppSigner implements Signer {
     signOptions?: Record<string, any>,
   ): Promise<SignerSignature[]> {
     throw new Error('Method not implemented.')
-  }
-
-  async signMessages(messages: (Uint8Array | string)[]): Promise<Uint8Array[]> {
-    const signedMessages = await this.request<string[]>({
-      method: HederaJsonRpcMethod.SignMessage,
-      params: buildSignMessageParams(this.accountId.toString(), messages),
-    })
-
-    return signedMessages.map((signedMessage) => Buffer.from(signedMessage, 'base64'))
-  }
-
-  async signTransaction<T extends Transaction>(transaction: T): Promise<T> {
-    const signedStringTransaction = await this.request<string>({
-      method: HederaJsonRpcMethod.SignTransaction,
-      params: buildSignAndReturnTransactionParams(this.accountId.toString(), transaction),
-    })
-
-    return base64StringToTransaction(signedStringTransaction) as T
   }
 
   async checkTransaction<T extends Transaction>(transaction: T): Promise<T> {
