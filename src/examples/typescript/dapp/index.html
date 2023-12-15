@@ -88,8 +88,14 @@
               >Message:
               <input name="sign-message" required />
             </label>
+            <label
+              >Hedera Testnet Public Key:
+              <input name="public-key" required />
+            </label>
+            <p>The public key for the account is used to verify the signed message</p>
           </fieldset>
           <button type="submit">Submit to wallet</button>
+          <p id="sign-message-result"></p>
         </form>
       </section>
       <section>

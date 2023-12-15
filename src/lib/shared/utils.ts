@@ -1,5 +1,12 @@
 import { Buffer } from 'buffer'
-import { AccountId, Transaction, LedgerId, Query, SignerSignature } from '@hashgraph/sdk'
+import {
+  AccountId,
+  PublicKey,
+  Transaction,
+  LedgerId,
+  Query,
+  SignerSignature,
+} from '@hashgraph/sdk'
 import { ProposalTypes, SessionTypes } from '@walletconnect/types'
 import { proto } from '@hashgraph/proto'
 
@@ -75,8 +82,9 @@ export function base64StringToTransaction<T extends Transaction>(transactionByte
  * @param signatureMap - The `proto.SignatureMap` object to be converted
  * @returns Base64-encoded string representation of the input `proto.SignatureMap`
  */
-export function signatureMapToBase64(signatureMap: proto.SignatureMap): string {
-  return Buffer.from(JSON.stringify(signatureMap)).toString('base64')
+export function signatureMapToBase64String(signatureMap: proto.SignatureMap): string {
+  const encoded = proto.SignatureMap.encode(signatureMap).finish()
+  return Uint8ArrayToBase64String(encoded)
 }
 
 /**
@@ -85,8 +93,8 @@ export function signatureMapToBase64(signatureMap: proto.SignatureMap): string {
  * @returns `proto.SignatureMap`
  */
 export function base64StringToSignatureMap(base64string: string): proto.SignatureMap {
-  const decoded = Buffer.from(base64string, 'base64').toString('utf-8')
-  return proto.SignatureMap.decode(JSON.parse(decoded))
+  const encoded = Buffer.from(base64string, 'base64')
+  return proto.SignatureMap.decode(encoded)
 }
 
 /**
@@ -104,8 +112,8 @@ export function Uint8ArrayToBase64String(binary: Uint8Array): string {
  * @returns A `Uint8Array` representing the decoded binary data
  */
 export function base64StringToUint8Array(base64string: string): Uint8Array {
-  const decoded = Buffer.from(base64string, 'base64')
-  return new Uint8Array(decoded)
+  const encoded = Buffer.from(base64string, 'base64')
+  return new Uint8Array(encoded)
 }
 
 /**
@@ -140,15 +148,41 @@ export function base64StringToQuery<Q extends Query<any>>(bytesString: string): 
   return Query.fromBytes(decoded) as Q
 }
 
+export function prefixMessageToSign(message: string) {
+  return '\x19Hedera Signed Message:\n' + message.length + message
+}
 /**
  * Incorporates additional data (salt) into the message to alter the output signature.
  * This alteration ensures that passing a transaction here for signing will yield an invalid signature,
  * as the additional data modifies the signature text.
+ *
  * @param message -  A plain text string
  * @returns An array of Uint8Array containing the prepared message for signing
  */
 export function stringToSignerMessage(message: string): Uint8Array[] {
-  return [Buffer.from('\x19Hedera Signed Message:\n' + message.length + message)]
+  return [Buffer.from(prefixMessageToSign(message))]
+}
+
+/**
+ * This implementation expects a plain text string, which is prefixed and then signed by a wallet.
+ * Because the spec calls for 1 message to be signed and 1 signer, this function expects a single
+ * signature and used the first item in the sigPair array.
+ *
+ * @param message -  A plain text string
+ * @param base64SignatureMap -  A base64 encoded proto.SignatureMap object
+ * @returns boolean - whether or not the first signature in the sigPair is valid for the message and public key
+ */
+export function verifyMessageSignature(
+  message: string,
+  base64SignatureMap: string,
+  publicKey: PublicKey,
+): boolean {
+  const signatureMap = base64StringToSignatureMap(base64SignatureMap)
+  const signature = signatureMap.sigPair[0].ed25519 || signatureMap.sigPair[0].ECDSASecp256k1
+
+  if (!signature) throw new Error('Signature not found in signature map')
+
+  return publicKey.verify(Buffer.from(prefixMessageToSign(message)), signature)
 }
 
 /**
@@ -158,12 +192,12 @@ export function stringToSignerMessage(message: string): Uint8Array[] {
  * @param signerSignatures - An array of `SignerSignature` objects
  * @returns `proto.SignatureMap` object
  */
-export function signerSignaturesToSignatureMapProto(
+export function signerSignaturesToSignatureMap(
   signerSignatures: SignerSignature[],
 ): proto.SignatureMap {
-  const signatureMap: proto.SignatureMap = {
+  const signatureMap = proto.SignatureMap.create({
     sigPair: signerSignatures.map((s) => s.publicKey._toProtobufSignature(s.signature)),
-  }
+  })
 
   return signatureMap
 }

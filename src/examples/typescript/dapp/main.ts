@@ -8,6 +8,7 @@ import {
   AccountId,
   Timestamp,
   LedgerId,
+  PublicKey,
 } from '@hashgraph/sdk'
 import {
   HederaSessionEvent,
@@ -21,6 +22,7 @@ import {
   SignTransactionParams,
   DAppConnector,
   HederaChainId,
+  verifyMessageSignature,
 } from '@hashgraph/walletconnect'
 
 import { saveState, loadState, getState } from '../shared'
@@ -129,12 +131,19 @@ document.getElementById('hedera_executeTransaction')!.onsubmit = (e: SubmitEvent
 
 // 3. hedera_signMessage
 async function hedera_signMessage(_: Event) {
+  const message = getState('sign-message')
   const params: SignMessageParams = {
-    message: getState('sign-message'),
     signerAccountId: getState('sign-from'),
+    message,
   }
 
-  return await dAppConnector!.signMessage(params)
+  const { signatureMap } = await dAppConnector!.signMessage(params)
+  const accountPublicKey = PublicKey.fromString(getState('public-key'))
+  const verified = verifyMessageSignature(message, signatureMap, accountPublicKey)
+
+  document.getElementById('sign-message-result')!.innerHTML =
+    `Message signed - ${verified}: ${message}`
+  return signatureMap
 }
 
 document.getElementById('hedera_signMessage')!.onsubmit = (e: SubmitEvent) =>

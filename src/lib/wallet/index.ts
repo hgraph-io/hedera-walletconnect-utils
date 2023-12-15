@@ -11,8 +11,8 @@ import {
   base64StringToQuery,
   Uint8ArrayToBase64String,
   stringToSignerMessage,
-  signatureMapToBase64,
-  signerSignaturesToSignatureMapProto,
+  signatureMapToBase64String,
+  signerSignaturesToSignatureMap,
   base64StringToTransaction,
   getHederaError,
   GetNodeAddresesResponse,
@@ -296,10 +296,11 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
     // signer takes an array of Uint8Arrays though spec allows for 1 message to be signed
     const signerSignatures = await signer.sign(stringToSignerMessage(body))
 
-    const _signatureMap: proto.SignatureMap =
-      signerSignaturesToSignatureMapProto(signerSignatures)
+    const _signatureMap = proto.SignatureMap.create(
+      signerSignaturesToSignatureMap(signerSignatures),
+    )
 
-    const signatureMap = signatureMapToBase64(_signatureMap)
+    const signatureMap = signatureMapToBase64String(_signatureMap)
 
     const response: SignMessageResponse = {
       topic,
@@ -368,10 +369,11 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
 
     const signerSignatures = await signer.sign([transaction.bodyBytes])
 
-    const _signatureMap: proto.SignatureMap =
-      signerSignaturesToSignatureMapProto(signerSignatures)
+    const _signatureMap = proto.SignatureMap.create(
+      signerSignaturesToSignatureMap(signerSignatures),
+    )
 
-    const signatureMap = signatureMapToBase64(_signatureMap)
+    const signatureMap = signatureMapToBase64String(_signatureMap)
 
     const response: SignTransactionResponse = {
       topic,

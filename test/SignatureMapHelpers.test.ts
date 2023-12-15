@@ -1,12 +1,12 @@
 import { TopicCreateTransaction } from '@hashgraph/sdk'
-import { HederaChainId, base64StringToSignatureMap, signatureMapToBase64 } from '../src'
+import { HederaChainId, base64StringToSignatureMap, signatureMapToBase64String } from '../src'
 import { projectId, testPrivateKeyECDSA, testUserAccountId, walletMetadata } from './_helpers'
 import { Wallet } from '../src'
 
 describe('SignatureMap helpers', () => {
   let base64SignatureMap: string
 
-  describe(signatureMapToBase64.name, () => {
+  describe(signatureMapToBase64String.name, () => {
     it('should encode SignatureMap to base64 string', async () => {
       const wallet = await Wallet.create(projectId, walletMetadata)
       const hederaWallet = wallet!.getHederaWallet(
@@ -21,7 +21,7 @@ describe('SignatureMap helpers', () => {
 
       const signatureMap = await hederaWallet.signTransaction(transactionBody)
       console.log(signatureMap)
-      base64SignatureMap = signatureMapToBase64(signatureMap)
+      base64SignatureMap = signatureMapToBase64String(signatureMap)
 
       expect(typeof base64SignatureMap).toBe('string')
       expect(base64SignatureMap).toBe(
