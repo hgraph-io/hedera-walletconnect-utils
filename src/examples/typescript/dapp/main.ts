@@ -20,6 +20,7 @@ import {
   SignAndExecuteTransactionParams,
   SignTransactionParams,
   DAppConnector,
+  HederaChainId,
 } from '@hashgraph/walletconnect'
 
 import { saveState, loadState, getState } from '../shared'
@@ -67,6 +68,7 @@ async function init(e: Event) {
     projectId,
     Object.values(HederaJsonRpcMethod),
     [HederaSessionEvent.ChainChanged, HederaSessionEvent.AccountsChanged],
+    [HederaChainId.TESTNET],
   )
 
   await dAppConnector.init({ logger: 'error' })
@@ -86,7 +88,7 @@ document.getElementById('init')!.onsubmit = (e: SubmitEvent) => showErrorOrSucce
 
 // connect a new pairing string to a wallet via the WalletConnect modal
 async function connect(_: Event) {
-  await dAppConnector!.connectQR()
+  await dAppConnector!.openModal()
 
   return 'Connected to wallet!'
 }

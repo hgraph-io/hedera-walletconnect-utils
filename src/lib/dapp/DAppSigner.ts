@@ -11,7 +11,7 @@ import {
   Transaction,
   TransactionRecord,
 } from '@hashgraph/sdk'
-import { ISignClient } from '@walletconnect/types'
+import type { ISignClient } from '@walletconnect/types'
 
 import {
   HederaJsonRpcMethod,
@@ -24,13 +24,13 @@ import { buildSignAndReturnTransactionParams, buildSignMessageParams } from './h
 export class DAppSigner implements Signer {
   constructor(
     private readonly accountId: AccountId,
-    private readonly client: ISignClient,
+    private readonly signClient: ISignClient,
     public readonly topic: string,
     private readonly ledgerId: LedgerId = LedgerId.MAINNET,
   ) {}
 
   request<T>(request: { method: string; params: any }): Promise<T> {
-    return this.client.request<T>({
+    return this.signClient.request<T>({
       topic: this.topic,
       request,
       chainId: ledgerIdToCAIPChainId(this.ledgerId),

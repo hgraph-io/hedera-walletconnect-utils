@@ -1,7 +1,9 @@
 import { AccountId, LedgerId } from '@hashgraph/sdk'
 import { EngineTypes, SessionTypes, SignClientTypes } from '@walletconnect/types'
 import QRCodeModal from '@walletconnect/qrcode-modal'
-import Client, { SignClient } from '@walletconnect/sign-client'
+import { WalletConnectModal } from '@walletconnect/modal'
+
+import SignClient from '@walletconnect/sign-client'
 import { getSdkError } from '@walletconnect/utils'
 import {
   HederaJsonRpcMethod,
@@ -36,11 +38,12 @@ type BaseLogger = 'error' | 'warn' | 'info' | 'debug' | 'trace' | 'fatal'
 export class DAppConnector {
   dAppMetadata: SignClientTypes.Metadata
   network: LedgerId = LedgerId.TESTNET
-  projectId?: string
+  projectId: string
   supportedMethods: string[] = []
   supportedEvents: string[] = []
+  supportedChains: string[] = []
 
-  walletConnectClient: Client | null = null
+  walletConnectClient: SignClient | undefined
   signers: DAppSigner[] = []
   isInitializing = false
 
@@ -51,19 +54,22 @@ export class DAppConnector {
    * @param projectId - Project ID for the WalletConnect client.
    * @param methods - Array of supported methods for the DApp (optional).
    * @param events - Array of supported events for the DApp (optional).
+   * @param events - Array of supported chains for the DApp (optional).
    */
   constructor(
     metadata: SignClientTypes.Metadata,
     network: LedgerId,
-    projectId: string | undefined,
+    projectId: string,
     methods?: string[],
     events?: string[],
+    chains?: string[],
   ) {
     this.dAppMetadata = metadata
     this.network = network
+    this.projectId = projectId
     this.supportedMethods = methods ?? Object.values(HederaJsonRpcMethod)
     this.supportedEvents = events ?? []
-    this.projectId = projectId
+    this.supportedChains = chains ?? []
   }
 
   /**
@@ -131,7 +137,7 @@ export class DAppConnector {
   }
 
   /**
-   * Initiates the WallecConnect connection flow using a QR code.
+   * Initiates the WalletConnect connection flow using a QR code.
    * @param pairingTopic - The pairing topic for the connection (optional).
    * @returns A Promise that resolves when the connection process is complete.
    */
@@ -148,6 +154,23 @@ export class DAppConnector {
         QRCodeModal.close()
       }
     })
+  }
+
+  /**
+   * Initiates the WalletConnect connection flow using a QR code.
+   * @param pairingTopic - The pairing topic for the connection (optional).
+   * @returns A Promise that resolves when the connection process is complete.
+   */
+  public async openModal(pairingTopic?: string): Promise<void> {
+    const { uri, approval } = await this.connectURI(pairingTopic)
+    const walletConnectModal = new WalletConnectModal({
+      projectId: this.projectId,
+      chains: this.supportedChains,
+    })
+    walletConnectModal.openModal({ uri })
+    const session = await approval()
+    await this.onSessionConnected(session)
+    walletConnectModal.closeModal()
   }
 
   /**

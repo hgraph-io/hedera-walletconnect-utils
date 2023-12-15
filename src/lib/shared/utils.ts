@@ -1,9 +1,7 @@
 import { Buffer } from 'buffer'
-import { AccountId, Transaction, LedgerId, Query } from '@hashgraph/sdk'
+import { AccountId, Transaction, LedgerId, Query, SignerSignature } from '@hashgraph/sdk'
 import { ProposalTypes, SessionTypes } from '@walletconnect/types'
-import SignatureMap from '@hashgraph/sdk/lib/transaction/SignatureMap'
-import hashgraphNamespace from '@hashgraph/proto'
-// import { keccak256 } from 'web3-utils'
+import { proto } from '@hashgraph/proto'
 
 /**
  * Freezes a transaction if it is not already frozen. Transactions must
@@ -12,13 +10,11 @@ import hashgraphNamespace from '@hashgraph/proto'
  * @param transaction - Any instance of a class that extends `Transaction`
  */
 export function freezeTransaction<T extends Transaction>(transaction: T): void {
-  if (!transaction.isFrozen()) {
-    transaction.freeze()
-  }
+  if (!transaction.isFrozen()) transaction.freeze()
 }
 
 /**
- * Sets a default consensus node that a transaction will be submitted to. Node Account ID(s)
+ * Sets default consensus nodes that a transaction will be submitted to. Node Account ID(s)
  * must be set before a transaction can be frozen. If they have already been set, this
  * function will not modify the transaction.
  * @param transaction - any instance of a class that extends `Transaction`
@@ -29,10 +25,9 @@ export function freezeTransaction<T extends Transaction>(transaction: T): void {
 export function setDefaultNodeAccountIds<T extends Transaction>(transaction: T): void {
   const isNodeAccountIdNotSet =
     !transaction.nodeAccountIds || transaction.nodeAccountIds.length === 0
-  if (!transaction.isFrozen() && isNodeAccountIdNotSet) {
-    //TODO: add nodes
-    transaction.setNodeAccountIds([new AccountId(3)])
-  }
+
+  if (!transaction.isFrozen() && isNodeAccountIdNotSet)
+    transaction.setNodeAccountIds([new AccountId(3), new AccountId(4), new AccountId(5)])
 }
 
 /**
@@ -73,27 +68,25 @@ export function base64StringToTransaction<T extends Transaction>(transactionByte
 }
 
 /**
- * Converts a `SignatureMap` to a base64 encoded string.
+ * Converts a `proto.SignatureMap` to a base64 encoded string.
  *
- * First converts the `SignatureMap` object to a JSON.
+ * First converts the `proto.SignatureMap` object to a JSON.
  * Then encodes the JSON to a base64 encoded string.
- * @param signatureMap - The `SignatureMap` object to be converted
- * @returns Base64-encoded string representation of the input `SignatureMap`
+ * @param signatureMap - The `proto.SignatureMap` object to be converted
+ * @returns Base64-encoded string representation of the input `proto.SignatureMap`
  */
-export function signatureMapToBase64(signatureMap: SignatureMap): string {
+export function signatureMapToBase64(signatureMap: proto.SignatureMap): string {
   return Buffer.from(JSON.stringify(signatureMap)).toString('base64')
 }
 
 /**
- * Converts a Base64-encoded string to a `hashgraphNamespace.proto.ISignatureMap`.
+ * Converts a Base64-encoded string to a `proto.SignatureMap`.
  * @param base64string - Base64-encoded string
- * @returns `hashgraph.proto.ISignatureMap`
+ * @returns `proto.SignatureMap`
  */
-export function base64StringToSignatureMap(
-  base64string: string,
-): hashgraphNamespace.proto.ISignatureMap {
+export function base64StringToSignatureMap(base64string: string): proto.SignatureMap {
   const decoded = Buffer.from(base64string, 'base64').toString('utf-8')
-  return JSON.parse(decoded) as hashgraphNamespace.proto.ISignatureMap
+  return proto.SignatureMap.decode(JSON.parse(decoded))
 }
 
 /**
@@ -148,22 +141,31 @@ export function base64StringToQuery<Q extends Query<any>>(bytesString: string): 
 }
 
 /**
- * Prepares a Base64-encoded string message for signing.
- * First decodes a Base64-encoded message to a UTF-8 string.
- * Then incorporates additional data (salt) into the message to alter the output signature.
+ * Incorporates additional data (salt) into the message to alter the output signature.
  * This alteration ensures that passing a transaction here for signing will yield an invalid signature,
  * as the additional data modifies the signature text.
- * @param message - Base64 encoded string representing the message
+ * @param message -  A plain text string
  * @returns An array of Uint8Array containing the prepared message for signing
  */
-export function base64StringToMessage(message: string): Uint8Array[] {
-  const decoded = Buffer.from(message, 'base64').toString('utf-8')
-  // Buffer.from(keccak256('\x19Hedera Signed Message:\n' + decoded.length + decoded)),
-  return [Buffer.from('\x19Hedera Signed Message:\n' + decoded.length + decoded)]
+export function stringToSignerMessage(message: string): Uint8Array[] {
+  return [Buffer.from('\x19Hedera Signed Message:\n' + message.length + message)]
 }
 
-export function messageToBase64String(message: string): string {
-  return Buffer.from(message, 'utf-8').toString('base64')
+/**
+ *
+ * https://github.com/hashgraph/hedera-sdk-js/blob/c78512b1d43eedf1d8bf2926a5b7ed3368fc39d1/src/PublicKey.js#L258
+ * a signature pair is a protobuf object with a signature and a public key, it is the responsibility of a dApp to ensure the public key matches the account id
+ * @param signerSignatures - An array of `SignerSignature` objects
+ * @returns `proto.SignatureMap` object
+ */
+export function signerSignaturesToSignatureMapProto(
+  signerSignatures: SignerSignature[],
+): proto.SignatureMap {
+  const signatureMap: proto.SignatureMap = {
+    sigPair: signerSignatures.map((s) => s.publicKey._toProtobufSignature(s.signature)),
+  }
+
+  return signatureMap
 }
 
 /**

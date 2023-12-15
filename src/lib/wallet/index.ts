@@ -3,14 +3,17 @@ import { Web3Wallet, Web3WalletTypes } from '@walletconnect/web3wallet'
 import { SessionTypes } from '@walletconnect/types'
 import { buildApprovedNamespaces, getSdkError } from '@walletconnect/utils'
 import { Wallet as HederaWallet, Client, AccountId, Transaction, Query } from '@hashgraph/sdk'
+
 import {
   HederaChainId,
   HederaSessionEvent,
   HederaJsonRpcMethod,
   base64StringToQuery,
-  base64StringToMessage,
   Uint8ArrayToBase64String,
+  stringToSignerMessage,
   signatureMapToBase64,
+  signerSignaturesToSignatureMapProto,
+  base64StringToTransaction,
   getHederaError,
   GetNodeAddresesResponse,
   ExecuteTransactionResponse,
@@ -19,6 +22,7 @@ import {
   SignAndExecuteTransactionResponse,
   SignTransactionResponse,
 } from '../shared'
+import { proto } from '@hashgraph/proto'
 import Provider from './provider'
 import type { HederaNativeWallet } from './types'
 
@@ -130,7 +134,7 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
     chainId: HederaChainId
     id: number // session request id
     topic: string // session topic
-    body?: Transaction | Query<any> | Uint8Array[] | undefined
+    body?: Transaction | Query<any> | string | undefined
     accountId?: AccountId
   } {
     const { id, topic } = event
@@ -139,7 +143,7 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
       chainId,
     } = event.params
 
-    let body: Transaction | Query<any> | Uint8Array[] | undefined
+    let body: Transaction | Query<any> | string | undefined
     // get account id from optional second param for transactions and queries or from transaction id
     // this allows for the case where the requested signer is not the payer, but defaults to the payer if a second param is not provided
     let signerAccountId: AccountId | undefined
@@ -165,7 +169,7 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
           this.validateParam('signerAccountId', _accountId, 'string')
           this.validateParam('message', message, 'string')
           signerAccountId = AccountId.fromString(_accountId)
-          body = base64StringToMessage(message)
+          body = message
           break
         }
         case HederaJsonRpcMethod.SignAndExecuteQuery: {
@@ -184,6 +188,7 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
           this.validateParam('transactionList', transactionList, 'string')
 
           signerAccountId = AccountId.fromString(_accountId)
+          body = base64StringToTransaction(transactionList)
           break
         }
         case HederaJsonRpcMethod.SignTransaction: {
@@ -282,31 +287,19 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
     return await this.respondSessionRequest(response)
   }
   // 3. hedera_signMessage
-  // TODO: PR/ discussion into HIP for array of messages
-  // TODO: HIP-820 suggested change
   public async hedera_signMessage(
     id: number,
     topic: string,
-    body: Uint8Array[],
+    body: string,
     signer: HederaWallet,
   ): Promise<void> {
-    const signerSignatures = await signer.sign(body)
-    console.log(signerSignatures)
-    const signatureMap = Uint8ArrayToBase64String(signerSignatures[0].signature)
-    // =======
-    //     const ECDSASecp256k1 = signerSignatures[0].signature
-    //     const pubKeyPrefix = signerSignatures[0].publicKey.toBytes().slice(0, 33)
+    // signer takes an array of Uint8Arrays though spec allows for 1 message to be signed
+    const signerSignatures = await signer.sign(stringToSignerMessage(body))
 
-    //     const signatureMap: hashgraphNamespace.proto.ISignatureMap = {
-    //       sigPair: [
-    //         {
-    //           ECDSASecp256k1,
-    //           pubKeyPrefix,
-    //         },
-    //       ],
-    //     }
-    //     const base64SignatureMap = signatureMapToBase64(signatureMap)
-    // >>>>>>> origin/feature/hip820-methods
+    const _signatureMap: proto.SignatureMap =
+      signerSignaturesToSignatureMapProto(signerSignatures)
+
+    const signatureMap = signatureMapToBase64(_signatureMap)
 
     const response: SignMessageResponse = {
       topic,
@@ -319,12 +312,6 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
       },
     }
     return await this.respondSessionRequest(response)
-    // =======
-    //           signatureMap: base64SignatureMap,
-    //         },
-    //       },
-    //     })
-    // >>>>>>> origin/feature/hip820-methods
   }
 
   // 4. hedera_signAndExecuteQuery
@@ -374,23 +361,26 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
   public async hedera_signTransaction(
     id: number,
     topic: string,
-    //TODO: // The spec calls for this to be a TransactionBody not a transaction
-    body: Transaction,
+    body: proto.TransactionBody,
     signer: HederaWallet,
   ): Promise<void> {
-    const signedTransaction = await signer.signTransaction(body)
-    const signatureMap = signedTransaction.getSignatures()
+    const transaction = new proto.Transaction({ body })
 
-    const result = {
-      signatureMap: signatureMapToBase64(signatureMap),
-    }
+    const signerSignatures = await signer.sign([transaction.bodyBytes])
+
+    const _signatureMap: proto.SignatureMap =
+      signerSignaturesToSignatureMapProto(signerSignatures)
+
+    const signatureMap = signatureMapToBase64(_signatureMap)
 
     const response: SignTransactionResponse = {
       topic,
       response: {
         jsonrpc: '2.0',
         id,
-        result,
+        result: {
+          signatureMap,
+        },
       },
     }
 

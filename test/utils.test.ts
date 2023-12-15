@@ -14,8 +14,6 @@ import {
   Uint8ArrayToBase64String,
   base64StringToQuery,
   queryToBase64String,
-  messageToBase64String,
-  base64StringToMessage,
   EIPChainIdToLedgerId,
   ledgerIdToEIPChainId,
   CAIPChainIdToLedgerId,
@@ -179,32 +177,6 @@ describe(`Query helpers`, () => {
       expect(query).toBeInstanceOf(Query)
       expect(query).toBeInstanceOf(AccountInfoQuery)
       expect(query.accountId?.toString()).toBe(testUserAccountId.toString())
-    })
-  })
-})
-
-describe(`Message helpers`, () => {
-  let base64Message: string
-
-  describe(messageToBase64String.name, () => {
-    it('should encode message to base64 string', async () => {
-      const message = 'test'
-      base64Message = messageToBase64String(message)
-
-      expect(typeof base64Message).toBe('string')
-      expect(base64Message).toEqual('dGVzdA==')
-    })
-  })
-
-  describe(base64StringToMessage.name, () => {
-    it('should encode base64 string to Uint8Array', async () => {
-      const uInt8ArrayMessage = base64StringToMessage(base64Message)
-
-      expect(uInt8ArrayMessage[0]).toBeInstanceOf(Uint8Array)
-      expect(Array.from(uInt8ArrayMessage[0])).toEqual([
-        25, 72, 101, 100, 101, 114, 97, 32, 83, 105, 103, 110, 101, 100, 32, 77, 101, 115, 115,
-        97, 103, 101, 58, 10, 52, 116, 101, 115, 116,
-      ])
     })
   })
 })
