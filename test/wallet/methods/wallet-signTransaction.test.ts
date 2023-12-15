@@ -1,7 +1,6 @@
 import { TopicCreateTransaction } from '@hashgraph/sdk'
 import { HederaChainId, SignTransactionResponse, Wallet } from '../../../src'
 import {
-  prepareTestTransaction,
   projectId,
   requestId,
   requestTopic,
@@ -20,11 +19,18 @@ describe(Wallet.name, () => {
         testUserAccountId.toString(),
         testPrivateKeyECDSA,
       )
-      const transaction = prepareTestTransaction(new TopicCreateTransaction(), { freeze: true })
+      const transaction = new TopicCreateTransaction()
+      //@ts-ignore
+      const transactionBody = transaction._makeTransactionBody(AccountId.fromString('0.0.3'))
       const respondSessionRequestSpy = jest.spyOn(wallet, 'respondSessionRequest')
 
       try {
-        await wallet.hedera_signTransaction(requestId, requestTopic, transaction, hederaWallet)
+        await wallet.hedera_signTransaction(
+          requestId,
+          requestTopic,
+          transactionBody,
+          hederaWallet,
+        )
       } catch (err) {}
 
       const mockResponse: SignTransactionResponse = useJsonFixture(

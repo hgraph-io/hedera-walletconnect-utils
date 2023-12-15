@@ -1,9 +1,7 @@
 import { Buffer } from 'buffer'
-import { AccountId, Transaction, LedgerId, Query } from '@hashgraph/sdk'
+import { AccountId, Transaction, LedgerId, Query, SignerSignature } from '@hashgraph/sdk'
 import { ProposalTypes, SessionTypes } from '@walletconnect/types'
-import SignatureMap from '@hashgraph/sdk/lib/transaction/SignatureMap'
-import hashgraphNamespace from '@hashgraph/proto'
-// import { keccak256 } from 'web3-utils'
+import { proto } from '@hashgraph/proto'
 
 /**
  * Freezes a transaction if it is not already frozen. Transactions must
@@ -73,27 +71,26 @@ export function base64StringToTransaction<T extends Transaction>(transactionByte
 }
 
 /**
- * Converts a `SignatureMap` to a base64 encoded string.
+ * Converts a `proto.SignatureMap` to a base64 encoded string.
  *
- * First converts the `SignatureMap` object to a JSON.
+ * First converts the `proto.SignatureMap` object to a JSON.
  * Then encodes the JSON to a base64 encoded string.
- * @param signatureMap - The `SignatureMap` object to be converted
- * @returns Base64-encoded string representation of the input `SignatureMap`
+ * @param signatureMap - The `proto.SignatureMap` object to be converted
+ * @returns Base64-encoded string representation of the input `proto.SignatureMap`
  */
-export function signatureMapToBase64(signatureMap: SignatureMap): string {
+export function signatureMapToBase64(signatureMap: proto.SignatureMap): string {
   return Buffer.from(JSON.stringify(signatureMap)).toString('base64')
 }
 
 /**
- * Converts a Base64-encoded string to a `hashgraphNamespace.proto.ISignatureMap`.
+ * Converts a Base64-encoded string to a `proto.SignatureMap`.
  * @param base64string - Base64-encoded string
- * @returns `hashgraph.proto.ISignatureMap`
+ * @returns `proto.SignatureMap`
  */
-export function base64StringToSignatureMap(
-  base64string: string,
-): hashgraphNamespace.proto.ISignatureMap {
+export function base64StringToSignatureMap(base64string: string): proto.SignatureMap {
+  //TODO is this right?
   const decoded = Buffer.from(base64string, 'base64').toString('utf-8')
-  return JSON.parse(decoded) as hashgraphNamespace.proto.ISignatureMap
+  return proto.SignatureMap.decode(JSON.parse(decoded))
 }
 
 /**
@@ -156,6 +153,23 @@ export function base64StringToQuery<Q extends Query<any>>(bytesString: string): 
  */
 export function stringToSignerMessage(message: string): Uint8Array[] {
   return [Buffer.from('\x19Hedera Signed Message:\n' + message.length + message)]
+}
+
+/**
+ *
+ * https://github.com/hashgraph/hedera-sdk-js/blob/c78512b1d43eedf1d8bf2926a5b7ed3368fc39d1/src/PublicKey.js#L258
+ * a signature pair is a protobuf object with a signature and a public key, it is the responsibility of a dApp to ensure the public key matches the account id
+ * @param signerSignatures - An array of `SignerSignature` objects
+ * @returns `proto.SignatureMap` object
+ */
+export function signerSignaturesToSignatureMapProto(
+  signerSignatures: SignerSignature[],
+): proto.SignatureMap {
+  const signatureMap: proto.SignatureMap = {
+    sigPair: signerSignatures.map((s) => s.publicKey._toProtobufSignature(s.signature)),
+  }
+
+  return signatureMap
 }
 
 /**

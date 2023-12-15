@@ -1,6 +1,7 @@
 import type { Web3WalletTypes } from '@walletconnect/web3wallet'
 import type { SessionTypes } from '@walletconnect/types'
 import type { Transaction, Query, AccountId, Wallet as HederaWallet } from '@hashgraph/sdk'
+import { proto } from '@hashgraph/proto'
 import type { HederaJsonRpcMethod, HederaChainId } from '../shared'
 import type Provider from './provider'
 
@@ -86,7 +87,7 @@ export interface HederaNativeWallet {
   [HederaJsonRpcMethod.SignTransaction](
     id: number,
     topic: string,
-    body: Transaction,
+    body: proto.TransactionBody,
     signer: HederaWallet,
   ): Promise<void>
 }
