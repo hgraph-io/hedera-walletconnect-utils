@@ -10,13 +10,11 @@ import { proto } from '@hashgraph/proto'
  * @param transaction - Any instance of a class that extends `Transaction`
  */
 export function freezeTransaction<T extends Transaction>(transaction: T): void {
-  if (!transaction.isFrozen()) {
-    transaction.freeze()
-  }
+  if (!transaction.isFrozen()) transaction.freeze()
 }
 
 /**
- * Sets a default consensus node that a transaction will be submitted to. Node Account ID(s)
+ * Sets default consensus nodes that a transaction will be submitted to. Node Account ID(s)
  * must be set before a transaction can be frozen. If they have already been set, this
  * function will not modify the transaction.
  * @param transaction - any instance of a class that extends `Transaction`
@@ -27,10 +25,9 @@ export function freezeTransaction<T extends Transaction>(transaction: T): void {
 export function setDefaultNodeAccountIds<T extends Transaction>(transaction: T): void {
   const isNodeAccountIdNotSet =
     !transaction.nodeAccountIds || transaction.nodeAccountIds.length === 0
-  if (!transaction.isFrozen() && isNodeAccountIdNotSet) {
-    //TODO: add nodes
-    transaction.setNodeAccountIds([new AccountId(3)])
-  }
+
+  if (!transaction.isFrozen() && isNodeAccountIdNotSet)
+    transaction.setNodeAccountIds([new AccountId(3), new AccountId(4), new AccountId(5)])
 }
 
 /**
@@ -88,7 +85,6 @@ export function signatureMapToBase64(signatureMap: proto.SignatureMap): string {
  * @returns `proto.SignatureMap`
  */
 export function base64StringToSignatureMap(base64string: string): proto.SignatureMap {
-  //TODO is this right?
   const decoded = Buffer.from(base64string, 'base64').toString('utf-8')
   return proto.SignatureMap.decode(JSON.parse(decoded))
 }

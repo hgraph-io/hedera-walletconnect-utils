@@ -13,6 +13,7 @@ import {
   stringToSignerMessage,
   signatureMapToBase64,
   signerSignaturesToSignatureMapProto,
+  base64StringToTransaction,
   getHederaError,
   GetNodeAddresesResponse,
   ExecuteTransactionResponse,
@@ -187,6 +188,7 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
           this.validateParam('transactionList', transactionList, 'string')
 
           signerAccountId = AccountId.fromString(_accountId)
+          body = base64StringToTransaction(transactionList)
           break
         }
         case HederaJsonRpcMethod.SignTransaction: {
