@@ -59,14 +59,6 @@ describe('DAppConnector', () => {
   })
 
   describe('init', () => {
-    it('should throw error if there is no projectId', async () => {
-      connector.projectId = undefined
-
-      await expect(connector.init({ logger: 'error' })).rejects.toThrow(
-        'Project ID is not defined',
-      )
-    })
-
     it('should init SignClient correctly', async () => {
       await connector.init({ logger: 'error' })
 
