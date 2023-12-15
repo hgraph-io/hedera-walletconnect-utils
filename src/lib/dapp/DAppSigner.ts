@@ -77,6 +77,10 @@ export class DAppSigner implements Signer {
     throw new Error('Method not implemented.')
   }
 
+  async signTransaction<T extends Transaction>(transaction: T): Promise<T> {
+    throw new Error('Method not implemented.')
+  }
+
   async call<RequestT, ResponseT, OutputT>(
     request: Executable<RequestT, ResponseT, OutputT>,
   ): Promise<OutputT> {
