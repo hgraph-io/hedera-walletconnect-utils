@@ -30,7 +30,6 @@ import {
 import { DAppSigner } from './DAppSigner'
 import { JsonRpcResult } from '@walletconnect/jsonrpc-types'
 
-export * from './helpers'
 export * from './DAppSigner'
 
 type BaseLogger = 'error' | 'warn' | 'info' | 'debug' | 'trace' | 'fatal'
