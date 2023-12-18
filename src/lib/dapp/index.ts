@@ -501,11 +501,13 @@ export class DAppConnector {
    * @param {string[]} params.transaction - Array of Base64-encoded `Transaction`'s
    * @returns Promise\<{@link SignTransactionResult}\>
    * @example
-   * Use helper `transactionToBase64String` to encode `Transaction` to Base64 string
    * ```ts
+   * const transactionBodyObject = transactionToTransactionBody(transaction, AccountId.fromString('0.0.3'))
+   * const transactionBody = transactionBodyToBase64String(transactionBodyObject)
+   *
    * const params = {
-   *  signerAccountId: '0.0.12345'
-   *  transaction: [transactionToBase64String(transaction)]
+   *  signerAccountId: '0.0.12345',
+   *  transactionBody
    * }
    *
    * const result = await dAppConnector.signTransaction(params)

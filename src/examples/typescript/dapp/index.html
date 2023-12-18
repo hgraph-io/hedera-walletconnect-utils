@@ -72,9 +72,16 @@
         <form id="hedera_executeTransaction" class="toggle">
           <fieldset>
             <legend>2. hedera_executeTransaction</legend>
+            <p>
+              These fields can be constructed by using the `hedera_signTransaction` method below
+            </p>
             <label
-              >Signed transaction bytes:
-              <input name="send-transaction" required />
+              >Base64 Encoded TransactionBody protobuf:
+              <input name="execute-transaction-body" required />
+            </label>
+            <label
+              >Base64 Encoded SignatureMap protobuf:
+              <input name="execute-transaction-signature-map" required />
             </label>
           </fieldset>
           <button type="submit">Submit to wallet</button>
@@ -171,6 +178,7 @@
           </fieldset>
           <button type="submit">Submit to wallet</button>
         </form>
+        <pre id="sign-transaction-result"></pre>
       </section>
 
       <hr />

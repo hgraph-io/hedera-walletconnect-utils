@@ -1,6 +1,8 @@
+import { Buffer } from 'buffer'
 // https://docs.walletconnect.com/2.0/api/sign/dapp-usage
 import { SignClientTypes } from '@walletconnect/types'
 import {
+  Transaction,
   TransferTransaction,
   Hbar,
   TransactionId,
@@ -10,10 +12,14 @@ import {
   LedgerId,
   PublicKey,
 } from '@hashgraph/sdk'
+import { proto } from '@hashgraph/proto'
 import {
   HederaSessionEvent,
   HederaJsonRpcMethod,
   transactionToBase64String,
+  transactionToTransactionBody,
+  transactionBodyToBase64String,
+  base64StringToSignatureMap,
   queryToBase64String,
   ExecuteTransactionParams,
   SignMessageParams,
@@ -120,9 +126,13 @@ document.getElementById('hedera_getNodeAddresses')!.onsubmit = (e: SubmitEvent) 
 
 // 2. hedera_executeTransaction
 async function hedera_executeTransaction(_: Event) {
-  const params: ExecuteTransactionParams = {
-    transactionList: getState('send-transaction'),
-  }
+  const bodyBytes = Buffer.from(getState('execute-transaction-body'), 'base64')
+  const sigMap = base64StringToSignatureMap(getState('execute-transaction-signature-map'))
+
+  const bytes = proto.Transaction.encode({ bodyBytes, sigMap }).finish()
+  const transactionList = transactionToBase64String(Transaction.fromBytes(bytes))
+
+  const params: ExecuteTransactionParams = { transactionList }
 
   return await dAppConnector!.executeTransaction(params)
 }
@@ -186,15 +196,25 @@ document.getElementById('hedera_signAndExecuteTransaction')!.onsubmit = (e: Subm
 async function hedera_signTransaction(_: Event) {
   const transaction = new TransferTransaction()
     .setTransactionId(TransactionId.generate(getState('sign-from')))
+    .setMaxTransactionFee(new Hbar(1))
     .addHbarTransfer(getState('sign-from'), new Hbar(-getState('sign-amount')))
     .addHbarTransfer(getState('sign-to'), new Hbar(+getState('sign-amount')))
 
   const params: SignTransactionParams = {
     signerAccountId: getState('sign-from'),
-    transactionList: transactionToBase64String(transaction),
+    transactionBody: transactionBodyToBase64String(
+      // must specify a node account id for the transaction body
+      transactionToTransactionBody(transaction, AccountId.fromString('0.0.3')),
+    ),
   }
 
-  return await dAppConnector!.signTransaction(params)
+  const { signatureMap } = await dAppConnector!.signTransaction(params)
+  document.getElementById('sign-transaction-result').innerText = JSON.stringify(
+    { params, signatureMap },
+    null,
+    2,
+  )
+  console.log({ params, signatureMap })
 }
 document.getElementById('hedera_signTransaction')!.onsubmit = (e: SubmitEvent) =>
   showErrorOrSuccess(hedera_signTransaction, e)
