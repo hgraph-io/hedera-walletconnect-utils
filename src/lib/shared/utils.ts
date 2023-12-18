@@ -74,6 +74,13 @@ export function base64StringToTransaction<T extends Transaction>(transactionByte
   return Transaction.fromBytes(decoded) as T
 }
 
+export function transactionToTransactionBodyBase64String<T extends Transaction>(
+  transaction: T,
+) {
+  //@ts-ignore
+  const transactionBody = transaction._makeTrankactionBody()
+}
+
 /**
  * Converts a `proto.SignatureMap` to a base64 encoded string.
  *

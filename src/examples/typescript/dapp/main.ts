@@ -20,6 +20,7 @@ import {
   SignAndExecuteQueryParams,
   SignAndExecuteTransactionParams,
   SignTransactionParams,
+  SignTransactionResult,
   DAppConnector,
   HederaChainId,
   verifyMessageSignature,
@@ -191,10 +192,12 @@ async function hedera_signTransaction(_: Event) {
 
   const params: SignTransactionParams = {
     signerAccountId: getState('sign-from'),
-    transactionList: transactionToBase64String(transaction),
+    transactionBody: transactionToBase64String(transaction),
   }
 
-  return await dAppConnector!.signTransaction(params)
+  const { signatureMap } = await dAppConnector!.signTransaction(params)
+  document.getElementById('sign-transaction-result').innerHTML = signatureMap
+  console.log(signatureMap)
 }
 document.getElementById('hedera_signTransaction')!.onsubmit = (e: SubmitEvent) =>
   showErrorOrSuccess(hedera_signTransaction, e)

@@ -506,7 +506,7 @@ export class DAppConnector {
    * ```ts
    * const params = {
    *  signerAccountId: '0.0.12345'
-   *  transaction: [transactionToBase64String(transaction)]
+   *  transactionBody: transactionToBase64String(transaction)
    * }
    *
    * const result = await dAppConnector.signTransaction(params)
