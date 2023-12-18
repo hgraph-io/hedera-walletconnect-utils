@@ -74,11 +74,43 @@ export function base64StringToTransaction<T extends Transaction>(transactionByte
   return Transaction.fromBytes(decoded) as T
 }
 
-export function transactionToTransactionBodyBase64String<T extends Transaction>(
+/**
+ * @param transaction - a base64 encoded string of proto.TransactionBody.encode().finish()
+ * @returns `string`
+ * */
+export function transactionToTransactionBody<T extends Transaction>(
   transaction: T,
+  nodeAccountId: AccountId,
 ) {
+  // This is a private function, though provides the capabilities to construct a proto.TransactionBody
   //@ts-ignore
-  const transactionBody = transaction._makeTrankactionBody()
+  return transaction._makeTransactionBody(nodeAccountId)
+}
+
+export function transactionBodyToBase64String(transactionBody: proto.TransactionBody) {
+  return Uint8ArrayToBase64String(proto.TransactionBody.encode(transactionBody).finish())
+}
+
+/**
+ * @param transactionList - a proto.TransactionList object
+ * @returns `string`
+ * */
+export function transactionListToBase64String(transactionList: proto.TransactionList) {
+  const encoded = proto.TransactionList.encode(transactionList).finish()
+  return Uint8ArrayToBase64String(encoded)
+}
+
+/**
+ * Decodes base64 encoded proto.TransactionBody bytes to a `proto.TransactionBody` object.
+ *
+ * @param transactionBody - a base64 encoded string of proto.TransactionBody.encode().finish()
+ * @returns `Transaction`
+ *
+ * */
+
+export function base64StringToTransactionBody(transactionBody: string): proto.TransactionBody {
+  const bytes = Buffer.from(transactionBody, 'base64')
+  return proto.TransactionBody.decode(bytes)
 }
 
 /**
