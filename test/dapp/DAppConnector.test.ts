@@ -1,4 +1,4 @@
-import { AccountInfoQuery, LedgerId, TopicCreateTransaction } from '@hashgraph/sdk'
+import { AccountId, AccountInfoQuery, LedgerId, TopicCreateTransaction } from '@hashgraph/sdk'
 import {
   DAppConnector,
   ExecuteTransactionParams,
@@ -10,6 +10,8 @@ import {
   SignTransactionParams,
   queryToBase64String,
   transactionToBase64String,
+  transactionToTransactionBody,
+  transactionBodyToBase64String,
 } from '../../src'
 import {
   projectId,
@@ -271,7 +273,10 @@ describe('DAppConnector', () => {
       const transaction = prepareTestTransaction(new TopicCreateTransaction(), { freeze: true })
       const params: SignTransactionParams = {
         signerAccountId: testUserAccountId.toString(),
-        transactionBody: transactionToBase64String(transaction),
+        transactionBody: transactionBodyToBase64String(
+          // must specify a node account id for the transaction body
+          transactionToTransactionBody(transaction, AccountId.fromString('0.0.3')),
+        ),
       }
 
       it('should throw an error if there is no any signer', async () => {

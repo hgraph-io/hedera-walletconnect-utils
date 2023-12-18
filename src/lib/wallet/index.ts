@@ -15,7 +15,6 @@ import {
   signatureMapToBase64String,
   signerSignaturesToSignatureMap,
   base64StringToTransaction,
-  // base64StringToTransactionBody,
   getHederaError,
   GetNodeAddresesResponse,
   ExecuteTransactionResponse,
@@ -162,9 +161,7 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
           // 2
           const { transactionList } = params
           this.validateParam('transactionList', transactionList, 'string')
-          console.log(transactionList)
           body = base64StringToTransaction(transactionList)
-          console.log(body)
           break
         }
         case HederaJsonRpcMethod.SignMessage: {
@@ -367,7 +364,6 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
   public async hedera_signTransaction(
     id: number,
     topic: string,
-    // body: proto.TransactionBody,
     body: Uint8Array,
     signer: HederaWallet,
   ): Promise<void> {
