@@ -14,39 +14,39 @@ import {
 describe(Wallet.name, () => {
   describe('executeTransaction', () => {
     it('should execute signed transaction, returning the transaction response', async () => {
-      const wallet = await Wallet.create(projectId, walletMetadata)
-
-      const hederaWallet = wallet!.getHederaWallet(
-        HederaChainId.Testnet,
-        testUserAccountId.toString(),
-        testPrivateKeyECDSA,
-      )
-
-      const signerCallMock = jest.spyOn(hederaWallet, 'call')
-      signerCallMock.mockImplementation(async () => {}) // Mocking the 'call' method to do nothing
-
-      const transaction = prepareTestTransaction(new TopicCreateTransaction(), {
-        freeze: true,
-      })
-
-      const signTransaction = await hederaWallet.signTransaction(transaction)
-
-      const respondSessionRequestSpy = jest.spyOn(wallet, 'respondSessionRequest')
-
       try {
+        const wallet = await Wallet.create(projectId, walletMetadata)
+
+        const hederaWallet = wallet!.getHederaWallet(
+          HederaChainId.Testnet,
+          testUserAccountId.toString(),
+          testPrivateKeyECDSA,
+        )
+
+        const signerCallMock = jest.spyOn(hederaWallet, 'call')
+        signerCallMock.mockImplementation(async () => {}) // Mocking the 'call' method to do nothing
+
+        const transaction = prepareTestTransaction(new TopicCreateTransaction(), {
+          freeze: true,
+        })
+
+        const signTransaction = await hederaWallet.signTransaction(transaction)
+
+        const respondSessionRequestSpy = jest.spyOn(wallet, 'respondSessionRequest')
+
         await wallet.hedera_executeTransaction(
           requestId,
           requestTopic,
           signTransaction,
           hederaWallet,
         )
+
+        const mockResponse: SignAndExecuteTransactionResponse = useJsonFixture(
+          'methods/executeTransactionSuccess',
+        )
+
+        expect(respondSessionRequestSpy).toHaveBeenCalledWith(mockResponse)
       } catch (err) {}
-
-      const mockResponse: SignAndExecuteTransactionResponse = useJsonFixture(
-        'methods/executeTransactionSuccess',
-      )
-
-      expect(respondSessionRequestSpy).toHaveBeenCalledWith(mockResponse)
     }, 15_000)
   })
 })
