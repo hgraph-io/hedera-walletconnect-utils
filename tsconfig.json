@@ -1,5 +1,5 @@
 {
-  "include": ["src/**/*", "test/**/*"],
+  "include": ["src/lib/**/*", "test/**/*"],
   "compilerOptions": {
     "target": "ES2017",
     "module": "ESNext",

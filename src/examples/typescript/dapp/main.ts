@@ -217,7 +217,7 @@ async function hedera_signTransaction(_: Event) {
   }
 
   const { signatureMap } = await dAppConnector!.signTransaction(params)
-  document.getElementById('sign-transaction-result').innerText = JSON.stringify(
+  document.getElementById('sign-transaction-result')!.innerText = JSON.stringify(
     { params, signatureMap },
     null,
     2,
