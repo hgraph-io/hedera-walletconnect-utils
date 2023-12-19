@@ -58,7 +58,7 @@ describe(setDefaultNodeAccountIds.name, () => {
     setDefaultNodeAccountIds(txn)
     const result = txn.nodeAccountIds?.map((id) => id.toString())
 
-    expect(result).toEqual(['0.0.3'])
+    expect(result).toEqual(['0.0.3', '0.0.4', '0.0.5'])
   })
 
   it('should do nothing if node account ids are already set', () => {

@@ -23,7 +23,13 @@ describe(Wallet.name, () => {
       )
 
       const signerCallMock = jest.spyOn(hederaWallet, 'call')
-      signerCallMock.mockImplementation(async () => {}) // Mocking the 'call' method to do nothing
+      signerCallMock.mockImplementation(async () => {
+        return {
+          nodeId: '0.0.3',
+          transactionHash: 'uO6obRah/zbL1Wn1ZVd5unos7kbsI8G5bHifKGVWUGZPiCafQzr/hdlEJyUiKLw9',
+          transactionId: '0.0.12345@1691705630.325343432',
+        }
+      }) // Mocking the 'call' method to do nothing
 
       const transaction = prepareTestTransaction(new TopicCreateTransaction(), {
         freeze: true,
