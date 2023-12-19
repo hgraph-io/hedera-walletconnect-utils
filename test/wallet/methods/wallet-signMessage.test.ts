@@ -14,12 +14,12 @@ describe(Wallet.name, () => {
       [
         'ECDSA',
         testPrivateKeyECDSA,
-        'rsAgbuzDlk6bDKKAqSqu254YsrXj2YwiSw9mzK/7PvvDGV+jXTU+yfg9qePLD/UvO3/nqvsm63lY9YurfRPhcQ==',
+        'CmUKIQJ4J53yGuPNMGEGJ7HkI+u3QFxUuAOa9VLEtFj7Y6qNMzJAp3vxT7kRPE9HFFm/bbArGYDQ+psNWZC70rdW2bE1L86REC5xavtsalXfGaZ7FsdkWwPg4GBUKuzmr1eFTcYdNg==',
       ],
       [
         'ED25519',
         testPrivateKeyED25519,
-        'e/BPvGhCXqY4X8g1aA9VJ23/grWN6UhR3vZd9mfRCzraNHwN+PClC3JXcuQSYiZdZYcJhj3u4lTckpxur4Z0Bg==',
+        'CmQKIKLvE3YbZEplGhpKxmbq+6xBnJcoL4r1wz9Y1zLnPlpVGkBtfDTfBZGf/MUbovYyLUjORErDGhDYbzPFoAbkMwRrpw2ouDRmn6Dd6A06k6yM/FhZ/VjdHVhQUd+fxv1cZqUM',
       ],
     ]
     test.each(testCases)(

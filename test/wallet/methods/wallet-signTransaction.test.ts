@@ -1,5 +1,10 @@
-import { TopicCreateTransaction } from '@hashgraph/sdk'
-import { HederaChainId, SignTransactionResponse, Wallet } from '../../../src'
+import { TransferTransaction, AccountId, Hbar } from '@hashgraph/sdk'
+import {
+  HederaChainId,
+  SignTransactionResponse,
+  Wallet,
+  transactionToTransactionBody,
+} from '../../../src'
 import {
   projectId,
   requestId,
@@ -19,18 +24,24 @@ describe(Wallet.name, () => {
         testUserAccountId.toString(),
         testPrivateKeyECDSA,
       )
-      const transaction = new TopicCreateTransaction()
-      //@ts-ignore
-      const transactionBody = transaction._makeTransactionBody(AccountId.fromString('0.0.3'))
+      const transaction = new TransferTransaction()
+        .setMaxTransactionFee(new Hbar(1))
+        .addHbarTransfer('0.0.123', new Hbar(10))
+        .addHbarTransfer('0.0.321', new Hbar(-10))
+      const transactionBody = transactionToTransactionBody(
+        transaction,
+        AccountId.fromString('0.0.3'),
+      )
       const respondSessionRequestSpy = jest.spyOn(wallet, 'respondSessionRequest')
 
       try {
-        await wallet.hedera_signTransaction(
+        const response = await wallet.hedera_signTransaction(
           requestId,
           requestTopic,
           transactionBody,
           hederaWallet,
         )
+        console.log(response)
       } catch (err) {}
 
       const mockResponse: SignTransactionResponse = useJsonFixture(
