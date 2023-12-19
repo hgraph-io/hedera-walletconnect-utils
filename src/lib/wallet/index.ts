@@ -324,7 +324,12 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
     body: Query<any>,
     signer: HederaWallet,
   ): Promise<void> {
-    const queryResult = await body.executeWithSigner(signer)
+    /*
+     * Can be used with return values the have a toBytes method implemented
+     * For example:
+     * https://github.com/hashgraph/hedera-sdk-js/blob/c4438cbaa38074d8bfc934dba84e3b430344ed89/src/account/AccountInfo.js#L402
+     */
+    const queryResult = (await body.executeWithSigner(signer)) as { toBytes: () => Uint8Array }
     const queryResponse = Uint8ArrayToBase64String(queryResult.toBytes())
 
     const response: SignAndExecuteQueryResponse = {
@@ -332,7 +337,9 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
       response: {
         jsonrpc: '2.0',
         id,
-        result: { response: queryResponse },
+        result: {
+          response: queryResponse,
+        },
       },
     }
 

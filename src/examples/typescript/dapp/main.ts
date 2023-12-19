@@ -11,6 +11,7 @@ import {
   Timestamp,
   LedgerId,
   PublicKey,
+  AccountInfo,
 } from '@hashgraph/sdk'
 import { proto } from '@hashgraph/proto'
 import {
@@ -167,7 +168,14 @@ async function hedera_signAndExecuteQuery(_: Event) {
     query: queryToBase64String(query),
   }
 
-  return await dAppConnector!.signAndExecuteQuery(params)
+  /*
+   * We expect the response to be the bytes of the AccountInfo protobuf
+   */
+  const { response } = await dAppConnector!.signAndExecuteQuery(params)
+  const bytes = Buffer.from(response, 'base64')
+  const accountInfo = AccountInfo.fromBytes(bytes)
+  console.log(accountInfo)
+  return accountInfo
 }
 
 document.getElementById('hedera_signAndExecuteQuery')!.onsubmit = (e: SubmitEvent) =>
