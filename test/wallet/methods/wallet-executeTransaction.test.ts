@@ -29,7 +29,7 @@ describe(Wallet.name, () => {
         freeze: true,
       })
 
-      const signeTransaction = await hederaWallet.signTransaction(transaction)
+      const signTransaction = await hederaWallet.signTransaction(transaction)
 
       const respondSessionRequestSpy = jest.spyOn(wallet, 'respondSessionRequest')
 
@@ -37,7 +37,7 @@ describe(Wallet.name, () => {
         await wallet.hedera_executeTransaction(
           requestId,
           requestTopic,
-          signeTransaction,
+          signTransaction,
           hederaWallet,
         )
       } catch (err) {}
