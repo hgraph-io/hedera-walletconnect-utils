@@ -73,7 +73,7 @@ async function init(e: Event) {
     //
   })
   //https://docs.walletconnect.com/api/core/pairing
-  wallet.core.pairing.events.on('pairing_delete', (pairing) => {
+  wallet.core.pairing.events.on('pairing_delete', (pairing: string) => {
     // Session was deleted
     console.log(pairing)
     console.log(`Wallet: Pairing deleted by dapp!`)
@@ -122,6 +122,7 @@ async function disconnect(e: Event) {
   for (const session of Object.values(wallet!.getActiveSessions())) {
     console.log(`Disconnecting from session: ${session}`)
     await wallet!.disconnectSession({
+      // @ts-ignore
       topic: session.topic,
       reason: getSdkError('USER_DISCONNECTED'),
     })
