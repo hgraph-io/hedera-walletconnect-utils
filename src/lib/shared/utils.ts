@@ -82,7 +82,6 @@ export function transactionToTransactionBody<T extends Transaction>(
   transaction: T,
   nodeAccountId: AccountId,
 ) {
-  console.log(transaction)
   // This is a private function, though provides the capabilities to construct a proto.TransactionBody
   //@ts-ignore
   return transaction._makeTransactionBody(nodeAccountId)
