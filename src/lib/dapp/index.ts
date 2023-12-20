@@ -520,3 +520,5 @@ export class DAppConnector {
     })
   }
 }
+
+export default DAppConnector

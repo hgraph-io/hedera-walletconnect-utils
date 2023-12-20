@@ -37,8 +37,9 @@
     "prettier": "^3.1.0",
     "rimraf": "^5.0.5",
     "ts-jest": "^29.1.1",
-    "ts-node": "^10.9.1",
+    "ts-node": "^10.9.2",
     "typedoc": "^0.25.4",
+    "typedoc-theme-hierarchy": "^4.1.2",
     "typescript": "^5.2.2"
   },
   "dependencies": {
@@ -54,6 +55,7 @@
     "build": "npm run build:types && node scripts/lib/build.mjs",
     "build:types": "tsc --emitDeclarationOnly --declaration --declarationMap --outDir dist/types",
     "build:example": "node scripts/examples/build.mjs",
+    "build:docs": "typedoc --options typedoc.json",
     "watch": "nodemon --watch src/lib/ --ext ts --exec \"npm run build\"",
     "dev": "rimraf dist && npm run build && concurrently --raw \"npm run watch\" \"node scripts/examples/dev.mjs\"",
     "test": "jest",
