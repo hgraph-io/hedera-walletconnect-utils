@@ -27,8 +27,11 @@ import { proto } from '@hashgraph/proto'
 import Provider from './provider'
 import type { HederaNativeWallet } from './types'
 
+export type { HederaNativeWallet } from './types'
+export { default as WalletProvider } from './provider'
+
 // https://github.com/WalletConnect/walletconnect-monorepo/blob/v2.0/packages/web3wallet/src/client.ts
-export default class Wallet extends Web3Wallet implements HederaNativeWallet {
+export class HederaWeb3Wallet extends Web3Wallet implements HederaNativeWallet {
   /*
    * Set default values for chains, methods, events
    */
@@ -49,7 +52,7 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
     methods?: string[],
     sessionEvents?: HederaSessionEvent[] | string[],
   ) {
-    const wallet = new Wallet(
+    const wallet = new HederaWeb3Wallet(
       { core: new Core({ projectId }), metadata },
       chains,
       methods,
@@ -396,3 +399,5 @@ export default class Wallet extends Web3Wallet implements HederaNativeWallet {
     return await this.respondSessionRequest(response)
   }
 }
+
+export default HederaWeb3Wallet
