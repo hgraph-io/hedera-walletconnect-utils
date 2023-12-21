@@ -172,7 +172,7 @@ export class HederaWeb3Wallet extends Web3Wallet implements HederaNativeWallet {
           const { signerAccountId: _accountId, message } = params
           this.validateParam('signerAccountId', _accountId, 'string')
           this.validateParam('message', message, 'string')
-          signerAccountId = AccountId.fromString(_accountId)
+          signerAccountId = AccountId.fromString(_accountId.replace(chainId + ':', ''))
           body = message
           break
         }
@@ -181,7 +181,7 @@ export class HederaWeb3Wallet extends Web3Wallet implements HederaNativeWallet {
           const { signerAccountId: _accountId, query } = params
           this.validateParam('signerAccountId', _accountId, 'string')
           this.validateParam('query', query, 'string')
-          signerAccountId = AccountId.fromString(_accountId)
+          signerAccountId = AccountId.fromString(_accountId.replace(chainId + ':', ''))
           body = base64StringToQuery(query)
           break
         }
@@ -191,7 +191,7 @@ export class HederaWeb3Wallet extends Web3Wallet implements HederaNativeWallet {
           this.validateParam('signerAccountId', _accountId, 'string')
           this.validateParam('transactionList', transactionList, 'string')
 
-          signerAccountId = AccountId.fromString(_accountId)
+          signerAccountId = AccountId.fromString(_accountId.replace(chainId + ':', ''))
           body = base64StringToTransaction(transactionList)
           break
         }
@@ -200,7 +200,7 @@ export class HederaWeb3Wallet extends Web3Wallet implements HederaNativeWallet {
           const { signerAccountId: _accountId, transactionBody } = params
           this.validateParam('signerAccountId', _accountId, 'string')
           this.validateParam('transactionBody', transactionBody, 'string')
-          signerAccountId = AccountId.fromString(_accountId)
+          signerAccountId = AccountId.fromString(_accountId.replace(chainId + ':', ''))
           body = Buffer.from(transactionBody, 'base64')
           break
         }
