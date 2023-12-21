@@ -144,7 +144,7 @@ document.getElementById('hedera_executeTransaction')!.onsubmit = (e: SubmitEvent
 async function hedera_signMessage(_: Event) {
   const message = getState('sign-message')
   const params: SignMessageParams = {
-    signerAccountId: getState('sign-from'),
+    signerAccountId: 'hedera:testnet:' + getState('sign-from'),
     message,
   }
 
@@ -164,7 +164,7 @@ document.getElementById('hedera_signMessage')!.onsubmit = (e: SubmitEvent) =>
 async function hedera_signAndExecuteQuery(_: Event) {
   const query = new AccountInfoQuery().setAccountId(getState('query-payment-account'))
   const params: SignAndExecuteQueryParams = {
-    signerAccountId: getState('query-payment-account'),
+    signerAccountId: 'hedera:testnet:' + getState('query-payment-account'),
     query: queryToBase64String(query),
   }
 
@@ -190,7 +190,7 @@ async function hedera_signAndExecuteTransaction(_: Event) {
 
   const params: SignAndExecuteTransactionParams = {
     transactionList: transactionToBase64String(transaction),
-    signerAccountId: getState('sign-send-from'),
+    signerAccountId: 'hedera:testnet:' + getState('sign-send-from'),
   }
 
   console.log(params)
@@ -209,7 +209,7 @@ async function hedera_signTransaction(_: Event) {
     .addHbarTransfer(getState('sign-to'), new Hbar(+getState('sign-amount')))
 
   const params: SignTransactionParams = {
-    signerAccountId: getState('sign-from'),
+    signerAccountId: 'hedera:testnet:' + getState('sign-from'),
     transactionBody: transactionBodyToBase64String(
       // must specify a node account id for the transaction body
       transactionToTransactionBody(transaction, AccountId.fromString('0.0.3')),
@@ -242,7 +242,7 @@ async function simulateGossipNodeError(_: Event) {
 
   const params: SignAndExecuteTransactionParams = {
     transactionList: transactionToBase64String(transaction),
-    signerAccountId: getState('sign-send-from'),
+    signerAccountId: 'hedera:testnet:' + getState('sign-send-from'),
   }
 
   return await dAppConnector!.signAndExecuteTransaction(params)
@@ -252,7 +252,7 @@ document.getElementById('error-gossip-node')!.onsubmit = (e: SubmitEvent) =>
   showErrorOrSuccess(simulateGossipNodeError, e)
 
 async function simulateTransactionExpiredError(_: Event) {
-  const sender = getState('sign-send-from') || getState('send-from')
+  const sender = 'hedera:testnet:' + (getState('sign-send-from') || getState('send-from'))
   const recepient = getState('sign-send-to') || getState('send-to')
 
   const transaction = new TransferTransaction()
