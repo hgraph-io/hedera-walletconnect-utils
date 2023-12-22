@@ -30,7 +30,10 @@ import type { HederaNativeWallet } from './types'
 export type { HederaNativeWallet } from './types'
 export { default as WalletProvider } from './provider'
 
-// https://github.com/WalletConnect/walletconnect-monorepo/blob/v2.0/packages/web3wallet/src/client.ts
+/*
+ *
+ * @see {@link https://github.com/WalletConnect/walletconnect-monorepo/blob/v2.0/packages/web3wallet/src/client.ts}
+ */
 export class HederaWeb3Wallet extends Web3Wallet implements HederaNativeWallet {
   /*
    * Set default values for chains, methods, events

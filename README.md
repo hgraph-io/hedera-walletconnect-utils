@@ -1,28 +1,32 @@
 # Overview
 
-## Under active development
+## Community Beta: Open Access
 
-This library is a work in progress and open for contribution. The final destination for the
-community supported and governed helper library implementing WalletConnect will be
-`@hashgraph/walletconnect`.
+This library is the result of Hedera community collaboration to bring Hedera into the
+WalletConnect ecosystem and vice versa. The final destination for the community supported and
+governed repository will be made available under the `@hashgraph` organization on github.
 
-The main branch of this library is deprecated and was originally built utilizing the spec set
-out by the
-[Hedera <> WalletConnect JSON-RPC spec](https://walletconnect-specs-git-fork-hgraph-io-main-walletconnect1.vercel.app/2.0/blockchain-rpc/hedera-rpc).
+The development branch of this repository is `release/hip-820`. The goal of this repository is
+to be a reference for wallets and dApps integrating the WalletConnect <> Hedera JSON-RPC
+reference. Additionally, this library is meant to be included in projects supporting
+WalletConnect and Hedera, providing utility functions useful to validating requests and resposes
+in both the WalletConnect JSON-RPC context as well as the Hedera context.
 
-There is an active discussion surrounding standardizing the "Integration of Wallet Connect 2.0
-Protocol for Wallets and dApps on Hedera" via the
-[HIP-820 discussion](https://github.com/hashgraph/hedera-improvement-proposal/discussions/819).
+A few useful resources include:
 
-The `release/hip-820` branch of this repo is the upstream branch of this repository as we
-migrate to this spec.
+- [HIP-820](https://hips.hedera.com/hip/hip-820)
+- [WalletConnect <> Hedera JSON-RPC spec](https://specs.walletconnect.com/2.0/blockchain-rpc/hedera-rpc).
 
-We are working on this library as well as the
-[WalletConnect Spec PR](https://github.com/WalletConnect/walletconnect-specs/pull/117) based on
-the results of
-[HIP-820](https://github.com/hashgraph/hedera-improvement-proposal/pull/820/files).
+> WalletConnect brings the ecosystem together by enabling wallets and apps to securely connect
+> and interact.
+>
+> -- <cite> https://walletconnect.com
 
-Please join the discussion!
+Hedera aims to be:
+
+> The open source public ledger for everyone
+>
+> -- <cite> https://hedera.com
 
 ---
 
@@ -31,14 +35,14 @@ wallets and dApp providers utilizing [WalletConnect](https://walletconnect.com) 
 communications protocol. It utilizes the
 [`@hashgraph/sdk`](https://www.npmjs.com/package/@hashgraph/sdk) and provides functions to
 facilitate implementing the
-[Hedera <> WalletConnect JSON-RPC spec](https://walletconnect-specs-git-fork-hgraph-io-main-walletconnect1.vercel.app/2.0/blockchain-rpc/hedera-rpc).
+[WalletConnect <> Hedera JSON-RPC spec](https://specs.walletconnect.com/2.0/blockchain-rpc/hedera-rpc)
+which has been defined through the collaborative HIP process in
+[HIP-820](https://hips.hedera.com/hip/hip-820).
 
-> WalletConnect brings the ecosystem together by enabling wallets and apps to securely connect
-> and interact.
->
-> -- <cite> https://walletconnect.com
+HIP-820 has a current status of "Last Call", signifying it is in a mature review stage, or in
+HIP lingo - "The authors wish to finalize the HIP and appreciate feedback."
 
-This library facilitates the implementation of the **Hedera <> WalletConnect Spec** which allows
+This library facilitates the implementation of the **WalletConnect <> Hedera Spec** which allows
 wallets and dApps to natively integrate with Hedera. It provides additional, out of network
 functionality with the `hedera_signMessage` function.
 
@@ -69,7 +73,7 @@ will use your project id when initializing client libraries.
 It is important to understand core WalletConnect concepts when integrating this library. Please
 reference the [WalletConnect documentation](https://docs.walletconnect.com/2.0/).
 
-## Usage - Updates to the README are in progress
+## Usage
 
 Upon successfully configuring your dApp and/or wallet to manage WalletConnect sessions, you can
 use this library’s functions to easily create and handle requests for the Hedera network.
@@ -78,7 +82,7 @@ use this library’s functions to easily create and handle requests for the Hede
 
 This library provides a Wallet class that extends the
 [ Web3Wallet ](https://github.com/WalletConnect/walletconnect-monorepo/tree/v2.0/packages/web3wallet)
-class provided by WalletConnect class provided by WalletConnect
+class provided by WalletConnect class
 
 #### Event Listeners
 
@@ -136,3 +140,14 @@ to approve or reject the session:
 
 Upon receiving a `session_request` event, process the request. For instance, if the dApp
 requests a transaction to be signed:
+
+## Demo & docs
+
+This repository includes a vanilla html/css/javascript implementation with a dApp and wallet
+example useful for testing and development while integrating WalletConnect and Hedera.
+
+The docs site utilizes [Typedoc](https://typedoc.org) to generate a library documentation site
+at <https://wc.hgraph.app/docs/>
+
+The demo source code lives in `./src/examples/typescript` and is available at
+<https://wc.hgraph.app>
