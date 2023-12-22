@@ -6,16 +6,16 @@ This library is the result of Hedera community collaboration to bring Hedera int
 WalletConnect ecosystem and vice versa. The final destination for the community supported and
 governed repository will be made available under the `@hashgraph` organization on github.
 
-The development branch of this repository is `release/hip-820` which is the guiding reference
-for wallets and dApps integrating the Hedera <> WalletConnect JSON-RPC reference. (Not to be
-confused with the Ethereum JSON-RPC compatability relay)
+The development branch of this repository is `release/hip-820`. The goal of this repository is
+to be a reference for wallets and dApps integrating the WalletConnect <> Hedera JSON-RPC
+reference. Additionally, this library is meant to be included in projects supporting
+WalletConnect and Hedera, providing utility functions useful to validating requests and resposes
+in both the WalletConnect JSON-RPC context as well as the Hedera context.
 
 A few useful resources include:
 
 - [HIP-820](https://hips.hedera.com/hip/hip-820)
 - [WalletConnect <> Hedera JSON-RPC spec](https://specs.walletconnect.com/2.0/blockchain-rpc/hedera-rpc).
-
-Please join the discussion!
 
 > WalletConnect brings the ecosystem together by enabling wallets and apps to securely connect
 > and interact.
@@ -42,7 +42,7 @@ which has been defined through the collaborative HIP process in
 HIP-820 has a current status of "Last Call", signifying it is in a mature review stage, or in
 HIP lingo - "The authors wish to finalize the HIP and appreciate feedback."
 
-This library facilitates the implementation of the **Hedera <> WalletConnect Spec** which allows
+This library facilitates the implementation of the **WalletConnect <> Hedera Spec** which allows
 wallets and dApps to natively integrate with Hedera. It provides additional, out of network
 functionality with the `hedera_signMessage` function.
 
