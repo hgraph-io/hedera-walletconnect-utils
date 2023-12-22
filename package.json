@@ -1,6 +1,6 @@
 {
-  "name": "@hashgraph/walletconnect",
-  "version": "0.1.1-0",
+  "name": "hedera-walletconnect",
+  "version": "1.0.0-rc-1",
   "description": "A library to facilitate integrating Hedera with WalletConnect",
   "repository": {
     "type": "git",
