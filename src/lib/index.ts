@@ -1,4 +1,3 @@
-export * from './constants'
+export * from './shared'
+export { default as Wallet } from './wallet'
 export * from './dapp'
-export * from './utils'
-export * from './wallet'
