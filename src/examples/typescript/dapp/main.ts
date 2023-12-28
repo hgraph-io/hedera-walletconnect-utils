@@ -144,7 +144,7 @@ document.getElementById('hedera_executeTransaction')!.onsubmit = (e: SubmitEvent
 async function hedera_signMessage(_: Event) {
   const message = getState('sign-message')
   const params: SignMessageParams = {
-    signerAccountId: 'hedera:testnet:' + getState('sign-from'),
+    signerAccountId: 'hedera:testnet:' + getState('sign-message-from'),
     message,
   }
 
