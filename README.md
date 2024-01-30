@@ -1,5 +1,15 @@
 # Overview
 
+## Update January 30, 2024
+
+Thank you all for participating! The work from this initiative has successfully been published to:
+- https://specs.walletconnect.com/2.0/blockchain-rpc/hedera-rpc
+- https://www.npmjs.com/package/@hashgraph/hedera-wallet-connect?activeTab=readme
+
+For additional support or to discuss development on other interesting projects, please email info@hgraph.io.
+
+Great work everyone!
+
 ## Community Beta: Open Access
 
 This library is the result of Hedera community collaboration to bring Hedera into the
